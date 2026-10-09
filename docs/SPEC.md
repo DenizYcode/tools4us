@@ -145,7 +145,7 @@ All content lives in files, separate from code: one spreadsheet per product fami
 - **Search: Pagefind**, a static index built after `astro build` (`pagefind --site dist`), so search runs in the browser with no server. **Unverified:** how well Pagefind folds Turkish characters (ı/i, ş/s, ğ/g) and tolerates typos. Phase 6 must test it against the "Text search" requirement. Fallback if it fails: a small client-side search such as Fuse.js over a pre-normalized JSON index.
 - **Styling: plain CSS with custom properties**, no Tailwind. Design tokens arrive in Phase 2.
 - **Considered and not chosen:** Eleventy (lighter, but i18n routing is less turnkey and it has no island-style client components for the interactive tools); Next.js static export (heavier runtime than this site needs).
-- **Site URL and base:** `https://denizycode.github.io/cisco-partner-rehberi/`. The base path `/cisco-partner-rehberi/` is set once in `astro.config.mjs`, and internal links are built with `localePath()` in `src/i18n/index.ts`.
+- **Site URL and base:** `https://denizycode.github.io/tools4us/` (the repo was renamed from `cisco-partner-rehberi` on 10 Oct 2026; GitHub redirects the old repo URL, but the old Pages URL no longer works). The base path `/tools4us/` is set once in `astro.config.mjs`, and internal links are built with `localePath()` in `src/i18n/index.ts`.
 - **Routing:** `/tr/` is the default and `/en/` the second language. The root page redirects to `/tr/` with a meta refresh, because GitHub Pages cannot send HTTP redirects.
 
 **GitHub Pages notes:** Pages serves static files only, so search runs in the browser and the contact form posts straight to Web3Forms. If the site lives in a project repo rather than the `denizycode.github.io` repo, every link and asset needs the repo name as a base path; set it once in the generator's config.
@@ -367,7 +367,7 @@ The biggest risk is stale data, not code: six families plus stories was a lot to
 - [x] Site name: Tools4Us (changed 10 Oct 2026 from Cisco Partner Rehberi; this removes "Cisco" from the name and resolves the earlier conflict with the brand rules).
 - [x] Launch scope (10 Oct 2026): Switching, Wireless and Routing. Meraki MX goes into Routing next to the Catalyst routers. Data Center, Collaboration, Security, Cameras and Cellular are to be decided and shown as "Yakında".
 - [x] Graphics (10 Oct 2026): original vector drawings that represent each family and are generated from model data; no product photos.
-- [x] Repo and URL: rename the repo to `tools4us` (live at denizycode.github.io/tools4us/).
+- [x] Repo and URL: repo renamed to `tools4us`, live at denizycode.github.io/tools4us/ (done 10 Oct 2026).
 - [x] Old site code and CSVs received; dataset audit done (docs/Phase1_Dataset_Audit.xlsx).
 - [x] Old internal discussion: decisions re-added under Old site review.
 - [x] ciscosizing.com: separate project, reviewed from its page HTML; patterns only, no reuse.
