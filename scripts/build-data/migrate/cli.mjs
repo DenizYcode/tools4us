@@ -92,6 +92,12 @@ for (const m of data.wireless.models) {
 }
 decide(ctx, 'wireless', 'Lifecycle taken from the legacy label', `${legacyCurrent} wireless models are lifecycle=current only because the old CSV said "Current"; the audit did not check them individually. Rows with a blank or "Shipping Sep 2026" label (CW9177*, IW9167/IW9165) stay unverified.`);
 
+// ---- Values I derived rather than copied ---------------------------------------------------------
+decide(ctx, 'all', 'Product names', 'name_tr and name_en are both the legacy product name or PID (names are not translated). summary_tr, good_for_tr and the series explainers are empty: they are Turkish text that needs writing and a native review.');
+decide(ctx, 'all', 'Management mode is derived', 'The legacy files have no management field. Switching and routing: Meraki -> cloud; Catalyst -> on_prem, plus cloud when "Unified Architecture" is Yes; Cisco Business -> cisco_business; ASR -> on_prem. Wireless: Unified -> on_prem + cloud; Catalyst and Catalyst IW -> on_prem; Meraki -> cloud; Cisco Business -> cisco_business + embedded. Data center: NX-OS -> nexus, MDS -> san, Hyperfabric -> hyperfabric. Confirm that "Unified" really means "can run either way" (SPEC "Management toggle").');
+decide(ctx, 'wireless', 'Series are my grouping', `The legacy wireless file has no series. I grouped by Cisco model family: ${data.wireless.series.map((s) => s.series).join(', ')}. Rename or regroup in the series sheet; the series explainers are still to be written.`);
+decide(ctx, 'all', 'Nothing is recommended, nothing is "new"', 'recommended, recommended_why_tr and added_date are empty on every row: the SPEC wants one hand-picked recommendation per series, and the "Yeni" badge depends on a real added_date.');
+
 // ---- Feature vocabularies ----------------------------------------------------------------------
 const vocab = {};
 const leftOut = [];

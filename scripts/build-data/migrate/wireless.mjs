@@ -153,6 +153,7 @@ export function migrateWireless(ctx, legacyDir) {
   };
 
   const antennaByPid = new Map();
+  const aliasesSeen = new Set();
   let lastAntenna = null;
   for (const r of readLegacyCsv(join(legacyDir, 'wireless-antenna-data.csv'))) {
     const source = `wireless-antenna-data.csv row ${r.__line}`;
@@ -198,7 +199,8 @@ export function migrateWireless(ctx, legacyDir) {
           decide(ctx, FAMILY, 'Antenna compatibility not resolved', `${source}: "${token}" matches no AP PID; no compat row for ${pid}.`);
           continue;
         }
-        if (targets.length > 1 || targets[0] !== token) {
+        if ((targets.length > 1 || targets[0] !== token) && !aliasesSeen.has(token)) {
+          aliasesSeen.add(token);
           decide(ctx, FAMILY, 'Antenna compatibility alias resolved', `"${token}" -> ${targets.join(', ')} (matched by exact PID, a leading "C", or "<name>-" variants). Check against the datasheet.`);
         }
         for (const model_pid of targets) {

@@ -46,7 +46,7 @@ export const VOCAB = {
   cellular: ['embedded', 'pluggable'],
   // data center
   dc_device_type: ['fixed', 'modular_chassis'],
-  dc_role: ['leaf', 'spine', 'super_spine', 'access', 'services', 'san_fabric', 'san_director'],
+  dc_role: ['leaf', 'spine', 'super_spine', 'access', 'tor', 'aggregation', 'services', 'multiservice', 'san_fabric', 'san_director', 'san_extension'],
   os_mode: ['nx_os', 'aci', 'mds_nx_os', 'hyperfabric', 'hypershield'],
   ...FEATURES,
 };

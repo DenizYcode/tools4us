@@ -12,8 +12,12 @@ const ROLE = {
   'super-spine': 'super_spine',
   access: 'access',
   services: 'services',
+  tor: 'tor',
+  aggregation: 'aggregation',
+  multiservice: 'multiservice',
   'san fabric switch': 'san_fabric',
   'san director': 'san_director',
+  'san extension': 'san_extension',
 };
 
 function roles(text, source, ctx) {
