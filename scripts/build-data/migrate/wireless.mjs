@@ -78,7 +78,7 @@ function poe(text) {
 
 function uplink(text) {
   const g = parseGbpsList(text);
-  return { max: g.length ? Math.max(...g) : null, mgig: /mgig/i.test(text) ? true : g.length ? false : null };
+  return { max: g.length ? Math.max(...g) : null, mgig: /mgig/i.test(text) ? true : null };
 }
 
 export function migrateWireless(ctx, legacyDir) {
@@ -131,7 +131,7 @@ export function migrateWireless(ctx, legacyDir) {
         port_count: ports,
         poe_supported: p.supported,
         poe_full: p.full,
-        ac_powered: p.ac ?? false,
+        ac_powered: p.ac ? true : null,
         rugged,
         domain_code: yesNo(r['Domain Code']),
         sku_variant: variant,

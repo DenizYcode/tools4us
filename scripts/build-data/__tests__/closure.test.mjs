@@ -13,7 +13,7 @@ test('every one of the 348 audit issues gets exactly one disposition', () => {
 test('Fixed and Tracked are never claimed without a rule and evidence', () => {
   for (const r of results.filter((x) => x.disposition !== 'Open')) {
     assert.ok(r.rule, `#${r.id} has no rule`);
-    assert.ok(r.evidence && !r.evidence.startsWith('Rule'), `#${r.id} has no evidence`);
+    assert.ok(r.evidence && !r.evidence.startsWith('Not closed'), `#${r.id} has no evidence`);
   }
 });
 

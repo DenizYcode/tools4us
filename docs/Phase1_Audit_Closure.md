@@ -63,7 +63,7 @@ Example evidence: 57 accessories, one row per PID; fit is in 412 compat pairs
 
 Issues #85.
 
-Example evidence: 7 antennas are linked to CW9179F by exact compat rows
+Example evidence: 7 antennas are linked to CW9179F by exact compat rows in the data (offering them in the selector is Phase 3)
 
 ### IW9165 bands parsed (Fixed, 2)
 
@@ -105,7 +105,7 @@ Example evidence: routing models keep only slot counts; module fit lives only in
 
 Issues #264-#290.
 
-Example evidence: P-LTEA-EA: https://cisco.com/site/us/en/products/networking/sdwan-routers/catalyst-8300-series-platforms/interfaces-modules/index.html
+Example evidence: P-LTEA-EA: https://www.cisco.com/site/us/en/products/networking/sdwan-routers/catalyst-8300-series-platforms/interfaces-modules/index.html (https prefix added; the link itself is not tested until the Phase 7 link check)
 
 ### Uplink speeds separated from downlink (data center) (Fixed, 15)
 
@@ -177,7 +177,7 @@ Referenced in routers.csv NIM/PIM types but absent here, so the configurator can
 
 Planned fix per audit: Add rows (voice and 5G are common Turkish bid items)
 
-Why not closed: Rule "Missing data stays visible as draft" did not hold: rows not located
+Not closed: rows not located
 
 ### routers.csv | Data quality | Low (11)
 
@@ -203,7 +203,7 @@ List Order blank; those series sort last (999)
 
 Planned fix per audit: Fill, or sort by a series table
 
-Why not closed: Rule "Missing data stays visible as draft" did not hold: rows not located
+Not closed: rows not located
 
 ### switching.csv | Consistency | Low (20)
 
@@ -245,7 +245,7 @@ Replacement supervisors for the End-of-Sale SUP-1/1XL are not in the data, so C9
 
 Planned fix per audit: Add both supervisors with compatibility to C9404R/C9407R/C9410R
 
-Why not closed: Rule "Missing data stays visible as draft" did not hold: rows not located
+Not closed: rows not located
 
 ### switching.csv | Verify | Medium (1)
 
@@ -255,7 +255,7 @@ Issues #20.
 
 Planned fix per audit: Confirm which PIDs support the unified licence/management mode and store as management: [on_prem, cloud]
 
-Why not closed: Rule "Missing data stays visible as draft" did not hold: rows not located
+Not closed: rows not located
 
 ### wireless-antenna-data.csv | Data quality | Low (10)
 
@@ -273,7 +273,7 @@ No datasheet link
 
 Planned fix per audit: Add IW antenna guide link
 
-Why not closed: Rule "Missing data stays visible as draft" did not hold: rows not located
+Not closed: rows not located
 
 ### wireless-data.csv | Consistency | Low (3)
 
@@ -291,7 +291,7 @@ No Turkey note on 6 GHz availability
 
 Planned fix per audit: Add a TR note: verify BTK 6 GHz status before positioning 6E/7 as 6 GHz-capable
 
-Why not closed: Rule "Missing data stays visible as draft" did not hold: rows not located
+Not closed: rows not located
 
 ### wireless-data.csv | Data quality | Low (7)
 
@@ -317,5 +317,5 @@ Listed as "Unified"; Wi-Fi 6E management mode is chosen by SKU (-MR = Meraki), u
 
 Planned fix per audit: Store management per SKU; reword the Unified info box
 
-Why not closed: Rule "Missing data stays visible as draft" did not hold: rows not located
+Not closed: rows not located
 

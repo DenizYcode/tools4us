@@ -157,7 +157,7 @@ export async function buildClosure() {
       test: (i) => i.category === 'Data quality' && /has no https:\/\//.test(i.issue),
       run: (i) => {
         const r = rowsFor(i)[0]?.row;
-        if (r?.datasheet_url?.startsWith('https://')) return ok(`${r.pid}: ${r.datasheet_url}`);
+        if (r?.datasheet_url?.startsWith('https://')) return ok(`${r.pid}: ${r.datasheet_url} (https prefix added; the link itself is not tested until the Phase 7 link check)`);
         // Some of these cells are empty in the legacy file: there is no link to repair, only one to find.
         if (r && r.datasheet_url === null && r.status === 'draft') return tracked(`${r.pid}: the legacy link cell is empty; needs a datasheet link (row is draft${r.scope === 'excluded' ? ' and excluded' : ''})`);
         return no('datasheet_url not https');
@@ -202,7 +202,7 @@ export async function buildClosure() {
       test: (i) => i.file === 'wireless-data.csv' && i.category === 'Consistency' && /optional kit/.test(i.issue),
       run: () => {
         const n = catalog.families.wireless.compat.filter((c) => c.model_pid === 'CW9179F').length;
-        return n >= 7 ? ok(`${n} antennas are linked to CW9179F by exact compat rows`) : no(`only ${n} antennas linked`);
+        return n >= 7 ? ok(`${n} antennas are linked to CW9179F by exact compat rows in the data (offering them in the selector is Phase 3)`) : no(`only ${n} antennas linked`);
       },
     },
     {
@@ -252,7 +252,7 @@ export async function buildClosure() {
         disposition = out.kind;
         evidence = out.evidence;
       } else {
-        evidence = `Rule "${r.name}" did not hold: ${out.evidence}`;
+        evidence = `Not closed: ${out.evidence}`;
       }
       break;
     }
@@ -314,7 +314,7 @@ export function renderClosure(results) {
     groups.set(key, [...(groups.get(key) ?? []), r]);
   }
   for (const [key, list] of [...groups].sort()) {
-    lines.push(`### ${key} (${list.length})`, '', `Issues ${ranges(list.map((r) => r.id))}.`, '', `${list[0].issue}`, '', `Planned fix per audit: ${list[0].fix}`, '', ...(list[0].evidence.startsWith('Rule') ? [`Why not closed: ${list[0].evidence}`, ''] : []));
+    lines.push(`### ${key} (${list.length})`, '', `Issues ${ranges(list.map((r) => r.id))}.`, '', `${list[0].issue}`, '', `Planned fix per audit: ${list[0].fix}`, '', ...(list[0].rule ? [`${list[0].evidence}`, ''] : []));
   }
   return lines.join('\n');
 }

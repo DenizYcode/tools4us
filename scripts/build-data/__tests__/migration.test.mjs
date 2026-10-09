@@ -19,13 +19,19 @@ test('workbooks load with no structural problems and the catalog validates', () 
   assert.deepEqual(validateCatalog(catalog).errors, []);
 });
 
-test('nothing is published yet: every row is draft, so the emitted site data holds no models', () => {
+test('only ready, in-scope rows reach the site data, and none is left unverified', () => {
   for (const [family, sheets] of Object.entries(catalog.families)) {
-    for (const row of [...sheets.models, ...sheets.accessories]) assert.equal(row.status, 'draft', `${family} ${row.pid}`);
     const json = buildFamilyJson(family, sheets);
-    assert.equal(json.models.length, 0);
-    assert.equal(json.accessories.length, 0);
+    const ready = (rows) => rows.filter((r) => r.status === 'ready' && r.scope !== 'excluded');
+    assert.equal(json.models.length, ready(sheets.models).length, `${family} models`);
+    assert.equal(json.accessories.length, ready(sheets.accessories).length, `${family} accessories`);
+    for (const row of [...json.models, ...json.accessories]) assert.ok(['current', 'eos_announced', 'eos'].includes(row.lifecycle), `${family} ${row.pid}`);
   }
+});
+
+test('the seeded catalog starts fully draft (expected to change as rows become ready)', () => {
+  const ready = Object.values(catalog.families).flatMap((f) => [...f.models, ...f.accessories]).filter((r) => r.status === 'ready');
+  assert.equal(ready.length, 0, 'rows were marked ready: update this test and the lifecycle expectations below');
 });
 
 test('PIDs: one per row, no spare suffix, no lists (rules/data.md)', () => {
@@ -156,8 +162,30 @@ test('lifecycle: unverified groups stay empty rather than being guessed', () => 
   assert.equal(life('wireless', 'CW9177I-CFG').lifecycle, null);
 });
 
-test('no recommended flags were invented', () => {
+test('audit #18/#19: end-of-sale network modules have no replacement; the switches carry the replacement PID', () => {
+  assert.equal(life('switching', 'C9500-NM-8X').replacement_none, true);
+  assert.equal(life('switching', 'C9500-NM-2Q').replacement_none, true);
+  assert.equal(life('switching', 'C9500-NM-8X').replacement_pid, null);
+  assert.deepEqual(life('switching', 'C9500-16X').replacement_pid, ['C9500-24Y4C']);
+});
+
+test('current rows carry no end-of-sale bulletin, and unconfirmed lifecycles are flagged per row', () => {
   for (const sheets of Object.values(catalog.families)) {
-    assert.equal(sheets.models.filter((m) => m.recommended === true).length, 0);
+    for (const r of [...sheets.models, ...sheets.accessories]) {
+      if (r.lifecycle === 'current') assert.equal(r.eol_bulletin_url, null, r.pid);
+    }
   }
+  assert.match(model('wireless', 'C9136I').needs_data, /confirm on cisco\.com/i);
+  assert.match(model('wireless', 'CW9172I-CFG').needs_data, /legacy "Current" label/);
+});
+
+test('inferred values are left empty, not false (ac_powered, poe, uplink_mgig)', () => {
+  assert.equal(catalog.families.wireless.models.filter((m) => m.ac_powered === false).length, 0);
+  assert.equal(catalog.families.wireless.models.filter((m) => m.uplink_mgig === false).length, 0);
+  assert.equal(catalog.families.switching.models.filter((m) => m.poe === false).length, 0);
+  assert.equal(catalog.families.routing.models.filter((m) => m.poe === false).length, 0);
+});
+
+test('bare cisco.com links were repaired to www.cisco.com', () => {
+  for (const a of catalog.families.routing.accessories) assert.ok(!a.datasheet_url || !a.datasheet_url.startsWith('https://cisco.com/'), a.pid);
 });

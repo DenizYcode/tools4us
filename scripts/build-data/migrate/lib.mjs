@@ -57,6 +57,7 @@ export function fixUrl(text) {
   let t = String(text).trim().replace(/^\(+|\)+$/g, '');
   if (/^https:\/\//i.test(t)) return { url: t };
   if (/^http:\/\//i.test(t)) return { url: t.replace(/^http:/i, 'https:') };
+  if (/^cisco\.com\//i.test(t)) return { url: `https://www.${t}` };
   if (/^(www\.)?(cisco|documentation\.meraki)\.com\//i.test(t) || /^[a-z0-9.-]+\.[a-z]{2,}\//i.test(t)) return { url: `https://${t}` };
   return { url: null, bad: text };
 }

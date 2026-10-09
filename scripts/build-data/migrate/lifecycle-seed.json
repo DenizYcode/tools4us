@@ -226,15 +226,27 @@
       "file": "switching.csv",
       "pids": [
         "C9500-16X",
-        "C9500-16X-2Q",
-        "C9500-NM-8X",
-        "C9500-NM-2Q"
+        "C9500-16X-2Q"
       ],
       "lifecycle": "eos",
       "last_order": "2026-04-30",
       "ldos": "2031-04-30",
       "replacement_text": "C9500-24Y4C (NMs: none)",
       "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/switches/catalyst-9500-series-switches/c9500-16x-switch-nm-c9500-nm-8x-nm-2q-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 19",
+      "file": "switching.csv",
+      "pids": [
+        "C9500-NM-8X",
+        "C9500-NM-2Q"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2026-04-30",
+      "ldos": "2031-04-30",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/switches/catalyst-9500-series-switches/c9500-16x-switch-nm-c9500-nm-8x-nm-2q-eol.html",
+      "replacement_none": true,
+      "audit_note": "Audit replacement column reads \"C9500-24Y4C (NMs: none)\": the switches are replaced by C9500-24Y4C, the network modules have no replacement."
     },
     {
       "audit_ref": "Lifecycle tab row 20",
@@ -308,7 +320,7 @@
         "C9136I"
       ],
       "lifecycle": "current",
-      "eol_bulletin_url": "https://www.xsnet.com.au/blogs/news/cisco-wifi-6-access-point-eol"
+      "confirm": "Audit: current because these are not in the Wi-Fi 6 indoor bulletin; status comes from a third-party summary (xsnet.com.au). Confirm on cisco.com, especially C9136I."
     },
     {
       "audit_ref": "Lifecycle tab row 27",

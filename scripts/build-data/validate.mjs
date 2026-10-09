@@ -25,6 +25,18 @@ function where(family, sheet, row) {
 }
 
 const inScope = (row) => row.scope !== 'excluded';
+
+// An orderable PID: letters, digits and . _ + - only. No spaces, commas, "/" variants or "=" spares.
+const PID_SHAPE = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
+const CISCO_HOST = /(^|\.)(cisco|meraki)\.com$/i;
+
+function hostOf(url) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
 const isReady = (row) => row.status === 'ready' && inScope(row);
 
 export function validateCatalog(catalog, { now = today() } = {}) {
@@ -70,6 +82,15 @@ export function validateCatalog(catalog, { now = today() } = {}) {
           if (!isReady(row)) error('MISSING_PID', `${loc}: pid is empty`);
           continue;
         }
+        if (!PID_SHAPE.test(row.pid)) {
+          // A draft may still hold a label that is not a PID (the migration reports them); a ready row may not.
+          if (row.status === 'ready') error('BAD_PID', `${loc}: "${row.pid}" is not a single orderable PID (no spaces, commas, "/" or "=")`);
+          else warn('BAD_PID', `${loc}: "${row.pid}" is not a single orderable PID; it cannot become ready as it is`);
+        }
+        for (const key of ['datasheet_url', 'source_url', 'eol_bulletin_url']) {
+          const host = row[key] ? hostOf(row[key]) : null;
+          if (host && !CISCO_HOST.test(host)) warn('NON_CISCO_SOURCE', `${loc}: ${key} points to ${host}, not cisco.com or meraki.com`);
+        }
         const entry = { family, sheet, row, loc };
         items.push(entry);
         if (byPid.has(row.pid)) {
@@ -82,13 +103,16 @@ export function validateCatalog(catalog, { now = today() } = {}) {
   }
 
   // Pass 2: series and compat structure.
+  const seriesByFamily = {};
   for (const [family, sheets] of Object.entries(catalog.families)) {
     const seriesKeys = new Set();
+    const seriesRows = (seriesByFamily[family] = new Map());
     for (const row of sheets.series ?? []) {
       if (!inScope(row)) continue;
       for (const issue of row.__issues ?? []) error('BAD_VALUE', `${where(family, 'series', row)}: ${issue.column} ${issue.message}`);
       if (seriesKeys.has(row.series)) error('DUP_SERIES', `${where(family, 'series', row)}: series ${row.series} is listed twice`);
       seriesKeys.add(row.series);
+      seriesRows.set(row.series, row);
     }
     for (const row of sheets.models ?? []) {
       if (!inScope(row) || !hasValue(row.series)) continue;
@@ -151,6 +175,9 @@ export function validateCatalog(catalog, { now = today() } = {}) {
         }
         const loc = where(family, sheet, row);
         for (const key of missing) error('READY_MISSING_FIELD', `${loc}: ${key} is empty on a ready row`);
+        if (sheet === 'models' && seriesByFamily[family]?.get(row.series)?.status !== 'ready') {
+          error('SERIES_NOT_READY', `${loc}: series "${row.series}" must be ready too (its explainer is shown above its models)`);
+        }
         if (sheet === 'series') continue;
         checkReadyLifecycle({ family, sheet, row, loc, byPid, error });
       }

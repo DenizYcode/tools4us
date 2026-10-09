@@ -174,7 +174,7 @@ All content lives in files, separate from code: one spreadsheet per product fami
 | status | draft / ready | Required. Only `ready` rows are published and held to the rules below |
 | scope | in / excluded | Required. `excluded` rows are skipped by all checks and by the site |
 | lifecycle | current / eos_announced / eos | Required on `ready` rows. `eos` means the last order date has passed. Empty means "not verified yet", so the row stays `draft` |
-| replacement_pid, eol_bulletin_url | CW9176I / cisco.com EoL bulletin link | Required when lifecycle is not current. `replacement_pid` holds one or more PIDs (Cisco often names several), and each must exist in the catalog |
+| replacement_pid, eol_bulletin_url | CW9176I / cisco.com EoL bulletin link | Required when lifecycle is not current. `replacement_pid` holds one or more PIDs (Cisco often names several), and each must exist in the catalog as a ready, current model, so a link never leads to a page that is not published |
 | replacement_note, replacement_none | "MS130 / MS150, confirm per model" / yes | Used when no single catalog PID fits: a free-text note, or `replacement_none: yes` when Cisco lists no replacement. Either still needs the bulletin URL. A `ready` row needs a PID, a note or `replacement_none` |
 | management | Catalyst Center, Meraki, Cisco Business | Multi-value |
 | licence_note_tr | "Abonelik lisansı gerekir" | Required where a licence is mandatory |

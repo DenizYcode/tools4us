@@ -109,7 +109,7 @@ export function migrateRouting(ctx, legacyDir) {
       throughput_mbps: throughput,
       security_throughput_mbps: security,
       max_vpn_tunnels: toInt(r['Recommended Max VPN Tunnels']),
-      poe: feats.includes('PoE'),
+      poe: feats.includes('PoE') ? true : null,
       features: recordFeatures(ctx, FAMILY, r.Features),
     });
   }

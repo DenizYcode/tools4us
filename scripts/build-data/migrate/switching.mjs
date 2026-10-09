@@ -52,7 +52,7 @@ function poe(text, features) {
   const hasPoeFeature = features.some((f) => f.toLowerCase() === 'poe');
   switch (text) {
     case '':
-      return { poe: hasPoeFeature ? true : false, type: null, coverage: null, flagged: hasPoeFeature };
+      return { poe: hasPoeFeature ? true : null, type: null, coverage: null, flagged: hasPoeFeature };
     case 'PoE+':
       return { poe: true, type: 'poe_plus', coverage: null };
     case 'PoE+ (Full)':

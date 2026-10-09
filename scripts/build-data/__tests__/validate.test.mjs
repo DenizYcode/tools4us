@@ -206,6 +206,30 @@ test('ready series needs its Turkish explainer', () => {
   assert.ok(codes(result).includes('READY_MISSING_FIELD'));
 });
 
+test('a ready model needs a ready series', () => {
+  const result = run(catalog({ seriesRows: [series({ status: 'draft', series_intro_tr: null })] }));
+  assert.ok(codes(result).includes('SERIES_NOT_READY'));
+  const draftModel = run(catalog({ models: [model({ status: 'draft' })], seriesRows: [series({ status: 'draft', series_intro_tr: null })] }));
+  assert.deepEqual(draftModel.errors, []);
+});
+
+test('PID shape: ready rows must be single orderable PIDs, drafts only warn', () => {
+  for (const pid of ['LTE Pluggable', 'AIR-ANT2524V4C-R/RS', 'AIR-ANT2513P4M-N=', 'A, B']) {
+    const ready = run(catalog({ models: [model({ pid })] }));
+    assert.ok(codes(ready).includes('BAD_PID'), pid);
+    const draft = run(catalog({ models: [model({ pid, status: 'draft' })] }));
+    assert.ok(!codes(draft).includes('BAD_PID'), pid);
+    assert.ok(draft.warnings.some((w) => w.code === 'BAD_PID'), pid);
+  }
+  assert.deepEqual(run(catalog({ models: [model({ pid: 'C9300X-48HX-A' })] })).errors, []);
+});
+
+test('links that do not point at cisco.com or meraki.com raise a warning', () => {
+  const result = run(catalog({ models: [model({ datasheet_url: 'https://www.example.com/ds' })] }));
+  assert.ok(result.warnings.some((w) => w.code === 'NON_CISCO_SOURCE'));
+  assert.equal(run(catalog({ models: [model({ datasheet_url: 'https://documentation.meraki.com/x' })] })).warnings.length, 0);
+});
+
 // parseCell: controlled vocabularies and formats
 const col = (type, extra = {}) => ({ key: 'k', type, ...extra });
 
