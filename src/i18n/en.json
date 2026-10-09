@@ -1,0 +1,17 @@
+{
+  "site.name": "Cisco Partner Rehberi",
+  "site.tagline": "A personal, independent product guide for Cisco partners in Turkey.",
+  "hub.soon.title": "Coming soon",
+  "hub.soon.body": "The guide is being built. The model selector, comparison and news will live here.",
+  "nav.skip": "Skip to main content",
+  "nav.language": "Language",
+  "nav.switchTo": "Türkçe",
+  "nav.switchLabel": "View the site in Turkish",
+  "notFound.title": "Page not found",
+  "notFound.body": "That page does not exist. You can go to one of these pages:",
+  "notFound.linkTr": "Türkçe ana sayfa",
+  "notFound.linkEn": "English home page",
+  "redirect.body": "Redirecting you to the Turkish home page.",
+  "redirect.link": "If the redirect does not work, click here.",
+  "footer.disclaimer": "Cisco and related marks are trademarks of Cisco Systems. This is a personal, independent guide, not an official Cisco or Ingram Micro site. Verify part numbers against Cisco ordering guides before quoting."
+}

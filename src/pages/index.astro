@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+import { t, localePath } from '../i18n';
+
+// GitHub Pages cannot send HTTP redirects, so the root is a static meta-refresh page.
+const target = localePath('tr');
+---
+
+<Base lang="tr" title={t('tr', 'site.name')} bilingual>
+  <meta slot="head" http-equiv="refresh" content={`0; url=${target}`} />
+  <link slot="head" rel="canonical" href={target} />
+  <h1>{t('tr', 'site.name')}</h1>
+  <p>{t('tr', 'redirect.body')} <a href={target}>{t('tr', 'redirect.link')}</a></p>
+</Base>

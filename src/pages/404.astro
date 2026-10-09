@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import { t, localePath } from '../i18n';
+---
+
+<Base lang="tr" title={`${t('tr', 'notFound.title')} · ${t('en', 'notFound.title')}`} bilingual>
+  <h1>{t('tr', 'notFound.title')}</h1>
+  <p>{t('tr', 'notFound.body')}</p>
+  <h2 lang="en">{t('en', 'notFound.title')}</h2>
+  <p lang="en">{t('en', 'notFound.body')}</p>
+  <ul class="link-list">
+    <li><a href={localePath('tr')} lang="tr">{t('tr', 'notFound.linkTr')}</a></li>
+    <li><a href={localePath('en')} lang="en">{t('en', 'notFound.linkEn')}</a></li>
+  </ul>
+</Base>

@@ -1,0 +1,17 @@
+{
+  "site.name": "Cisco Partner Rehberi",
+  "site.tagline": "Türkiye'deki Cisco iş ortakları için kişisel ve bağımsız ürün rehberi.",
+  "hub.soon.title": "Yakında",
+  "hub.soon.body": "Rehber hazırlanıyor. Model seçici, karşılaştırma ve haberler burada yer alacak.",
+  "nav.skip": "Ana içeriğe geç",
+  "nav.language": "Dil",
+  "nav.switchTo": "English",
+  "nav.switchLabel": "Siteyi İngilizce görüntüle",
+  "notFound.title": "Sayfa bulunamadı",
+  "notFound.body": "Aradığınız sayfa yok. Şu sayfalardan birine gidebilirsiniz:",
+  "notFound.linkTr": "Türkçe ana sayfa",
+  "notFound.linkEn": "English home page",
+  "redirect.body": "Türkçe ana sayfaya yönlendiriliyorsunuz.",
+  "redirect.link": "Yönlendirme çalışmazsa buraya tıklayın.",
+  "footer.disclaimer": "Cisco ve ilgili markalar Cisco Systems'in ticari markalarıdır. Bu site kişisel ve bağımsız bir rehberdir; resmî bir Cisco ya da Ingram Micro sitesi değildir. Teklif vermeden önce parça numaralarını Cisco sipariş kılavuzlarından doğrulayın."
+}

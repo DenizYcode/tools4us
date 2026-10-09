@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import { locales, t, type Lang } from '../../i18n';
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+---
+
+<Base lang={lang} title={t(lang, 'site.name')} switchPath="">
+  <h1>{t(lang, 'site.name')}</h1>
+  <p>{t(lang, 'site.tagline')}</p>
+  <h2>{t(lang, 'hub.soon.title')}</h2>
+  <p>{t(lang, 'hub.soon.body')}</p>
+</Base>

@@ -1,0 +1,54 @@
+---
+import Footer from '../components/Footer.astro';
+import { t, otherLang, localePath, type Lang } from '../i18n';
+import '../styles/base.css';
+
+interface Props {
+  // Language of the page chrome. Pages that show both languages (root, 404) pass bilingual.
+  lang: Lang;
+  title: string;
+  bilingual?: boolean;
+  // Path after /<lang>/ to link to in the other language. Omit to hide the toggle.
+  switchPath?: string;
+}
+
+const { lang, title, bilingual = false, switchPath } = Astro.props;
+const other = otherLang(lang);
+const footerLangs: Lang[] = bilingual ? ['tr', 'en'] : [lang];
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={t(lang, 'site.tagline')} />
+    <title>{title}</title>
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t(lang, 'nav.skip')}</a>
+    <header class="site-header">
+      <div class="container header-row">
+        <span class="site-name">{t(lang, 'site.name')}</span>
+        {
+          switchPath !== undefined && (
+            <a
+              class="lang-toggle"
+              href={localePath(other, switchPath)}
+              lang={other}
+              hreflang={other}
+              aria-label={t(lang, 'nav.switchLabel')}
+            >
+              {t(lang, 'nav.switchTo')}
+            </a>
+          )
+        }
+      </div>
+    </header>
+    <main id="main" class="container">
+      <slot />
+    </main>
+    <Footer langs={footerLangs} />
+  </body>
+</html>

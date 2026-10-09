@@ -1,0 +1,15 @@
+---
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  langs: Lang[];
+}
+
+const { langs } = Astro.props;
+---
+
+<footer class="site-footer">
+  <div class="container">
+    {langs.map((lang) => <p lang={lang}>{t(lang, 'footer.disclaimer')}</p>)}
+  </div>
+</footer>
