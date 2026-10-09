@@ -4,13 +4,16 @@ interface Props {
   title: string;
   text?: string;
   badge: string;
+  // Heading level, so tiles nest correctly under the heading above them.
+  level?: 3 | 4;
 }
 
-const { title, text, badge } = Astro.props;
+const { title, text, badge, level = 3 } = Astro.props;
+const Heading = `h${level}` as 'h3' | 'h4';
 ---
 
 <div class="tile">
-  <h3>{title}</h3>
+  <Heading>{title}</Heading>
   {text && <p>{text}</p>}
   <span class="badge">{badge}</span>
 </div>
@@ -28,7 +31,8 @@ const { title, text, badge } = Astro.props;
     border-radius: var(--radius-m);
   }
 
-  h3 {
+  .tile :global(h3),
+  .tile :global(h4) {
     margin: 0;
     font-size: 1.0625rem;
   }

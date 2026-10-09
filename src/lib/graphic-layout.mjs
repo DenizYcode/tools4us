@@ -49,3 +49,27 @@ export function wifiArc(cx, cy, r) {
   const dy = r * Math.cos(a);
   return [cx - dx, cy + dy, cx + dx, cy + dy].map((n) => Math.round(n * 10) / 10);
 }
+
+/** A non-negative whole number, or 0 for anything else (negative, NaN, text, undefined). */
+export function countOf(value) {
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+}
+
+/**
+ * A port grid that always fits `available` width: it adds rows when the cells would otherwise get smaller than
+ * `min`. Returns rows, cols, cell size, total width and height, and the top-left corner of every port.
+ */
+export function fitPortGrid(ports, available, { gap = 2, max = 14, min = 4, maxCols = MAX_COLS } = {}) {
+  const n = countOf(ports);
+  if (n === 0 || !(available > 0)) return { rows: 0, cols: 0, cell: 0, width: 0, height: 0, positions: [] };
+  const fitCols = Math.max(1, Math.floor((available + gap) / (min + gap)));
+  const { rows, cols } = portGrid(n, Math.min(maxCols, fitCols));
+  const cell = cellSize(cols, available, { gap, max, min });
+  const positions = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols && positions.length < n; c++) {
+      positions.push({ x: c * (cell + gap), y: r * (cell + gap), row: r, col: c });
+    }
+  }
+  return { rows, cols, cell, ...gridSize(rows, cols, cell, gap), positions };
+}

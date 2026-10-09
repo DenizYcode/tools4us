@@ -2,7 +2,7 @@
 // A drawing of one device, built from data-shaped props (port count, form factor, rack units,
 // indoor/outdoor, antennas, cellular). Same frame, stroke weight and background as FamilyGraphic.
 // It draws only what the props say, so a model's picture can never disagree with its specs.
-import { portGrid, cellSize, gridSize, portPositions, rackHeight, wifiArc } from '../../lib/graphic-layout.mjs';
+import { fitPortGrid, countOf, rackHeight, wifiArc } from '../../lib/graphic-layout.mjs';
 
 interface Props {
   kind: 'switch' | 'ap' | 'router';
@@ -19,7 +19,13 @@ interface Props {
   label?: string;
 }
 
-const { kind, form = 'rack', ports = 0, uplinks = 0, rackUnits = 1, slots = 8, environment = 'indoor', wallPlate = false, externalAntennas = 0, cellular = false, label } = Astro.props;
+const props = Astro.props;
+const { kind, form = 'rack', rackUnits = 1, environment = 'indoor', wallPlate = false, cellular = false, label } = props;
+// Counts are cleaned once: anything that is not a non-negative whole number becomes 0.
+const ports = countOf(props.ports);
+const uplinks = countOf(props.uplinks);
+const externalAntennas = countOf(props.externalAntennas);
+const slots = countOf(props.slots) || 8;
 
 const W = 320;
 const H = 200;
@@ -31,16 +37,16 @@ const bodyW = form === 'desktop' ? 176 : form === 'rugged' ? 200 : 248;
 const bodyX = (W - bodyW) / 2;
 const uplinkCols = Math.ceil(Math.min(uplinks, 8) / 2);
 const uplinkArea = uplinkCols ? uplinkCols * 24 + 6 : 0;
-const grid = portGrid(ports);
 const available = bodyW - 28 - uplinkArea;
-const cell = cellSize(grid.cols, available, { gap: GAP, max: 12, min: 4 });
-const gSize = gridSize(grid.rows, grid.cols, cell, GAP);
+const g = fitPortGrid(ports, available, { gap: GAP, max: 12, min: 4 });
+const gSize = { width: g.width, height: g.height };
 const baseH = form === 'desktop' ? 40 : form === 'rugged' ? 64 : chassis ? 136 : Math.min(rackHeight(rackUnits), 120);
 const bodyH = chassis ? baseH : Math.min(Math.max(baseH, gSize.height + 22), 140);
 const bodyY = (H - bodyH) / 2 + (externalAntennas > 0 ? 10 : 0);
 const gridX = bodyX + 14;
 const gridY = bodyY + (bodyH - gSize.height) / 2;
-const cells = portPositions(ports, cell, GAP);
+const cells = g.positions;
+const cell = g.cell;
 const cages = Array.from({ length: Math.min(uplinks, 8) }, (_, i) => ({
   x: bodyX + bodyW - 14 - uplinkArea + 6 + Math.floor(i / 2) * 24,
   y: bodyY + bodyH / 2 - (uplinks > 1 ? 13 : 5.5) + (i % 2) * 15,
@@ -63,7 +69,7 @@ const upArcs = [14, 28].map((r) => {
   const [x1, y1, x2, y2] = wifiArc(160, 64, r);
   return [x1, 64 - (y1 - 64), x2, 64 - (y2 - 64), r];
 });
-const plateCells = portPositions(Math.min(Math.max(ports, 1), 4), 12, 5, 4);
+const plateCells = fitPortGrid(Math.min(Math.max(ports, 1), 4), 4 * 12 + 3 * 5, { gap: 5, max: 12, min: 12, maxCols: 4 }).positions;
 ---
 
 <svg class="device-graphic" viewBox={`0 0 ${W} ${H}`} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'} focusable="false">

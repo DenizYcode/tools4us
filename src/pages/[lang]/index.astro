@@ -48,7 +48,7 @@ const shortcuts = ['recommend', 'legacy', 'compare'] as const;
       {
         LATER_FAMILIES.map((family) => (
           <li>
-            <ComingSoonTile title={t(lang, `tbd.${family}`)} badge={t(lang, 'soon.badge')} />
+            <ComingSoonTile level={4} title={t(lang, `tbd.${family}`)} badge={t(lang, 'soon.badge')} />
           </li>
         ))
       }

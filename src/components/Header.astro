@@ -16,6 +16,13 @@ const { lang, switchHref, switchLang, current } = Astro.props;
 <header class="site-header">
   <div class="container inner">
     <a class="wordmark" href={localePath(lang)} aria-label={t(lang, 'nav.home')}>Tools<span class="four" aria-hidden="true">4</span>Us</a>
+    {
+      switchHref !== undefined && switchLang && (
+        <a class="lang-toggle" href={switchHref} lang={switchLang} hreflang={switchLang}>
+          {t(lang, 'nav.switchTo')}
+        </a>
+      )
+    }
     <nav class="families" aria-label={t(lang, 'nav.main')}>
       <ul>
         {
@@ -29,13 +36,6 @@ const { lang, switchHref, switchLang, current } = Astro.props;
         }
       </ul>
     </nav>
-    {
-      switchHref !== undefined && switchLang && (
-        <a class="lang-toggle" href={switchHref} lang={switchLang} hreflang={switchLang}>
-          {t(lang, 'nav.switchTo')}
-        </a>
-      )
-    }
   </div>
 </header>
 
@@ -45,8 +45,8 @@ const { lang, switchHref, switchLang, current } = Astro.props;
     color: var(--on-navy);
   }
 
-  /* DOM order is wordmark, family links, language toggle: the same as the visual order, so Tab follows what you see.
-     On phones the links drop to a second row. */
+  /* DOM order is wordmark, language toggle, family links on every screen width, and the layout shows them in that
+     order too, so Tab follows what you see. On phones the links drop to a second row. */
   .inner {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -136,8 +136,8 @@ const { lang, switchHref, switchLang, current } = Astro.props;
 
   @media (min-width: 48em) {
     .inner {
-      grid-template-columns: auto 1fr auto;
-      grid-template-areas: 'brand nav toggle';
+      grid-template-columns: auto auto 1fr;
+      grid-template-areas: 'brand toggle nav';
       column-gap: var(--space-6);
       min-height: 3.5rem;
     }
