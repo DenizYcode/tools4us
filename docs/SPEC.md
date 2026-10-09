@@ -152,12 +152,17 @@ All content lives in files, separate from code: one spreadsheet per product fami
 **Folder layout:**
 
 ```
-/data/catalog/switching.xlsx   (or .csv) — one sheet per family
+/data/catalog/switching.xlsx   — one workbook per family (switching, wireless, routing, datacenter)
+                                 sheets: models, accessories, compat, series
 /data/glossary.csv             — term, TR, EN
 /content/stories/*.md          — one file per story, TR + EN
 /public/images/                — product and story images
 /scripts/build-data            — converts sheets to JSON and validates
 ```
+
+**Sheet format (decided in Phase 1):** `.xlsx`, not CSV. Comma-separated files open as a single column in Turkish-locale Excel, where the list separator is `;`, and Turkish characters can be mangled on import. Each workbook has four sheets: `models` (the selectable products), `accessories` (modules, line cards, supervisors, antennas, pluggable modules: one PID per row), `compat` (exact accessory PID to exact model PID, never substring matches) and `series` (one row per series, with the plain-language series explainers). Columns that take a controlled vocabulary carry an Excel dropdown. Values are stored normalized (numbers in base units, arrays, booleans); the legacy wording is kept in `legacy_*` columns for traceability and is never parsed by the site.
+
+**Draft and ready rows:** every row has a `status`. Migrated rows start as `draft` because Turkish text, `last_verified`, `source_url` and some lifecycle values cannot be filled from the old CSVs without inventing them. A `draft` row is counted and reported by the build but never published. A row becomes `ready` only when every rule below passes. Rows with `scope: excluded` (for example carrier-grade routers outside the SMB audience) are kept in the data but skipped by every check and by the site.
 
 **Common model fields (every family):**
 
@@ -166,13 +171,16 @@ All content lives in files, separate from code: one spreadsheet per product fami
 | pid | CW9172I | Unique key |
 | family / series | Wireless / CW9170 | Drives navigation and filters |
 | name_tr, summary_tr, good_for_tr | "Küçük ofisler için Wi-Fi 7" | Required. EN versions optional at launch |
-| lifecycle | current / eos_announced | Required |
-| replacement_pid, eol_bulletin_url | CW9176I / cisco.com EoL bulletin link | Required when lifecycle is not current |
+| status | draft / ready | Required. Only `ready` rows are published and held to the rules below |
+| scope | in / excluded | Required. `excluded` rows are skipped by all checks and by the site |
+| lifecycle | current / eos_announced / eos | Required on `ready` rows. `eos` means the last order date has passed. Empty means "not verified yet", so the row stays `draft` |
+| replacement_pid, eol_bulletin_url | CW9176I / cisco.com EoL bulletin link | Required when lifecycle is not current. The replacement PID must exist in the catalog |
+| replacement_note, replacement_none | "MS130 / MS150, confirm per model" / yes | Used when no single catalog PID fits: a free-text note, or `replacement_none: yes` when Cisco lists no replacement. Either still needs the bulletin URL. A `ready` row needs a PID, a note or `replacement_none` |
 | management | Catalyst Center, Meraki, Cisco Business | Multi-value |
 | licence_note_tr | "Abonelik lisansı gerekir" | Required where a licence is mandatory |
 | datasheet_url, source_url | cisco.com link | Required |
 | last_verified | 2026-10-09 | Required |
-| eos_announced, last_order, ldos | 2026-03-30 / 2026-12-31 / 2031-12-31 | Required when lifecycle is eos_announced, with the EoL bulletin URL |
+| eos_announced, last_order, ldos | 2026-03-30 / 2026-12-31 / 2031-12-31 | `last_order` and the EoL bulletin URL are required when lifecycle is eos_announced or eos. `ldos` is required where the bulletin gives it. The announcement date `eos_announced` is optional, because the Phase 1 audit lists last-order and last-support dates but no announcement dates |
 | added_date | 2026-10-09 | Required; drives the "Yeni" badge |
 | recommended, recommended_why_tr | yes / "Çoğu ofis için yeterli PoE ve 10G uplink" | At most one per series; build fails if an End-of-Sale model is recommended |
 | series_intro_tr, series_intro_en | "Catalyst anahtarlama ailesine KOBİ giriş noktası" | Kept in a separate series sheet, one row per series; TR required |
@@ -190,10 +198,12 @@ All content lives in files, separate from code: one spreadsheet per product fami
 
 **Story frontmatter:** `title_tr`, `title_en`, `teaser_tr`, `teaser_en`, `category`, `image`, `video_youtube_id`, `related_pids`, `featured`, `order`, `published`, `last_verified`, `review_by`, `sources`.
 
-**Build checks (the build fails if any is true):**
+**Build checks (the build fails if any is true).** The model rules apply to `status: ready` rows with `scope: in`; `draft` rows only appear in the build report, and `excluded` rows are skipped. Rules about structure (a duplicate PID, an unknown vocabulary value, a compatibility entry pointing at a missing PID) apply to every row that is in scope, drafts included.
 
 - A required field is empty.
-- A model is End-of-Sale without a replacement, or its replacement PID doesn't exist.
+- A model is End-of-Sale without a replacement PID, note or `replacement_none`, or its replacement PID doesn't exist.
+- A model is `eos_announced` but its last order date has already passed (warning only: it should become `eos`).
+- The Turkish and English UI string files have different keys.
 - A story links to a PID that isn't in the catalog.
 - A datasheet or source link returns an error (run weekly, warn only).
 - A featured story is past its `review_by` date.
