@@ -10,10 +10,18 @@
     "dev": "astro dev",
     "build": "npm run check:data && astro build && pagefind --site dist",
     "check:data": "node scripts/check-data.mjs",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "test:data": "node --test \"scripts/**/*.test.mjs\""
   },
   "dependencies": {
     "astro": "^7.3.8",
     "pagefind": "^1.5.2"
+  },
+  "devDependencies": {
+    "exceljs": "^4.4.0",
+    "zod": "^4.6.5"
+  },
+  "overrides": {
+    "uuid": "^14.0.2"
   }
 }
