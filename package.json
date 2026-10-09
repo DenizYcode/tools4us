@@ -1,0 +1,19 @@
+{
+  "name": "cisco-partner-rehberi",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "npm run check:data && astro build && pagefind --site dist",
+    "check:data": "node scripts/check-data.mjs",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^7.3.8",
+    "pagefind": "^1.5.2"
+  }
+}
