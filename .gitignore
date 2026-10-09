@@ -7,3 +7,5 @@ dist/
 Thumbs.db
 CLAUDE.local.md
 .claude/settings.local.json
+
+src/data/generated/

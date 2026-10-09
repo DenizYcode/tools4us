@@ -1,0 +1,373 @@
+{
+  "_comment": "Encoded once from docs/Phase1_Dataset_Audit.xlsx, Lifecycle tab (audited 9 Oct 2026). Only groups the audit marks as verified appear here; Not-verified groups are left out on purpose and stay unverified in the catalog. Replacement text is split into catalog PIDs and a free-text note by the migration.",
+  "entries": [
+    {
+      "audit_ref": "Lifecycle tab row 2",
+      "file": "routers.csv",
+      "pids": [
+        "ISR1100-4G",
+        "ISR1100-4GLTEGB",
+        "ISR1100-6G",
+        "ISR1100X-4G",
+        "ISR1100X-6G"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2026-07-28",
+      "replacement_text": "Catalyst 8100-G2 secure routers",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/routers/1000-series-integrated-services-routers-isr/select-isr1100-product-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 3",
+      "file": "routers.csv",
+      "pids": [
+        "C1101-4P",
+        "C1101-4PLTEP",
+        "C1109-2PLTEGB"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2026-07-28",
+      "replacement_text": "C1121-4P / C1121-4PLTEP",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/routers/1000-series-integrated-services-routers-isr/select-isr-1101-1109-series-routers-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 4",
+      "file": "routers.csv",
+      "pids": [
+        "C1111-4P",
+        "C1111-4P-DNA",
+        "C1111-8P",
+        "C1111-8P-DNA",
+        "C1111X-8P"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2026-07-28",
+      "replacement_text": "C1121-4P / C1121-8P / C1121X-8P",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/routers/1000-series-integrated-services-routers-isr/isr-1111-series-ethernet-routers-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 5",
+      "file": "routers.csv",
+      "pids": [
+        "C921-4P",
+        "C921-4PLTEGB",
+        "C926-4P",
+        "C927-4P",
+        "C927-4PM",
+        "C927-4PLTEGB",
+        "C931-4P"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2026-07-28",
+      "replacement_text": "C1121 / Catalyst 8100-G2",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/routers/900-series-integrated-services-routers-isr/isr-900-series-routers-licenses-accessories-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 6",
+      "file": "routers.csv",
+      "pids": [
+        "C8300-1N1S-4T2X",
+        "C8300-1N1S-6T"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2027-01-31",
+      "ldos": "2032-01-31",
+      "replacement_text": "C8375-E-G2",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/networking/sdwan-routers/catalyst-8000-edge-platforms/catalyst-c8500l-8s4x-4t2x-c8300-1n1s-6t-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 7",
+      "file": "routers.csv",
+      "pids": [
+        "C8500L-8S4X"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2027-01-31",
+      "ldos": "2032-01-31",
+      "replacement_text": "C8475-G2",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/networking/sdwan-routers/catalyst-8000-edge-platforms/catalyst-c8500l-8s4x-4t2x-c8300-1n1s-6t-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 8",
+      "file": "routers.csv",
+      "pids": [
+        "C8500-12X",
+        "C8500-12X4QC"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2027-01-31",
+      "replacement_text": "Catalyst 8500-G2 (verify per bulletin)",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/networking/sdwan-routers/catalyst-8000-edge-platforms/catalyst-c8500-12x-c8500-12x4qc-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 9",
+      "file": "routers.csv",
+      "pids": [
+        "C8200-1N-4T"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2027-07-31",
+      "ldos": "2032-07-31",
+      "replacement_text": "C8235-E-G2",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/networking/sdwan-routers/catalyst-8000-edge-platforms/catalyst-c8300-2n2s-4t2x-6t-1n-4t-c8200l-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 10",
+      "file": "routers.csv",
+      "pids": [
+        "C8200L-1N-4T"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2027-07-31",
+      "ldos": "2032-07-31",
+      "replacement_text": "C8231-E-G2",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/networking/sdwan-routers/catalyst-8000-edge-platforms/catalyst-c8300-2n2s-4t2x-6t-1n-4t-c8200l-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 11",
+      "file": "routers.csv",
+      "pids": [
+        "C8300-2N2S-4T2X",
+        "C8300-2N2S-6T"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2027-07-31",
+      "ldos": "2032-07-31",
+      "replacement_none": true,
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/networking/sdwan-routers/catalyst-8000-edge-platforms/catalyst-c8300-2n2s-4t2x-6t-1n-4t-c8200l-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 12",
+      "file": "routers.csv",
+      "pids": [
+        "C8500-20X6C"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2027-07-31",
+      "replacement_text": "Catalyst 8500-G2 (verify per bulletin)",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/networking/sdwan-routers/catalyst-8000-edge-platforms/catalyst-c8500-20x6c-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 13",
+      "file": "routers.csv",
+      "pids": [
+        "MX84"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2021-10-31",
+      "ldos": "2026-10-31",
+      "replacement_text": "MX85",
+      "eol_bulletin_url": "https://documentation.meraki.com/General_Administration/Other_Topics/Product_End-of-Life_(EOL)_Policies"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 14",
+      "file": "routers.csv",
+      "pids": [
+        "MX67C",
+        "MX68CW"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2026-11-27",
+      "ldos": "2031-11-30",
+      "replacement_text": "C8111-C-G2-MX / C8121-CW-G2-MX",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/security/meraki-cloud-managed-security-appliances/mx67c-mx68cw-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 15",
+      "file": "routers.csv",
+      "pids": [
+        "Z3",
+        "Z3C"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2024-09-04",
+      "ldos": "2029-09-04",
+      "replacement_text": "Z4 / Z4C",
+      "eol_bulletin_url": "https://documentation.meraki.com/General_Administration/Other_Topics/Product_End-of-Life_(EOL)_Policies"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 16",
+      "file": "routers.csv",
+      "pids": [
+        "C1109-4PLTE2P"
+      ],
+      "lifecycle": "current",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/routers/1000-series-integrated-services-routers-isr/select-isr-1101-1109-series-routers-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 17",
+      "file": "switching.csv",
+      "pids": [
+        "MS210-24-HW",
+        "MS210-24P-HW",
+        "MS210-48-HW",
+        "MS210-48LP-HW",
+        "MS210-48FP-HW"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2026-04-30",
+      "ldos": "2031-04-30",
+      "replacement_text": "MS130 / MS150 (confirm per model)",
+      "eol_bulletin_url": "https://documentation.meraki.com/General_Administration/Other_Topics/Product_End-of-Life_(EOL)_Policies"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 18",
+      "file": "switching.csv",
+      "pids": [
+        "MS450-12-HW"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2026-10-29",
+      "ldos": "2031-10-31",
+      "replacement_text": "C9500-32QC",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/networking/switches/meraki-switches/meraki-ms450-12x40g-aggregation-switch-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 19",
+      "file": "switching.csv",
+      "pids": [
+        "C9500-16X",
+        "C9500-16X-2Q",
+        "C9500-NM-8X",
+        "C9500-NM-2Q"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2026-04-30",
+      "ldos": "2031-04-30",
+      "replacement_text": "C9500-24Y4C (NMs: none)",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/switches/catalyst-9500-series-switches/c9500-16x-switch-nm-c9500-nm-8x-nm-2q-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 20",
+      "file": "switching.csv",
+      "pids": [
+        "C9400-SUP-1",
+        "C9400-SUP-1XL"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2025-04-30",
+      "ldos": "2030-04-30",
+      "replacement_text": "C9400X-SUP-2 / C9400X-SUP-2XL (missing from data)",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/switches/catalyst-9400-series-switches/catalyst-9400-series-supervisor-module-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 21",
+      "file": "switching.csv",
+      "pids": [
+        "CBS220-8T-E-2G",
+        "CBS220-8P-E-2G",
+        "CBS220-8FP-E-2G",
+        "CBS220-16T-2G",
+        "CBS220-16P-2G",
+        "CBS220-24T-4G",
+        "CBS220-24P-4G",
+        "CBS220-24FP-4G",
+        "CBS220-48T-4G",
+        "CBS220-48P-4G",
+        "CBS220-24T-4X",
+        "CBS220-24P-4X",
+        "CBS220-24FP-4X",
+        "CBS220-48T-4X",
+        "CBS220-48P-4X",
+        "CBS220-48FP-4X"
+      ],
+      "lifecycle": "current",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/switches/small-business-220-series-smart-plus-switches/220-series-smart-switches-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 23",
+      "file": "wireless-data.csv",
+      "pids": [
+        "C9130AXI",
+        "C9130AXE",
+        "C9120AXI",
+        "C9120AXE",
+        "C9120AXP",
+        "C9115AXI",
+        "C9115AXE",
+        "C9105AXI",
+        "C9105AXW",
+        "MR36",
+        "MR36H",
+        "MR44",
+        "MR46",
+        "MR46E"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2026-12-31",
+      "ldos": "2031-12-31",
+      "replacement_text": "CW917x Wi-Fi 7",
+      "eol_bulletin_url": "https://documentation.meraki.com/General_Administration/Other_Topics/Product_End-of-Life_(EOL)_Policies"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 24",
+      "file": "wireless-data.csv",
+      "pids": [
+        "C9124AXI",
+        "C9124AXD",
+        "C9124AXE",
+        "C9136I"
+      ],
+      "lifecycle": "current",
+      "eol_bulletin_url": "https://www.xsnet.com.au/blogs/news/cisco-wifi-6-access-point-eol"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 27",
+      "file": "wireless-data.csv",
+      "pids": [
+        "MR28",
+        "MR57",
+        "MR76",
+        "MR78",
+        "MR86"
+      ],
+      "lifecycle": "current",
+      "eol_bulletin_url": "https://documentation.meraki.com/General_Administration/Other_Topics/Product_End-of-Life_(EOL)_Policies"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 28",
+      "file": "DC-data.csv",
+      "pids": [
+        "N9K-C9364C"
+      ],
+      "lifecycle": "eos",
+      "last_order": "2024-01-30",
+      "ldos": "2029-01-31",
+      "replacement_text": "N9K-C9364C-GX (already in data)",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/switches/nexus-9000-series-switches/nexus-9332c-9364c-fixed-spine-switch-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 29",
+      "file": "DC-data.csv",
+      "pids": [
+        "N3K-C3548P-XL",
+        "N3K-C3524P-XL"
+      ],
+      "lifecycle": "current",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/switches/nexus-3000-series-switches/nexus-3524-x-3548-x-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 31",
+      "file": "dc-modules-data.csv",
+      "pids": [
+        "N9K-X9736C-FX"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2027-07-31",
+      "ldos": "2032-07-31",
+      "replacement_text": "N9K-X9736C-FX3 (in data)",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/switches/nexus-9000-series-switches/n9500-cloud-scale-line-cards-eol.html"
+    },
+    {
+      "audit_ref": "Lifecycle tab row 32",
+      "file": "dc-modules-data.csv",
+      "pids": [
+        "N9K-X9732C-FX"
+      ],
+      "lifecycle": "eos_announced",
+      "last_order": "2027-01-29",
+      "ldos": "2032-01-31",
+      "replacement_text": "N9K-X9736C-FX3 (in data)",
+      "eol_bulletin_url": "https://www.cisco.com/c/en/us/products/collateral/switches/nexus-9000-series-switches/n9500-cloud-n9k-x9732c-fx-100g-eth-card-eol.pdf"
+    }
+  ]
+}
