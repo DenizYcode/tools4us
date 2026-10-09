@@ -4,7 +4,7 @@ import { LAUNCH_FAMILIES, familyPath, type Family } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
-  // Path after /<other-lang>/ for the same page in the other language. Omit to hide the toggle.
+  // Full URL of the same page in the other language. Omit to hide the toggle.
   switchHref?: string;
   switchLang?: Lang;
   current?: Family | 'home';
@@ -14,8 +14,21 @@ const { lang, switchHref, switchLang, current } = Astro.props;
 ---
 
 <header class="site-header">
-  <div class="container bar">
+  <div class="container inner">
     <a class="wordmark" href={localePath(lang)} aria-label={t(lang, 'nav.home')}>Tools<span class="four" aria-hidden="true">4</span>Us</a>
+    <nav class="families" aria-label={t(lang, 'nav.main')}>
+      <ul>
+        {
+          LAUNCH_FAMILIES.map((family) => (
+            <li>
+              <a href={familyPath(lang, family)} aria-current={current === family ? 'page' : undefined}>
+                {t(lang, `family.${family}.name`)}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
     {
       switchHref !== undefined && switchLang && (
         <a class="lang-toggle" href={switchHref} lang={switchLang} hreflang={switchLang}>
@@ -24,19 +37,6 @@ const { lang, switchHref, switchLang, current } = Astro.props;
       )
     }
   </div>
-  <nav class="container families" aria-label={t(lang, 'nav.main')}>
-    <ul>
-      {
-        LAUNCH_FAMILIES.map((family) => (
-          <li>
-            <a href={familyPath(lang, family)} aria-current={current === family ? 'page' : undefined}>
-              {t(lang, `family.${family}.name`)}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </nav>
 </header>
 
 <style>
@@ -45,18 +45,24 @@ const { lang, switchHref, switchLang, current } = Astro.props;
     color: var(--on-navy);
   }
 
-  .bar {
-    display: flex;
+  /* DOM order is wordmark, family links, language toggle: the same as the visual order, so Tab follows what you see.
+     On phones the links drop to a second row. */
+  .inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'brand toggle'
+      'nav nav';
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    min-height: 3.5rem;
+    column-gap: var(--space-4);
   }
 
   .wordmark {
+    grid-area: brand;
     display: inline-flex;
     align-items: center;
     min-height: var(--tap);
+    justify-self: start;
     color: var(--on-navy);
     font-size: 1.375rem;
     font-weight: 780;
@@ -73,6 +79,7 @@ const { lang, switchHref, switchLang, current } = Astro.props;
   }
 
   .lang-toggle {
+    grid-area: toggle;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -89,6 +96,10 @@ const { lang, switchHref, switchLang, current } = Astro.props;
   .lang-toggle:hover {
     background: var(--navy-700);
     color: var(--on-navy);
+  }
+
+  .families {
+    grid-area: nav;
   }
 
   .families ul {
@@ -124,34 +135,15 @@ const { lang, switchHref, switchLang, current } = Astro.props;
   }
 
   @media (min-width: 48em) {
-    .site-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-inline: max(var(--gutter), calc((100% - var(--max)) / 2 + var(--gutter)));
-    }
-
-    .site-header .container {
-      width: auto;
-      max-width: none;
-      padding-inline: 0;
+    .inner {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas: 'brand nav toggle';
+      column-gap: var(--space-6);
+      min-height: 3.5rem;
     }
 
     .families {
-      order: 1;
-      margin-inline: auto var(--space-5);
-    }
-
-    .bar {
-      display: contents;
-    }
-
-    .wordmark {
-      order: 0;
-    }
-
-    .lang-toggle {
-      order: 2;
+      justify-self: end;
     }
   }
 </style>

@@ -29,6 +29,10 @@ const { tone = 'default', labelledby, class: extra = '' } = Astro.props;
     color: var(--on-navy);
   }
 
+  .navy :global(:focus-visible) {
+    outline-color: var(--focus-on-navy);
+  }
+
   .navy :global(h1),
   .navy :global(h2),
   .navy :global(h3) {

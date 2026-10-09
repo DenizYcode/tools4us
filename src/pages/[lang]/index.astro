@@ -141,6 +141,11 @@ const shortcuts = ['recommend', 'legacy', 'compare'] as const;
     list-style: none;
   }
 
+  /* Cards in a row share one height. */
+  .grid > li > :global(*) {
+    height: 100%;
+  }
+
   .later-title {
     margin: var(--space-7) 0 var(--space-4);
     color: var(--muted);
