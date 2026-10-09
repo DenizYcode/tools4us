@@ -26,11 +26,13 @@ The full spec is `docs/SPEC.md`. Before planning any task, read the SPEC.md sect
 - `npm run dev`: dev server at http://localhost:4321/cisco-partner-rehberi/ (the base path is part of every URL).
 - `npm run check:data`: validate the catalog (`data/catalog/*.xlsx`) and the TR/EN i18n files against `.claude/rules/data.md` and the SPEC build checks. Prints a ready/draft/excluded summary; exits 1 on any error. Must pass before any commit.
 - `npm run build:data`: `check:data`, then write the published rows (ready + in scope only) to `src/data/generated/*.json` plus `manifest.json` (sha256 per file). The folder is gitignored.
-- `npm run build`: `build:data`, then `astro build`, then `pagefind --site dist`. Output in `dist/`. This is what CI runs.
-- `npm run test:data`: node:test suite for the validator, the migration invariants against the real workbooks, and the audit closure.
+- `npm run check:design`: WCAG contrast check of every colour pair in `src/styles/tokens.css`; fails below 4.5:1 (3:1 for large text and UI edges).
+- `npm run build`: `check:design`, `build:data`, then `astro build`, then `pagefind --site dist`. Output in `dist/`. This is what CI runs.
+- `npm run test:data`: node:test suite for the validator, the migration invariants against the real workbooks, the audit closure and the graphics layout maths.
 - `npm run migrate:legacy`: one-time seed of `data/catalog/` from `data/legacy/`. Refuses to overwrite existing workbooks (they are edited by hand now); `-- --force` regenerates them and discards manual edits.
 - `npm run audit:closure`: regenerate `docs/Phase1_Audit_Closure.md` and `.csv` from the audit workbook and the catalog.
 - `npm run preview`: serve the built `dist/` locally, as Pages will. Run `npm run build` first.
+- Dev-only graphics gallery: with `npm run dev`, open `/<base>/tr/dev-gallery/`. It does not exist in production builds.
 
 ## Workflow
 - Work one phase at a time (SPEC "Build plan"). Start each phase in plan mode.
@@ -40,6 +42,9 @@ The full spec is `docs/SPEC.md`. Before planning any task, read the SPEC.md sect
 - When compacting, keep the current phase, the list of modified files and any failing checks.
 
 ## Status
+- Phase 2: built and committed locally, not pushed. Tools4Us shell: tokens + self-hosted Inter (check:design, 22 pairs pass), Header/Footer/Section/cards, hub (hero, 3 family cards, "Yakında" row for Data Center/Collaboration/Security, story and shortcut placeholders), 3 family stub pages x 2 languages with readable slugs and a language toggle that maps slugs, drawn graphics (FamilyGraphic, data-shaped DeviceGraphic, HeroGraphic; layout maths unit-tested; dev-only gallery). Verified at 375 px and 1280 px (script checks: no horizontal scroll, 16 px body, no tap target under 44 px, equal card heights), Turkish glyph test, keyboard order and focus ring, no models/PIDs and no external requests in `dist/`.
+  - Decisions (10 Oct 2026): name Tools4Us; launch Switching, Wireless, Routing (Meraki MX in Routing); other families "Yakında"; drawn graphics; repo to be renamed `tools4us`. Deviations from SPEC: no search box until Phase 6 (a dead input would mislead); shortcuts and stories are inert placeholders.
+  - Pending: repo rename (owner, in GitHub), then base path `/tools4us/` and URLs; Turkish copy for native review; push needs a go-ahead.
 - Phase 1: done (10 Oct 2026), pushed at `e1c9da9`; Actions run #3 green (build 18 s, deploy 11 s), live site unchanged (`/`, `/tr/`, `/en/` 200, unknown URL 404, no catalog files or model PIDs on the site). CI runs `npm run build`, so the real `check:data` now gates every deploy; `test:data` is not in CI. Next: Phase 2 (shell). Pipeline: `scripts/build-data/` (vocab, column specs, xlsx reader/writer, validator, emitter, `migrate/`, audit closure). Catalog: `data/catalog/{switching,wireless,routing,datacenter}.xlsx`, sheets models / accessories / compat / series. All rows are `draft`, so nothing is published yet; ASR/NCS routers (51) are `scope: excluded`. Evidence: `npm run test:data` 54/54, `npm run check:data` (2 warnings: two router module labels that are not PIDs) and `npm run build` pass, independent spec-reviewer run done and its data findings fixed, forced re-migration gives an identical content hash, and without `--force` it refuses.
   - Audit (`docs/Phase1_Audit_Closure.md`): 134 Fixed (each proven by a check), 120 Tracked (data we cannot invent; rows stay draft), 94 Open (mostly Low/Medium hygiene). Only High issue still open: #4 (C9400X-SUP-2/-2XL not in the legacy data). Decisions and derived values for you to confirm: `docs/Phase1_Needs_Decision.md`.
   - Decisions: xlsx; draft/ready status (checks fail only for ready rows); lifecycle `current|eos_announced|eos`, empty = unverified; announcement date optional; replacement as PIDs, note or `replacement_none`; legacy rows numbered like the audit (spreadsheet records). SPEC and `.claude/rules/data.md` updated first.
