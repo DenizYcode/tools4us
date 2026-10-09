@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisco Nexus & MDS Selector - Data Center</title>
+    <link rel="stylesheet" href="shared.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="shared.js"></script>
+    <style>
+        /* ---- Page-specific: filter colors ---- */
+        :root {
+            --color-devtype: #007bff; --color-role: #6f42c1; --color-dlspeed: #fd7e14;
+            --color-uplink: #6610f2; --color-os: #20c997; --color-feat: #198754;
+        }
+        .filter-devtype { border: 1px solid #cce5ff; background: #f8fbff; }
+        .filter-devtype .filter-btn.active { border-color: var(--color-devtype); box-shadow: 0 0 0 1px var(--color-devtype); font-weight: bold; color: var(--color-devtype); }
+        .filter-role { border: 1px solid #e2d9f3; background: #fcfaff; }
+        .filter-role .filter-btn.active { border-color: var(--color-role); box-shadow: 0 0 0 1px var(--color-role); font-weight: bold; color: var(--color-role); }
+        .filter-dlspeed { border: 1px solid #ffe5d0; background: #fffaf6; }
+        .filter-dlspeed .filter-btn.active { border-color: var(--color-dlspeed); box-shadow: 0 0 0 1px var(--color-dlspeed); font-weight: bold; color: var(--color-dlspeed); }
+        .filter-uplink { border: 1px solid #e0cffc; background: #fbf9ff; }
+        .filter-uplink .filter-btn.active { border-color: var(--color-uplink); box-shadow: 0 0 0 1px var(--color-uplink); font-weight: bold; color: var(--color-uplink); }
+        .filter-usecase { border: 1px solid #d2f4ea; background: #f6fdfa; }
+        .filter-usecase .filter-btn.active { border-color: var(--color-os); box-shadow: 0 0 0 1px var(--color-os); font-weight: bold; color: var(--color-os); }
+        .filter-feat { border: 1px solid #d1e7dd; background: #f6fdf9; }
+        .filter-feat .filter-btn.active { border-color: var(--color-feat); box-shadow: 0 0 0 1px var(--color-feat); font-weight: bold; color: var(--color-feat); }
+        .features-grid { grid-template-columns: 1fr 1fr; }
+        .btn-nexus-info { background-color: #1e3a8a; }
+        .btn-san-info { background-color: #6c757d; }
+        .switch-family-title.active-title { color: var(--cisco-blue); }
+
+        /* ---- Page-specific: Data Center graphics ---- */
+        .css-switch { background-color: #E2E4E6; border-radius: 4px; display: flex; align-items: center; padding: 5px 10px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.1s, box-shadow 0.1s; border: 1px solid #d1d1d1; margin-bottom: 5px; overflow: hidden; box-sizing: border-box; }
+        .switch-family:hover .css-switch { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        .port-group { display: grid; gap: 1px; margin-right: 15px; flex-shrink: 0; }
+        .port-group.g-8 { grid-template-columns: repeat(4, 1fr); }
+        .port-group.g-24 { grid-template-columns: repeat(24, 1fr); }
+        .port { width: 6px; height: 6px; background-color: #999; border-radius: 1px; }
+        .port.uplink { background-color: #444; }
+        .css-switch.dc-fixed { width: 70%; height: 42px; background-color: #3a3f44; border-color: #222; }
+        .css-switch.dc-fixed .port { background-color: #aab2bb; }
+        .css-switch.dc-fixed .port.uplink { background-color: #e0e4e8; }
+        .css-switch.dc-fixed.nexus { background-color: #1e2a4a; border-color: #0f1a33; border-left: 4px solid #3b6fd4; }
+        .css-switch.dc-fixed.nexus .port { background-color: #6f8fd6; }
+        .css-switch.dc-fixed.nexus .port.uplink { background-color: #cdd9f4; }
+        .css-switch.dc-fixed.san { background-color: #3a3f44; border-color: #222; border-left: 4px solid #adb5bd; }
+        .css-switch.dc-fixed.hyperfabric { background-color: #123a42; border-color: #0a252b; border-left: 4px solid var(--san-teal); }
+        .css-switch.dc-fixed.hyperfabric .port { background-color: #5cc3d4; }
+        .css-switch.dc-fixed.hyperfabric .port.uplink { background-color: #c9eef4; }
+        .css-switch.chassis { width: 70%; height: 86px; flex-direction: row; padding: 4px; gap: 4px; background-color: #3a3f44; border: 1px solid #222; }
+        .css-switch.chassis.nexus { background-color: #1e2a4a; border-color: #0f1a33; border-left: 4px solid #3b6fd4; }
+        .css-switch.chassis.san { background-color: #3a3f44; border-color: #222; border-left: 4px solid #adb5bd; }
+        .css-switch.chassis.hyperfabric { background-color: #123a42; border-color: #0a252b; border-left: 4px solid var(--san-teal); }
+        /* Series colour identity: Nexus = dark blue, MDS/SAN = grey */
+        .mgmt-btn.btn-nexus { border-color: #1e3a8a; color: #1e3a8a; }
+        .mgmt-btn.btn-nexus.active { background: #1e3a8a; color: #fff; }
+        .mgmt-btn.btn-san { border-color: #6c757d; color: #6c757d; }
+        .mgmt-btn.btn-san.active { background: #6c757d; color: #fff; }
+        .sku-btn.selected-Nexus { background: #1e3a8a; border-color: #1e3a8a; color: #fff; }
+        .sku-btn.selected-SAN { background: #6c757d; border-color: #6c757d; color: #fff; }
+        .chassis-sup { width: 34px; background: #5a6066; border-radius: 2px; display: flex; flex-direction: column; gap: 3px; padding: 4px; box-sizing: border-box; border-right: 1px solid #2a2e31; }
+        .chassis-sup-module { width: 100%; height: 13px; background: #8a9298; border-radius: 1px; }
+        .chassis-lc-area { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+        .chassis-slot { flex: 1; background: #E2E4E6; border-radius: 2px; display: flex; align-items: center; padding: 0 5px; gap: 2px; overflow: hidden; }
+        .chassis-port { width: 5px; height: 5px; background: #999; border-radius: 1px; }
+        .dc-graphic { display: flex; align-items: center; gap: 4px; }
+        .dc-meta { font-size: 12px; color: #777; line-height: 1.5; margin-left: 4px; }
+        .dc-meta-badge { display: inline-block; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 10px; background: #eef0f2; color: #555; margin-right: 5px; }
+
+        @media (max-width: 1150px) {
+            .css-switch.dc-fixed, .css-switch.chassis { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="chrome-top"></div>
+
+    <div class="main-container">
+        <div>
+            <div id="active-filters-bar" class="active-filter-bar"></div>
+            <div id="hyperfabric-info-box" class="unified-info-box hidden" style="background-color: rgba(23,162,184,0.08); border-color: rgba(23,162,184,0.35);">
+                <h4 style="color: var(--san-teal);" data-i18n="hf-info">Nexus Hyperfabric is Cisco's data center fabric-as-a-service. It's a cloud-managed network fabric solution where a Cisco-operated cloud controller lets customers design, deploy, and manage any number of fabrics</h4>
+            </div>
+            <div class="switch-list" id="dc-list-container"><p data-i18n="loading">Loading dataset...</p></div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-section filter-devtype">
+                <h4 data-i18n="filter-devtype">Form Factor</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="devtype" data-val="Fixed" data-i18n="filter-dev-fixed">Fixed</button>
+                    <button class="filter-btn" data-filter="devtype" data-val="Modular" data-i18n="filter-dev-modular">Modular</button>
+                </div>
+            </div>
+            <div class="filter-section filter-role">
+                <h4 data-i18n="filter-role">Role</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="role" data-val="Spine">Spine</button>
+                    <button class="filter-btn" data-filter="role" data-val="Leaf">Leaf</button>
+                    <button class="filter-btn" data-filter="role" data-val="Access">Access</button>
+                    <button class="filter-btn" data-filter="role" data-val="SAN">SAN</button>
+                </div>
+            </div>
+            <div class="filter-section filter-dlspeed">
+                <h4 data-i18n="filter-dlspeed">Downlink Speed</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="dlspeed" data-val="10G">10G</button>
+                    <button class="filter-btn" data-filter="dlspeed" data-val="25G">25G</button>
+                    <button class="filter-btn" data-filter="dlspeed" data-val="100G">100G</button>
+                    <button class="filter-btn" data-filter="dlspeed" data-val="400G">400G</button>
+                    <button class="filter-btn" data-filter="dlspeed" data-val="800G">800G</button>
+                </div>
+            </div>
+            <div class="filter-section filter-uplink">
+                <h4 data-i18n="filter-uplink">Max Uplink Speed</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="uplink" data-val="100G">100G</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="400G">400G</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="800G">800G</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="FC">FC</button>
+                </div>
+            </div>
+            <div class="filter-section filter-usecase">
+                <h4 data-i18n="filter-usecase">Use Case</h4>
+                <div class="filter-grid features-grid">
+                    <button class="filter-btn" data-filter="usecase" data-val="AI/ML" data-i18n="uc-ai">AI/ML</button>
+                    <button class="filter-btn" data-filter="usecase" data-val="Spine" data-i18n="uc-spine">Spine</button>
+                    <button class="filter-btn" data-filter="usecase" data-val="Leaf" data-i18n="uc-leaf">Leaf/ToR</button>
+                    <button class="filter-btn" data-filter="usecase" data-val="Access" data-i18n="uc-access">Access</button>
+                    <button class="filter-btn" data-filter="usecase" data-val="SAN" data-i18n="uc-san">SAN/Storage</button>
+                    <button class="filter-btn" data-filter="usecase" data-val="Services" data-i18n="uc-services">Services</button>
+                </div>
+            </div>
+            <div class="filter-section filter-feat">
+                <h4 data-i18n="filter-feat">Features</h4>
+                <div class="filter-grid features-grid">
+                    <button class="filter-btn" data-filter="feature" data-val="VXLAN">VXLAN</button>
+                    <button class="filter-btn" data-filter="feature" data-val="EVPN">EVPN</button>
+                    <button class="filter-btn" data-filter="feature" data-val="MACsec">MACsec</button>
+                    <button class="filter-btn" data-filter="feature" data-val="SRv6">SRv6</button>
+                </div>
+            </div>
+            <div class="filter-section info-section">
+                <h4 data-i18n="info-title">Learn more about Nexus/MDS licensing</h4>
+                <div class="info-buttons">
+                    <a href="https://www.cisco.com/site/us/en/products/networking/software/data-center-networking-subscriptions.html" target="_blank" class="info-btn btn-nexus-info" data-i18n="info-lic">Nexus / MDS Licensing</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chrome-feedback"></div>
+
+<script>
+    const DATA_VER = '2';
+    const DC_CSV  = 'data/DC-data.csv?v=' + DATA_VER;
+    const MOD_CSV = 'data/dc-modules-data.csv?v=' + DATA_VER;
+
+    const pageI18n = {
+        en: {
+            'filter-devtype': 'Form Factor', 'filter-role': 'Role', 'filter-dlspeed': 'Downlink Speed', 'filter-uplink': 'Max Uplink Speed', 'filter-usecase': 'Use Case', 'filter-feat': 'Features',
+            'uc-ai': 'AI/ML', 'uc-spine': 'Spine', 'uc-leaf': 'Leaf/ToR', 'uc-access': 'Access', 'uc-san': 'SAN/Storage', 'uc-services': 'Services',
+            'filter-dev-fixed': 'Fixed', 'filter-dev-modular': 'Modular',
+            'info-title': 'Learn more about Nexus/MDS licensing', 'info-lic': 'Nexus / MDS Licensing',
+            'hf-info': "Nexus Hyperfabric is Cisco's data center fabric-as-a-service. It's a cloud-managed network fabric solution where a Cisco-operated cloud controller lets customers design, deploy, and manage any number of fabrics",
+            'drawer-modules': 'Modules (Line Cards / Supervisors / Fabric):',
+            'label-role': 'Role:', 'label-form': 'Form Factor:', 'label-ru': 'Rack Units:', 'label-dl': 'Downlink Speeds:', 'label-ul': 'Max Uplink:', 'label-supfab': 'Supervisor / Fabric:', 'label-tp': 'Throughput:', 'label-os': 'OS / Mode:', 'label-maxport': 'Max Ports:', 'label-feat': 'Features:', 'label-use': 'Use Case:', 'label-desc': 'Description:', 'label-sku': 'SKU:',
+            'pool-note-a': 'All cards below share', 'pool-note-b': 'slots.',
+            'limit-reached': 'All slots are used!', 'none-listed': 'No modules listed for this chassis.'
+        },
+        tr: {
+            'filter-devtype': 'Form Faktörü', 'filter-role': 'Rol', 'filter-dlspeed': 'Downlink Hızı', 'filter-uplink': 'Maks Uplink Hızı', 'filter-usecase': 'Kullanım Alanı', 'filter-feat': 'Özellikler',
+            'uc-ai': 'AI/ML', 'uc-spine': 'Spine', 'uc-leaf': 'Leaf/ToR', 'uc-access': 'Erişim', 'uc-san': 'SAN/Depolama', 'uc-services': 'Servisler',
+            'filter-dev-fixed': 'Sabit', 'filter-dev-modular': 'Modüler',
+            'info-title': 'Nexus/MDS lisanslama hakkında daha fazla bilgi edinin', 'info-lic': 'Nexus / MDS Lisanslama',
+            'hf-info': "Nexus Hyperfabric, Cisco'nun hizmet olarak veri merkezi fabric çözümüdür. Cisco tarafından işletilen bulut denetleyicisi sayesinde müşteriler istedikleri sayıda fabric'i tasarlayabilir, devreye alabilir ve yönetebilir (bulut yönetimli).",
+            'drawer-modules': 'Modüller (Hat Kartları / Süpervizör / Fabric):',
+            'label-role': 'Rol:', 'label-form': 'Form Faktörü:', 'label-ru': 'Rack Birimi:', 'label-dl': 'Downlink Hızları:', 'label-ul': 'Maks Uplink:', 'label-supfab': 'Süpervizör / Fabric:', 'label-tp': 'Verim:', 'label-os': 'OS / Mod:', 'label-maxport': 'Maks Port:', 'label-feat': 'Özellikler:', 'label-use': 'Kullanım Alanı:', 'label-desc': 'Açıklama:', 'label-sku': 'SKU:',
+            'pool-note-a': 'Aşağıdaki tüm kartlar', 'pool-note-b': 'yuvayı paylaşır.',
+            'limit-reached': 'Tüm yuvalar dolu!', 'none-listed': 'Bu şasi için modül listelenmemiş.'
+        }
+    };
+
+    const valToKey = { 'Fixed': 'filter-dev-fixed', 'Modular': 'filter-dev-modular', 'AI/ML': 'uc-ai', 'Spine': 'uc-spine', 'Leaf': 'uc-leaf', 'Access': 'uc-access', 'SAN': 'uc-san', 'Services': 'uc-services' };
+
+    let allSwitches = [], allModules = [];
+    let activeFilters = { devtype: [], role: [], dlspeed: [], uplink: [], usecase: [], feature: [] };
+    let selectedSeries = null, selectedModel = null, cardCounts = {};
+
+    /* ---------- Normalization helpers ---------- */
+    function platformOf(s) { s = (s || '').toLowerCase(); if (s.includes('hyperfabric')) return 'Hyperfabric'; if (s.startsWith('mds')) return 'SAN'; if (s.startsWith('nexus')) return 'Nexus'; return 'Other'; }
+    function deviceBucket(dt) { return (dt || '').toLowerCase().includes('modular') ? 'Modular' : 'Fixed'; }
+    function roleBuckets(role) { let r = (role || '').toLowerCase(), o = []; if (r.includes('spine')) o.push('Spine'); if (r.includes('leaf')) o.push('Leaf'); if (r.includes('access')) o.push('Access'); if (r.includes('san') || r.includes('director') || r.includes('fabric switch') || r.includes('extension')) o.push('SAN'); return o; }
+    function speedTokens(str) { let o = new Set(); (str || '').replace(/Gbps|G\b/gi, 'G').split(/[^0-9.]+/).forEach(n => { n = n.trim(); if (n && !isNaN(n)) o.add(n + 'G'); }); return [...o]; }
+    function uplinkTokens(str) { let u = (str || '').toLowerCase(), o = []; if (u.includes('800')) o.push('800G'); if (u.includes('400')) o.push('400G'); if (u.includes('100')) o.push('100G'); if (u.includes('fc')) o.push('FC'); return o; }
+    function osModes(str) { let s = (str || '').toLowerCase(), o = []; if (s.includes('aci')) o.push('ACI'); if (s.includes('nx-os') || s.includes('nxos')) o.push('NX-OS'); return o; }
+    function useCaseBuckets(str) {
+        let s = (str || '').toLowerCase(), o = [];
+        if (s.includes('ai/ml') || s.includes('ai-ml') || s.includes('ai scale') || s.includes('ai cluster')) o.push('AI/ML');
+        if (s.includes('spine')) o.push('Spine');
+        if (s.includes('leaf') || s.includes('tor')) o.push('Leaf');
+        if (s.includes('access') || s.includes('poe')) o.push('Access');
+        if (s.includes('san') || s.includes('storage') || s.includes('fcip')) o.push('SAN');
+        if (s.includes('services') || s.includes('smart switch')) o.push('Services');
+        return o;
+    }
+    function slotLimit(str) { let m = (str || '').match(/\d+/); return m ? parseInt(m[0]) : 0; }
+
+    function parseSwitch(row) {
+        return {
+            series: (row['Switch series'] || '').trim(), model: (row['Model'] || '').trim(), platform: platformOf(row['Switch series']),
+            deviceTypeRaw: (row['Device Type'] || '').trim(), deviceBucket: deviceBucket(row['Device Type']),
+            roleRaw: (row['Role'] || '').trim(), roles: roleBuckets(row['Role']), ru: (row['Form Factor (RU)'] || '').trim(), ruNum: parseInt(row['Form Factor (RU)']) || 0,
+            dlRaw: (row['Downlink Speeds'] || '').trim(), dlSpeeds: speedTokens(row['Downlink Speeds']),
+            ulRaw: (row['Max Uplink Speed'] || '').trim(), ulSpeeds: uplinkTokens(row['Max Uplink Speed']),
+            slotsRaw: (row['Line Card Slots'] || '').trim(), slots: slotLimit(row['Line Card Slots']),
+            supFab: (row['Supervisor/Fabric Modules'] || '').trim(), throughput: (row['Throughput'] || '').trim(),
+            osRaw: (row['OS/Mode'] || '').trim(), osModes: osModes(row['OS/Mode']),
+            features: (row['Features'] || '').split(',').map(s => s.trim()).filter(Boolean),
+            maxPorts: (row['Maximum possible port number'] || '').trim(), desc: (row['Short description'] || '').trim(),
+            useCase: (row['Use case'] || '').trim(), useCases: useCaseBuckets(row['Use case']), datasheet: (row['Datasheet link'] || '#').trim() || '#'
+        };
+    }
+
+    function modulesFor(sw) {
+        return allModules.filter(m => {
+            const cc = m.compatChassis; if (!cc) return false;
+            let famOk = sw.series === cc || sw.series.startsWith(cc) || sw.series.includes(cc);
+            if (!famOk) return false;
+            if (m.compatModel && m.compatModel.toLowerCase() !== 'all') {
+                let toks = m.compatModel.split(/[,/]/).map(s => s.trim()).filter(Boolean);
+                return toks.some(t => sw.model.includes(t));
+            }
+            return true;
+        });
+    }
+
+    function swPasses(sw) {
+        const af = Shared.activeFilters;
+        if (Shared.mgmt !== 'ALL' && sw.platform !== Shared.mgmt) return false;
+        if (af.devtype.length && !af.devtype.includes(sw.deviceBucket)) return false;
+        if (af.role.length && !af.role.some(r => sw.roles.includes(r))) return false;
+        if (af.dlspeed.length && !af.dlspeed.some(s => sw.dlSpeeds.includes(s))) return false;
+        if (af.uplink.length && !af.uplink.some(u => sw.ulSpeeds.includes(u))) return false;
+        if (af.usecase.length && !af.usecase.some(u => sw.useCases.includes(u))) return false;
+        if (af.feature.length && !af.feature.every(f => sw.features.some(x => x.toLowerCase().includes(f.toLowerCase())))) return false;
+        return true;
+    }
+
+    function renderSwitches() {
+        Shared.updateActiveFilterBar();
+        const hfBox = document.getElementById('hyperfabric-info-box');
+        if (hfBox) hfBox.classList.toggle('hidden', Shared.mgmt !== 'Hyperfabric');
+        const container = document.getElementById('dc-list-container');
+        container.innerHTML = '';
+        const seriesList = [...new Set(allSwitches.map(s => s.series))];
+        let valid = false;
+
+        seriesList.forEach(st => {
+            let members = allSwitches.filter(s => s.series === st && swPasses(s));
+            if (!members.length) return;
+            if (st === selectedSeries && members.some(m => m.model === selectedModel)) valid = true;
+            container.appendChild(createFamilyHTML(st, members));
+        });
+
+        if (!valid) { selectedSeries = null; selectedModel = null; cardCounts = {}; }
+
+        if (!container.innerHTML) container.innerHTML = '<p>' + Shared.t('no-match') + '</p>';
+        else if (selectedSeries && selectedModel) {
+            const drawer = document.getElementById('drawer-' + Shared.cssId(selectedSeries));
+            if (drawer) {
+                drawer.classList.add('active');
+                const title = drawer.parentElement.querySelector('.switch-family-title');
+                if (title) title.classList.add('active-title');
+                buildDetailsUI(selectedModel, selectedSeries);
+            }
+        }
+    }
+
+    function getDcGraphic(sw, repSlots, repRu) {
+        const accent = sw.platform === 'SAN' ? 'san' : sw.platform === 'Hyperfabric' ? 'hyperfabric' : 'nexus';
+        // Height scales with rack units so a 16RU switch never looks smaller than a 7RU one.
+        let ru = repRu || sw.ruNum || 1;
+        let h = Math.min(Math.max(Math.round(28 + ru * 5.5), 38), 155);
+        if (sw.deviceBucket === 'Modular') {
+            let rep = repSlots || sw.slots || 4;
+            let n = Math.min(Math.max(rep, 2), 12);
+            let slot = '<div class="chassis-slot">' + '<div class="chassis-port"></div>'.repeat(16) + '</div>';
+            return '<div class="dc-graphic"><div class="css-switch chassis ' + accent + '" style="height:' + h + 'px;">' +
+                '<div class="chassis-sup"><div class="chassis-sup-module"></div><div class="chassis-sup-module"></div></div>' +
+                '<div class="chassis-lc-area">' + slot.repeat(n) + '</div></div>' +
+                '<div class="dc-meta"><span class="dc-meta-badge">' + (sw.ru || '') + '</span> ' + sw.slotsRaw + ' &middot; ' + (sw.ulRaw || '') + ' uplink</div></div>';
+        }
+        let portsHTML = '<div class="port-group g-24">' + '<div class="port"></div>'.repeat(24) + '</div>' +
+                        '<div class="port-group g-8" style="margin-left:auto;">' + '<div class="port uplink"></div>'.repeat(4) + '</div>';
+        return '<div class="dc-graphic"><div class="css-switch dc-fixed ' + accent + '" style="height:' + h + 'px;">' + portsHTML + '</div>' +
+            '<div class="dc-meta"><span class="dc-meta-badge">' + (sw.ru || '1 RU') + '</span> ' + (sw.dlRaw || '') + '</div></div>';
+    }
+
+    function createFamilyHTML(series, members) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'switch-family';
+        const id = Shared.cssId(series);
+        const repSlots = Math.max.apply(null, members.map(m => m.slots || 0));
+        const repRu = Math.max.apply(null, members.map(m => m.ruNum || 0));
+        wrapper.innerHTML =
+            '<div onclick="toggleDrawer(\'' + id + '\')"><div class="switch-family-title">' + series + '</div>' + getDcGraphic(members[0], repSlots, repRu) + '</div>' +
+            '<div class="drawer" id="drawer-' + id + '"><div style="font-weight:bold;margin-bottom:10px;">' + Shared.t('drawer-select') + '</div>' +
+                '<div class="sku-list">' +
+                    members.map(m => {
+                        let sel = m.model === selectedModel ? 'selected-' + m.platform : '';
+                        return '<button class="sku-btn ' + sel + '" onclick="selectModel(\'' + encodeURIComponent(m.model) + '\',\'' + id + '\')">' + m.model + '</button>';
+                    }).join('') +
+                '</div><div id="details-' + id + '" class="drawer-details ' + (selectedModel ? '' : 'hidden') + '"></div></div>';
+        return wrapper;
+    }
+
+    window.toggleDrawer = function (id) {
+        const drawer = document.getElementById('drawer-' + id);
+        drawer.classList.toggle('active');
+        drawer.parentElement.querySelector('.switch-family-title').classList.toggle('active-title');
+    };
+
+    window.selectModel = function (modelEnc, id) {
+        const model = decodeURIComponent(modelEnc);
+        const sw = allSwitches.find(s => s.model === model);
+        selectedSeries = sw.series; selectedModel = model; cardCounts = {};
+        const drawer = document.getElementById('drawer-' + id);
+        drawer.querySelectorAll('.sku-btn').forEach(b => b.classList.remove('selected-Nexus', 'selected-SAN', 'selected-Hyperfabric'));
+        drawer.querySelectorAll('.sku-btn').forEach(b => { if (b.textContent === model) b.classList.add('selected-' + sw.platform); });
+        buildDetailsUI(model, selectedSeries);
+    };
+
+    function buildDetailsUI(model, series) {
+        const id = Shared.cssId(series);
+        const details = document.getElementById('details-' + id);
+        if (!details) return;
+        const sw = allSwitches.find(s => s.model === model);
+        details.classList.remove('hidden');
+
+        let html =
+            '<a href="' + sw.datasheet + '" class="datasheet-link" target="_blank">Datasheet &rarr;</a>' +
+            '<p><strong>' + Shared.t('label-role') + '</strong> ' + (sw.roleRaw || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-form') + '</strong> ' + (sw.deviceTypeRaw || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-ru') + '</strong> ' + (sw.ru || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-dl') + '</strong> ' + (sw.dlRaw || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-ul') + '</strong> ' + (sw.ulRaw || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-tp') + '</strong> ' + (sw.throughput || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-os') + '</strong> ' + (sw.osRaw || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-maxport') + '</strong> ' + (sw.maxPorts || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-feat') + '</strong> ' + (sw.features.length ? sw.features.join(', ') : 'None') + '</p>';
+        if (sw.supFab) html += '<p><strong>' + Shared.t('label-supfab') + '</strong> ' + sw.supFab + '</p>';
+        if (sw.useCase) html += '<p><strong>' + Shared.t('label-use') + '</strong> ' + sw.useCase + '</p>';
+        if (sw.desc) html += '<div class="notes-section"><strong>' + Shared.t('label-desc') + '</strong> ' + sw.desc + '</div>';
+
+        const compat = modulesFor(sw);
+        if (sw.deviceBucket === 'Modular' || sw.slots > 0) {
+            html += '<div class="module-section"><strong>' + Shared.t('drawer-modules') + '</strong>';
+            html += '<div class="module-pool-note">' + Shared.t('pool-note-a') + ' <strong>' + sw.slots + '</strong> ' + Shared.t('pool-note-b') + '</div>';
+            if (compat.length) {
+                compat.forEach(m => {
+                    let safeId = Shared.cssId(m.model);
+                    let count = cardCounts[m.model] || 0;
+                    let portInfo = [m.ports, m.portSpeed].filter(Boolean).join(' @ ');
+                    html += '<div class="module-row"><div style="flex:1;padding-right:15px;">' +
+                        '<span class="card-type-badge">' + m.cardType + '</span><strong>' + m.model + '</strong>' +
+                        '<div style="font-size:11px;color:#666;margin-top:3px;line-height:1.3;">' + (m.detail || '') + (portInfo ? ' &middot; ' + portInfo : '') + '</div></div>' +
+                        '<div class="lc-controls">' +
+                            '<button class="lc-btn" onclick="updateCard(-1,\'' + encodeURIComponent(m.model) + '\',' + sw.slots + ',\'' + safeId + '\',\'' + id + '\')">-</button>' +
+                            '<span id="cc-' + safeId + '">' + count + '</span>' +
+                            '<button class="lc-btn" onclick="updateCard(1,\'' + encodeURIComponent(m.model) + '\',' + sw.slots + ',\'' + safeId + '\',\'' + id + '\')">+</button>' +
+                        '</div></div>';
+                });
+                html += '<div id="cc-error-' + id + '" class="error-text">' + Shared.t('limit-reached') + ' (' + sw.slots + ')</div>';
+            } else {
+                html += '<div style="font-size:13px;color:#777;margin-top:8px;">' + Shared.t('none-listed') + '</div>';
+            }
+            html += '</div>';
+        }
+
+        html += '<div id="sku-bar-' + id + '" class="dynamic-sku-bar"></div>';
+        details.innerHTML = html;
+        updateSkuBar(id);
+    }
+
+    window.updateCard = function (change, modelEnc, maxLimit, safeId, id) {
+        const model = decodeURIComponent(modelEnc);
+        let total = Object.values(cardCounts).reduce((a, b) => a + b, 0);
+        const err = document.getElementById('cc-error-' + id);
+        if (change > 0 && total >= maxLimit) { if (err) err.style.display = 'block'; return; }
+        if (err) err.style.display = 'none';
+        let n = (cardCounts[model] || 0) + change;
+        if (n < 0) n = 0;
+        cardCounts[model] = n;
+        document.getElementById('cc-' + safeId).textContent = n;
+        updateSkuBar(id);
+    };
+
+    function updateSkuBar(id) {
+        let skuStr = selectedModel || '';
+        for (let [name, count] of Object.entries(cardCounts)) if (count > 0) skuStr += ' + ' + count + ' x ' + name;
+        const bar = document.getElementById('sku-bar-' + id);
+        if (bar) bar.textContent = Shared.t('label-sku') + ' ' + skuStr;
+    }
+
+    function pageReset() {
+        Shared.clearFilterUI();
+        selectedSeries = null; selectedModel = null; cardCounts = {};
+        renderSwitches();
+    }
+
+    Shared.initPage({
+        active: 'datacenter',
+        mgmtButtons: ['ALL', 'Nexus', 'SAN', 'Hyperfabric'],
+        pageI18n: pageI18n,
+        valToKey: valToKey,
+        activeFilters: activeFilters,
+        render: renderSwitches,
+        reset: pageReset,
+        onReady: function () {
+            Promise.all([Shared.loadCsv(DC_CSV), Shared.loadCsv(MOD_CSV)]).then(function (results) {
+                allSwitches = results[0].filter(r => (r['Model'] || '').trim()).map(parseSwitch);
+                allModules = results[1].filter(r => (r['Card Model'] || '').trim()).map(row => ({
+                    cardType: (row['Card Type'] || '').trim(), model: (row['Card Model'] || '').trim(), detail: (row['Detail'] || '').trim(),
+                    compatChassis: (row['Compatible Chassis'] || '').trim(), compatModel: (row['Compatible Model'] || '').trim(),
+                    ports: (row['Ports'] || '').trim(), portSpeed: (row['Port Speed'] || '').trim(), notes: (row['Notes'] || '').trim()
+                }));
+                renderSwitches();
+            }).catch(function () {
+                document.getElementById('dc-list-container').innerHTML = '<p style="color:#c00;">' + Shared.t('load-error') + '</p>';
+            });
+        }
+    });
+</script>
+</body>
+</html>

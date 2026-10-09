@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisco & Meraki Access Point Selector - Wireless</title>
+    <link rel="stylesheet" href="shared.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="shared.js"></script>
+    <style>
+        /* ---- Page-specific: filter colors ---- */
+        :root {
+            --color-wifi: #007bff; --color-devtype: #6f42c1; --color-antenna: #fd7e14;
+            --color-band: #20c997; --color-uplink: #6610f2; --color-poe: #e83e8c; --color-feat: #198754;
+        }
+        .filter-wifi { border: 1px solid #cce5ff; background: #f8fbff; }
+        .filter-wifi .filter-btn.active { border-color: var(--color-wifi); box-shadow: 0 0 0 1px var(--color-wifi); font-weight: bold; color: var(--color-wifi); }
+        .filter-devtype { border: 1px solid #e2d9f3; background: #fcfaff; }
+        .filter-devtype .filter-btn.active { border-color: var(--color-devtype); box-shadow: 0 0 0 1px var(--color-devtype); font-weight: bold; color: var(--color-devtype); }
+        .filter-antenna { border: 1px solid #ffe5d0; background: #fffaf6; }
+        .filter-antenna .filter-btn.active { border-color: var(--color-antenna); box-shadow: 0 0 0 1px var(--color-antenna); font-weight: bold; color: var(--color-antenna); }
+        .filter-band { border: 1px solid #d2f4ea; background: #f6fdfa; }
+        .filter-band .filter-btn.active { border-color: var(--color-band); box-shadow: 0 0 0 1px var(--color-band); font-weight: bold; color: var(--color-band); }
+        .filter-uplink { border: 1px solid #e0cffc; background: #fbf9ff; }
+        .filter-uplink .filter-btn.active { border-color: var(--color-uplink); box-shadow: 0 0 0 1px var(--color-uplink); font-weight: bold; color: var(--color-uplink); }
+        .filter-poe { border: 1px solid #f8d7da; background: #fdf5f6; }
+        .filter-poe .filter-btn.active { border-color: var(--color-poe); box-shadow: 0 0 0 1px var(--color-poe); font-weight: bold; color: var(--color-poe); }
+        .filter-feat { border: 1px solid #d1e7dd; background: #f6fdf9; }
+        .filter-feat .filter-btn.active { border-color: var(--color-feat); box-shadow: 0 0 0 1px var(--color-feat); font-weight: bold; color: var(--color-feat); }
+        .features-grid { grid-template-columns: 1fr 1fr; }
+        .btn-catalyst-dna { background-color: var(--cisco-blue); }
+        .btn-meraki-sub { background-color: var(--meraki-green); }
+        .switch-family-title.active-title { color: var(--cisco-blue); }
+        .mgmt-note { background: #e7f3fb; padding: 10px; border-left: 4px solid var(--cisco-blue); margin-top: 15px; font-size: 13px; border-radius: 0 4px 4px 0; }
+
+        /* ---- Page-specific: Access Point graphics ---- */
+        .ap-graphic { display: flex; align-items: center; gap: 16px; padding: 6px 2px; }
+        .ap-body { position: relative; width: 66px; height: 66px; border-radius: 16px; background: #f1f3f5; border: 1px solid #d1d1d1; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.1s, box-shadow 0.1s; }
+        .switch-family:hover .ap-body { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.12); }
+        .ap-body.round { border-radius: 50%; }
+        .ap-body.outdoor { background: #2c3e50; border-color: #1a252f; }
+        .ap-led { width: 9px; height: 9px; border-radius: 50%; background: var(--meraki-green); box-shadow: 0 0 7px rgba(120,190,32,0.8); }
+        .ap-body.brand-Catalyst .ap-led { background: var(--cisco-blue); box-shadow: 0 0 7px rgba(4,159,217,0.85); }
+        .ap-body.brand-Unified .ap-led { background: var(--cisco-purple); box-shadow: 0 0 7px rgba(111,66,193,0.85); }
+        .ap-ant { position: absolute; top: -11px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; }
+        .ap-ant span { width: 4px; height: 13px; background: #95a5a6; border-radius: 2px; }
+        .ap-body.brand-Catalyst .ap-ant span { background: var(--cisco-blue); }
+        .ap-body.brand-Unified .ap-ant span { background: var(--cisco-purple); }
+        .ap-body.brand-Meraki .ap-ant span { background: var(--meraki-green); }
+        .ap-meta { font-size: 12px; color: #777; line-height: 1.5; }
+        .ap-meta .ap-meta-badge { display: inline-block; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 10px; background: #eef0f2; color: #555; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="chrome-top"></div>
+
+    <div class="main-container">
+        <div>
+            <div id="active-filters-bar" class="active-filter-bar"></div>
+            <div id="unified-info-box" class="unified-info-box hidden">
+                <h4 data-i18n="unified-info">Cisco Wireless 9100 series access points support a unified license, letting you move seamlessly between on-premises (Catalyst Center) and cloud (Meraki Dashboard) management.</h4>
+                <a href="https://documentation.meraki.com/Platform_Management/Product_Information/Licensing/Subscription_Unified_Licensing_-_WIFI7_Management_Mode" target="_blank" class="unified-info-btn" data-i18n="unified-btn">Click Here To Learn More</a>
+            </div>
+            <div class="switch-list" id="ap-list-container"><p data-i18n="loading">Loading dataset...</p></div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-section filter-wifi">
+                <h4 data-i18n="filter-wifi">Wi-Fi Standard</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="wifi" data-val="6">Wi-Fi 6</button>
+                    <button class="filter-btn" data-filter="wifi" data-val="6E">Wi-Fi 6E</button>
+                    <button class="filter-btn" data-filter="wifi" data-val="7">Wi-Fi 7</button>
+                </div>
+            </div>
+            <div class="filter-section filter-devtype">
+                <h4 data-i18n="filter-devtype">Environment</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="devtype" data-val="Indoor" data-i18n="filter-dev-indoor">Indoor</button>
+                    <button class="filter-btn" data-filter="devtype" data-val="Outdoor" data-i18n="filter-dev-outdoor">Outdoor</button>
+                </div>
+            </div>
+            <div class="filter-section filter-antenna">
+                <h4 data-i18n="filter-antenna">Antenna Type</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="antenna" data-val="Internal" data-i18n="filter-ant-internal">Internal</button>
+                    <button class="filter-btn" data-filter="antenna" data-val="External" data-i18n="filter-ant-external">External</button>
+                </div>
+            </div>
+            <div class="filter-section filter-band">
+                <h4 data-i18n="filter-band">Bands</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="band" data-val="2.4">2.4 GHz</button>
+                    <button class="filter-btn" data-filter="band" data-val="5">5 GHz</button>
+                    <button class="filter-btn" data-filter="band" data-val="6">6 GHz</button>
+                </div>
+            </div>
+            <div class="filter-section filter-uplink">
+                <h4 data-i18n="filter-uplink">Uplink Speed</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="uplink" data-val="1G">1G</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="2.5G">2.5G mGig</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="5G">5G mGig</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="10G">10G mGig</button>
+                </div>
+            </div>
+            <div class="filter-section filter-poe">
+                <h4 data-i18n="filter-poe">PoE Class</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="poe" data-val="at" data-i18n="filter-poe-at">802.3at</button>
+                    <button class="filter-btn" data-filter="poe" data-val="bt" data-i18n="filter-poe-bt">802.3bt</button>
+                </div>
+            </div>
+            <div class="filter-section filter-feat">
+                <h4 data-i18n="filter-feat">Features</h4>
+                <div class="filter-grid features-grid">
+                    <button class="filter-btn" data-filter="rugged" data-val="Rugged" data-i18n="filter-rugged">Rugged</button>
+                    <button class="filter-btn" data-filter="feature" data-val="GPS">GNSS/GPS</button>
+                    <button class="filter-btn" data-filter="feature" data-val="UWB">UWB</button>
+                    <button class="filter-btn" data-filter="feature" data-val="CleanAir">CleanAir</button>
+                    <button class="filter-btn" data-filter="feature" data-val="Security">Security Radio</button>
+                </div>
+            </div>
+            <div class="filter-section info-section">
+                <h4 data-i18n="info-title">Learn more about Wireless license types</h4>
+                <div class="info-buttons">
+                    <a href="https://www.cisco.com/c/m/en_us/products/software/dna-subscription-wireless/en-sw-sub-matrix-wireless.html" target="_blank" class="info-btn btn-catalyst-dna" data-i18n="info-dna">Catalyst Wireless</a>
+                    <a href="https://documentation.meraki.com/Platform_Management/Product_Information/Licensing/Subscription_-_MR_Licensing" target="_blank" class="info-btn btn-meraki-sub" data-i18n="info-meraki">Meraki Subscription</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chrome-feedback"></div>
+
+<script>
+    const DATA_VER = '2';
+    const AP_CSV      = 'data/wireless-data.csv?v=' + DATA_VER;
+    const ANTENNA_CSV = 'data/wireless-antenna-data.csv?v=' + DATA_VER;
+
+    const pageI18n = {
+        en: {
+            'filter-wifi': 'Wi-Fi Standard', 'filter-devtype': 'Environment', 'filter-antenna': 'Antenna Type',
+            'filter-band': 'Bands', 'filter-uplink': 'Uplink Speed', 'filter-poe': 'PoE Class', 'filter-feat': 'Features',
+            'filter-dev-indoor': 'Indoor', 'filter-dev-outdoor': 'Outdoor', 'filter-ant-internal': 'Internal', 'filter-ant-external': 'External',
+            'filter-poe-at': '802.3at', 'filter-poe-bt': '802.3bt', 'filter-rugged': 'Rugged',
+            'info-title': 'Learn more about Wireless license types', 'info-dna': 'Catalyst Wireless', 'info-meraki': 'Meraki Subscription',
+            'unified-info': 'Cisco Wireless 9100 series access points support a unified license, letting you move seamlessly between on-premises (Catalyst Center) and cloud (Meraki Dashboard) management.',
+            'unified-btn': 'Click Here To Learn More',
+            'drawer-antennas': 'Compatible External Antennas:',
+            'label-wifi': 'Wi-Fi:', 'label-radio': 'Radio:', 'label-streams': 'Spatial Streams:', 'label-bands': 'Bands:',
+            'label-antenna': 'Antenna:', 'label-uplink': 'Uplink:', 'label-ports': 'Ports:', 'label-poe': 'PoE:',
+            'label-deploy': 'Management:', 'label-sku': 'SKU:', 'label-feat': 'Features:', 'label-life': 'Lifecycle:', 'label-note': 'Note:',
+            'cbw-note-title': 'Management type:', 'cbw-note': 'Cisco Business series — embedded management via Web UI, the Cisco Business Mobile app, or Cisco Business Dashboard. No wireless controller (WLC) and no Meraki/Catalyst license required.',
+            'badge-indoor': 'Indoor', 'badge-outdoor': 'Outdoor', 'badge-rugged': 'Rugged', 'none-listed': 'No external antennas listed for this model.'
+        },
+        tr: {
+            'filter-wifi': 'Wi-Fi Standardı', 'filter-devtype': 'Ortam', 'filter-antenna': 'Anten Tipi',
+            'filter-band': 'Bantlar', 'filter-uplink': 'Uplink Hızı', 'filter-poe': 'PoE Sınıfı', 'filter-feat': 'Özellikler',
+            'filter-dev-indoor': 'İç Mekan', 'filter-dev-outdoor': 'Dış Mekan', 'filter-ant-internal': 'Dahili', 'filter-ant-external': 'Harici',
+            'filter-poe-at': '802.3at', 'filter-poe-bt': '802.3bt', 'filter-rugged': 'Zorlu Ortam',
+            'info-title': 'Kablosuz lisans türleri hakkında daha fazla bilgi edinin', 'info-dna': 'Catalyst Kablosuz', 'info-meraki': 'Meraki Aboneliği',
+            'unified-info': 'Cisco Wireless 9100 serisi erişim noktaları, lokal (Catalyst Center) ve bulut (Meraki Dashboard) yönetimi arasında sorunsuz geçiş yapmanızı sağlayan birleşik bir lisansa sahiptir.',
+            'unified-btn': 'Daha Fazla Bilgi İçin Tıklayın',
+            'drawer-antennas': 'Uyumlu Harici Antenler:',
+            'label-wifi': 'Wi-Fi:', 'label-radio': 'Radyo:', 'label-streams': 'Uzamsal Akış:', 'label-bands': 'Bantlar:',
+            'label-antenna': 'Anten:', 'label-uplink': 'Uplink:', 'label-ports': 'Portlar:', 'label-poe': 'PoE:',
+            'label-deploy': 'Yönetim:', 'label-sku': 'SKU:', 'label-feat': 'Özellikler:', 'label-life': 'Yaşam Döngüsü:', 'label-note': 'Not:',
+            'cbw-note-title': 'Yönetim tipi:', 'cbw-note': 'Cisco Business serisi — Web arayüzü, Cisco Business Mobile uygulaması veya Cisco Business Dashboard üzerinden gömülü yönetim. Kablosuz denetleyici (WLC) ve Meraki/Catalyst lisansı gerektirmez.',
+            'badge-indoor': 'İç Mekan', 'badge-outdoor': 'Dış Mekan', 'badge-rugged': 'Zorlu', 'none-listed': 'Bu model için harici anten listelenmemiş.'
+        }
+    };
+
+    const valToKey = {
+        'Indoor': 'filter-dev-indoor', 'Outdoor': 'filter-dev-outdoor',
+        'Internal': 'filter-ant-internal', 'External': 'filter-ant-external',
+        'at': 'filter-poe-at', 'bt': 'filter-poe-bt', 'Rugged': 'filter-rugged'
+    };
+
+    let allAPs = [], antennas = [];
+    let activeFilters = { wifi: [], devtype: [], antenna: [], band: [], uplink: [], poe: [], rugged: [], feature: [] };
+    let selectedSeries = null, selectedModel = null, selectedAntenna = null;
+
+    /* ---------- Normalization helpers ---------- */
+    function deploymentBucket(m) { m = (m || '').toLowerCase(); if (m.includes('meraki')) return 'Cloud'; if (m.includes('unified')) return 'Unified'; if (m.includes('catalyst')) return 'On-Prem'; return 'Other'; }
+    function brandClass(m) { m = (m || '').toLowerCase(); if (m.includes('meraki')) return 'Meraki'; if (m.includes('unified')) return 'Unified'; return 'Catalyst'; }
+    function deviceEnvironments(d) { d = (d || '').toLowerCase(); let o = []; if (d.includes('indoor')) o.push('Indoor'); if (d.includes('outdoor')) o.push('Outdoor'); return o; }
+    function bandTokens(b) { let o = []; (b || '').split('/').forEach(x => { x = x.trim(); if (x.startsWith('2.4')) o.push('2.4'); else if (x === '5') o.push('5'); else if (x === '6') o.push('6'); }); return o; }
+    function uplinkTokens(u) { u = (u || '').toLowerCase(); let o = []; if (/10\s*g/.test(u)) o.push('10G'); if (/5\s*g/.test(u) && !/2\.5\s*g/.test(u)) o.push('5G'); if (/2\.5\s*g/.test(u)) o.push('2.5G'); if (/\b1\s*g/.test(u)) o.push('1G'); return o; }
+    function poeSet(p) { p = (p || '').toLowerCase(); let o = []; if (p.includes('bt')) o.push('bt'); if (p.includes('at')) o.push('at'); return o; }
+    function isRugged(r) { return (r || '').trim().toLowerCase().startsWith('yes'); }
+    function seriesKey(model) { let s = (model || '').replace(/^Cisco\s+/i, '').replace(/\s*\(.*?\)\s*/g, ' ').trim(); s = s.replace(/(\d)[A-Za-z]+$/, '$1'); return s.trim() || model; }
+    function codeTokens(str) { let o = new Set(); (str || '').split(/[,/]/).forEach(t => { t = t.trim().toUpperCase().replace(/[\u00A0]/g, ''); t = t.replace(/-(CFG|EOS|B|A|E)$/, ''); t = t.replace(/[^A-Z0-9]/g, ''); if (t.length >= 4) o.add(t); }); return [...o]; }
+
+    function antennasFor(ap) {
+        let apCodes = codeTokens(ap.sku).concat(codeTokens(ap.model));
+        return antennas.filter(a => a.compatCodes.some(ac => apCodes.some(pc => pc === ac || pc.includes(ac) || ac.includes(pc))));
+    }
+
+    function parseAP(row) {
+        return {
+            model: (row['Model'] || '').trim(), sku: (row['SKU'] || '').trim(), series: seriesKey(row['Model']),
+            mgmtRaw: (row['Management'] || '').trim(), deployment: deploymentBucket(row['Management']), brand: brandClass(row['Management']),
+            deployDetail: (row['Deployment'] || '').trim(), devTypeRaw: (row['Device Type'] || '').trim(), environments: deviceEnvironments(row['Device Type']),
+            wifi: (row['Wi-Fi'] || '').trim(), radio: (row['Radio Config'] || '').trim(), streams: (row['Spatial Streams'] || '').trim(),
+            bandsRaw: (row['Bands (GHz)'] || '').trim(), bands: bandTokens(row['Bands (GHz)']),
+            antennaTypeRaw: (row['Antenna Type'] || '').trim(),
+            internal: (row['Antenna Type'] || '').toLowerCase().includes('internal'), external: (row['Antenna Type'] || '').toLowerCase().includes('external'),
+            uplinkRaw: (row['Uplink Speed'] || '').trim(), uplinks: uplinkTokens(row['Uplink Speed']),
+            ports: (row['Ports'] || '').trim(), portsNotes: (row['Ports notes'] || '').trim(),
+            poeRaw: (row['PoE Class'] || '').trim(), poe: poeSet(row['PoE Class']),
+            ruggedRaw: (row['Rugged'] || '').trim(), rugged: isRugged(row['Rugged']),
+            features: (row['Features'] || '').split(',').map(s => s.trim()).filter(Boolean),
+            datasheet: (row['Datasheet Link'] || '#').trim() || '#', lifecycle: (row['Lifecycle Status'] || '').trim(), notes: (row['Notes'] || '').trim()
+        };
+    }
+
+    function apPasses(ap) {
+        const af = Shared.activeFilters;
+        if (Shared.mgmt !== 'ALL' && ap.deployment !== Shared.mgmt) return false;
+        if (af.wifi.length && !af.wifi.includes(ap.wifi)) return false;
+        if (af.devtype.length && !af.devtype.some(d => ap.environments.includes(d))) return false;
+        if (af.antenna.length && !af.antenna.every(a => a === 'Internal' ? ap.internal : ap.external)) return false;
+        if (af.band.length && !af.band.some(b => ap.bands.includes(b))) return false;
+        if (af.uplink.length && !af.uplink.some(u => ap.uplinks.includes(u))) return false;
+        if (af.poe.length && !af.poe.some(p => ap.poe.includes(p))) return false;
+        if (af.rugged.length && !ap.rugged) return false;
+        if (af.feature.length && !af.feature.every(f => ap.features.some(x => x.toLowerCase().includes(f.toLowerCase()) || (f === 'GPS' && /gnss|gps/i.test(x))))) return false;
+        return true;
+    }
+
+    function renderAPs() {
+        Shared.updateActiveFilterBar();
+        document.getElementById('unified-info-box').classList.toggle('hidden', Shared.mgmt !== 'Unified');
+
+        const container = document.getElementById('ap-list-container');
+        container.innerHTML = '';
+        const seriesList = [...new Set(allAPs.map(a => a.series))];
+        let valid = false;
+
+        seriesList.forEach(st => {
+            let members = allAPs.filter(a => a.series === st && apPasses(a));
+            if (!members.length) return;
+            if (st === selectedSeries && members.some(m => m.model === selectedModel)) valid = true;
+            container.appendChild(createFamilyHTML(st, members));
+        });
+
+        if (!valid) { selectedSeries = null; selectedModel = null; selectedAntenna = null; }
+
+        if (!container.innerHTML) container.innerHTML = '<p>' + Shared.t('no-match') + '</p>';
+        else if (selectedSeries && selectedModel) {
+            const drawer = document.getElementById('drawer-' + Shared.cssId(selectedSeries));
+            if (drawer) {
+                drawer.classList.add('active');
+                const title = drawer.parentElement.querySelector('.switch-family-title');
+                if (title) title.classList.add('active-title');
+                buildApDetailsUI(selectedModel, selectedSeries);
+            }
+        }
+    }
+
+    function getApGraphic(ap) {
+        let outdoor = ap.environments.includes('Outdoor') || ap.rugged;
+        let cls = 'ap-body brand-' + ap.brand + (outdoor ? ' outdoor' : ' round');
+        let nubs = ap.external ? '<div class="ap-ant"><span></span><span></span><span></span><span></span></div>' : '';
+        let envBadge = outdoor ? Shared.t('badge-outdoor') : Shared.t('badge-indoor');
+        let ruggedBadge = ap.rugged ? '<span class="ap-meta-badge">' + Shared.t('badge-rugged') + '</span>' : '';
+        return '<div class="ap-graphic"><div class="' + cls + '">' + nubs + '<div class="ap-led"></div></div>' +
+            '<div class="ap-meta"><span class="ap-meta-badge">Wi-Fi ' + (ap.wifi || '?') + '</span>' + ruggedBadge +
+            '<br>' + envBadge + ' &middot; ' + (ap.radio || '') + '<br>' + (ap.streams ? ap.streams + ' SS &middot; ' : '') + (ap.uplinkRaw || '') + '</div></div>';
+    }
+
+    function createFamilyHTML(series, members) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'switch-family';
+        const id = Shared.cssId(series);
+        wrapper.innerHTML =
+            '<div onclick="toggleDrawer(\'' + id + '\')"><div class="switch-family-title">' + series + '</div>' + getApGraphic(members[0]) + '</div>' +
+            '<div class="drawer" id="drawer-' + id + '"><div style="font-weight:bold;margin-bottom:10px;">' + Shared.t('drawer-select') + '</div>' +
+                '<div class="sku-list">' +
+                    members.map(m => {
+                        let sel = m.model === selectedModel ? 'selected-' + m.brand : '';
+                        return '<button class="sku-btn ' + sel + '" onclick="selectModel(\'' + encodeURIComponent(m.model) + '\',\'' + id + '\')">' + m.model.replace(/^Cisco\s+/i, '') + '</button>';
+                    }).join('') +
+                '</div><div id="details-' + id + '" class="drawer-details ' + (selectedModel ? '' : 'hidden') + '"></div></div>';
+        return wrapper;
+    }
+
+    window.toggleDrawer = function (id) {
+        const drawer = document.getElementById('drawer-' + id);
+        drawer.classList.toggle('active');
+        drawer.parentElement.querySelector('.switch-family-title').classList.toggle('active-title');
+    };
+
+    window.selectModel = function (modelEnc, id) {
+        const model = decodeURIComponent(modelEnc);
+        const ap = allAPs.find(a => a.model === model);
+        selectedSeries = ap.series; selectedModel = model; selectedAntenna = null;
+        const drawer = document.getElementById('drawer-' + id);
+        drawer.querySelectorAll('.sku-btn').forEach(b => b.classList.remove('selected-Meraki', 'selected-Catalyst', 'selected-Unified'));
+        drawer.querySelectorAll('.sku-btn').forEach(b => { if (b.textContent === model.replace(/^Cisco\s+/i, '')) b.classList.add('selected-' + ap.brand); });
+        buildApDetailsUI(model, selectedSeries);
+    };
+
+    function buildApDetailsUI(model, series) {
+        const id = Shared.cssId(series);
+        const details = document.getElementById('details-' + id);
+        if (!details) return;
+        const ap = allAPs.find(a => a.model === model);
+        details.classList.remove('hidden');
+
+        let html =
+            '<a href="' + ap.datasheet + '" class="datasheet-link" target="_blank">Datasheet &rarr;</a>' +
+            '<p><strong>' + Shared.t('label-sku') + '</strong> ' + (ap.sku || ap.model) + '</p>' +
+            '<p><strong>' + Shared.t('label-deploy') + '</strong> ' + (ap.deployDetail || ap.mgmtRaw) + '</p>' +
+            '<p><strong>' + Shared.t('label-wifi') + '</strong> Wi-Fi ' + ap.wifi + '</p>' +
+            '<p><strong>' + Shared.t('label-radio') + '</strong> ' + (ap.radio || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-streams') + '</strong> ' + (ap.streams || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-bands') + '</strong> ' + (ap.bandsRaw || '-') + ' GHz</p>' +
+            '<p><strong>' + Shared.t('label-antenna') + '</strong> ' + (ap.antennaTypeRaw || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-uplink') + '</strong> ' + (ap.uplinkRaw || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-ports') + '</strong> ' + (ap.ports || '-') + (ap.portsNotes ? ' (' + ap.portsNotes + ')' : '') + '</p>' +
+            '<p><strong>' + Shared.t('label-poe') + '</strong> ' + (ap.poeRaw || '-') + '</p>' +
+            '<p><strong>' + Shared.t('label-feat') + '</strong> ' + (ap.features.length ? ap.features.join(', ') : 'None') + '</p>';
+        if (ap.lifecycle) html += '<p><strong>' + Shared.t('label-life') + '</strong> ' + ap.lifecycle + '</p>';
+        // Cisco Business (CBW) models: embedded management note, like the CBS switches note
+        if (ap.mgmtRaw.toLowerCase().includes('cisco business')) {
+            html += '<div class="mgmt-note"><strong>' + Shared.t('cbw-note-title') + '</strong> ' + Shared.t('cbw-note') + '</div>';
+        }
+        if (ap.notes) html += '<div class="notes-section"><strong>' + Shared.t('label-note') + '</strong> ' + ap.notes + '</div>';
+
+        if (ap.external) {
+            const compat = antennasFor(ap);
+            html += '<div class="module-section"><strong>' + Shared.t('drawer-antennas') + '</strong>';
+            if (compat.length) {
+                compat.forEach(a => {
+                    let isSel = selectedAntenna === a.model;
+                    html += '<div class="module-row"><div style="flex:1;padding-right:15px;"><strong>' + a.model + '</strong>' +
+                        '<div style="font-size:11px;color:#666;margin-top:3px;line-height:1.3;">' + (a.description || '') +
+                        (a.datasheet && a.datasheet !== '#' ? ' &middot; <a href="' + a.datasheet + '" target="_blank">datasheet</a>' : '') + '</div></div>' +
+                        '<button class="mod-btn ' + (isSel ? 'selected' : '') + '" onclick="setAntenna(\'' + encodeURIComponent(a.model) + '\',\'' + id + '\')">' +
+                        (isSel ? Shared.t('btn-selected') : Shared.t('btn-select')) + '</button></div>';
+                });
+            } else {
+                html += '<div style="font-size:13px;color:#777;margin-top:8px;">' + Shared.t('none-listed') + '</div>';
+            }
+            html += '</div>';
+        }
+
+        html += '<div id="sku-bar-' + id + '" class="dynamic-sku-bar"></div>';
+        details.innerHTML = html;
+        updateSkuBar(id);
+    }
+
+    window.setAntenna = function (modelEnc, id) {
+        const model = decodeURIComponent(modelEnc);
+        selectedAntenna = (selectedAntenna === model) ? null : model;
+        const details = document.getElementById('details-' + id);
+        details.querySelectorAll('.mod-btn').forEach(b => { b.classList.remove('selected'); b.textContent = Shared.t('btn-select'); });
+        if (selectedAntenna) {
+            details.querySelectorAll('.mod-btn').forEach(b => {
+                if (decodeURIComponent(b.getAttribute('onclick').match(/setAntenna\('([^']+)'/)[1]) === selectedAntenna) {
+                    b.classList.add('selected'); b.textContent = Shared.t('btn-selected');
+                }
+            });
+        }
+        updateSkuBar(id);
+    };
+
+    function updateSkuBar(id) {
+        const ap = allAPs.find(a => a.model === selectedModel);
+        let skuStr = ap ? (ap.sku || ap.model) : '';
+        if (selectedAntenna) skuStr += ' + ' + selectedAntenna;
+        const bar = document.getElementById('sku-bar-' + id);
+        if (bar) bar.textContent = Shared.t('label-sku') + ' ' + skuStr;
+    }
+
+    function pageReset() {
+        Shared.clearFilterUI();
+        selectedSeries = null; selectedModel = null; selectedAntenna = null;
+        renderAPs();
+    }
+
+    Shared.initPage({
+        active: 'wireless',
+        mgmtButtons: ['ALL', 'On-Prem', 'Cloud', 'Unified'],
+        pageI18n: pageI18n,
+        valToKey: valToKey,
+        activeFilters: activeFilters,
+        render: renderAPs,
+        reset: pageReset,
+        onReady: function () {
+            Promise.all([Shared.loadCsv(AP_CSV), Shared.loadCsv(ANTENNA_CSV)]).then(function (results) {
+                allAPs = results[0].filter(r => (r['Model'] || '').trim()).map(parseAP);
+                antennas = results[1].filter(r => (r['Antenna Model'] || '').trim()).map(row => ({
+                    model: (row['Antenna Model'] || '').trim(), description: (row['Description'] || '').trim(),
+                    compatRaw: (row['Compatible AP'] || '').trim(), compatCodes: codeTokens(row['Compatible AP']),
+                    datasheet: (row['Datasheet'] || '#').trim() || '#', notes: (row['Notes'] || '').trim()
+                }));
+                renderAPs();
+            }).catch(function () {
+                document.getElementById('ap-list-container').innerHTML = '<p style="color:#c00;">' + Shared.t('load-error') + '</p>';
+            });
+        }
+    });
+</script>
+</body>
+</html>

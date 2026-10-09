@@ -1,0 +1,118 @@
+Antenna Model,Description,Compatible AP,Datasheet,Notes
+AIR-ANT2566D4M-R,"4-port, 6 dBi gain, 2.4/5 GHz, RPTNC",CW9179F,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/cw917x/cw9179f/b-hig-cw9179f/overview.html,
+AIR-ANT2566D4M-RS,"4-port, 6 dBi gain, 2.4/5 GHz, RPTNC",CW9179F,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/cw917x/cw9179f/b-hig-cw9179f/overview.html,
+AIR-ANT2566P4W-R,"4-port, 6 dBi gain, 2.4/5 GHz, RPTNC",CW9179F,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/cw917x/cw9179f/b-hig-cw9179f/overview.html,
+AIR-ANT2566P4W-RS,"4-port, 6 dBi gain, 2.4/5 GHz, RPTNC",CW9179F,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/cw917x/cw9179f/b-hig-cw9179f/overview.html,
+AIR-ANT2588-P4M-NS,"4-port, 6 dBi gain, 2.4/5 GHz, N-type",CW9179F,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/cw917x/cw9179f/b-hig-cw9179f/overview.html,
+CW-ANT-T-D3-N,"4-port, 6 dBi gain, 2.4/5/6 GHz, N-type",CW9179F,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/cw917x/cw9179f/b-hig-cw9179f/overview.html,
+CW-ANT-GPS1-M-00,"GNSS dual-band, external, RHCP, 2 dBi",CW9179F,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/cw917x/cw9179f/b-hig-cw9179f/overview.html,
+CW-ANT-T-D4-N,"Cisco 8/8/8dBi, 3 band, dir. ant, 8xN-type",CW9177E,https://www.cisco.com/c/en/us/products/collateral/networking/wireless/access-points/wireless-9177-series-access-points-ds.html,
+CW-ANT-T-O3-N,"Cisco 5/6/5dBi, 3 band, Omni dir. ant, 8xN-type",CW9177E,https://www.cisco.com/c/en/us/products/collateral/networking/wireless/access-points/wireless-9177-series-access-points-ds.html,
+CW-CAB-004-N4-N4,"Dual 4x N-N type ant. cable, M/M, 4 foot",CW9177E,https://www.cisco.com/c/en/us/products/collateral/networking/wireless/access-points/wireless-9177-series-access-points-ds.html,
+AIR-ANT2513P4M-NS,"2.4GHz/5GHz 13dBi Patch Antenna 4port, Nconn",CW9177E,https://www.cisco.com/c/en/us/products/collateral/networking/wireless/access-points/wireless-9177-series-access-points-ds.html,
+AIR-ANT2588P4M-N,"2.4GHz/5GHz 13dBi Patch Antenna 4port, Nconn",CW9177E,https://www.cisco.com/c/en/us/products/collateral/networking/wireless/access-points/wireless-9177-series-access-points-ds.html,
+AIR-ANT2588P4M-NS,Dual Band Dual-polarized directional antenna,CW9177E,https://www.cisco.com/c/en/us/products/collateral/networking/wireless/access-points/wireless-9177-series-access-points-ds.html,
+CW-ANT-T-O2-D8,Omnidirectional ceiling mounted antenna with accelerometer and DART8 connector,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,
+CW-ANT-T-D2-D8,"Directional patch antenna with accelerometer and DART8 connector, CW-MNT-ART2 mount included",CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,
+CW-ANT-T-O4-R,Omnidirectional dipole antenna with RP-TNC connector.,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,
+AIR-ANT2524V4C-R/RS,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+AIR-ANT2544V4M-R/RS,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+AIR-ANT2566P4W-R/RS,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+AIR-ANT2566D4M-R/RS,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+AIR-ANT2513P4M-N/NS,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+C-ANT9101,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+C-ANT9102,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+C-ANT9103,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+MA-ANT-3-C6,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+MA-ANT-3-D6,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+MA-ANT-3-E6,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+MA-ANT-3-F6,Legacy,CW9174E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/wireless-9174-series-access-points-ds.html,Supported existing Cisco antennas. Additional connector adapters may be required.
+CW-ANT-O1-NS-00,Omnidirectional Dipole Self-Identifying Antenna with N-Type Connector,CW9163E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9163e-access-point/nb-06-cat-9163e-series-access-ds-cte-en.html,
+CW-ANT-D1-NS-00,4-Port Directional Patch Self-Identifying Antenna with N-Type Connectors,CW9163E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9163e-access-point/nb-06-cat-9163e-series-access-ds-cte-en.html,
+CW-ANT-GPS2-S-00,Active GNSS/GPS Antenna with RP-SMA Connector,CW9163E,https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9163e-access-point/nb-06-cat-9163e-series-access-ds-cte-en.html,
+AIR-ANT2547V-N,Cisco Aironet Dual-Band Omnidirectional Colinear Array Antenna (White),9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+,Connectors: N-Male,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2547VG-N,Cisco Aironet Dual-Band Omnidirectional Colinear Array Antenna (Gray),9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+,Connectors: N-Male,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2547VG-NS,"Cisco Aironet Dual-Band Omnidirectional Colinear Array (Gray), Self-Identifying Antenna",9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+,Connectors: N-Male,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2588P4M-NS=,Cisco Aironet 2.4–GHz/5–GHz 8–dBi 4-Element Dual-Polarized Patch Self-Identifying Antenna,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+,Connectors: N-Female Bulkhead,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2450V-N=,Cisco Aironet 5–dBi Omnidirectional Antenna,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2480V-N=,Cisco Aironet 8–dBi Omnidirectional Antenna,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2413P2M-N=,Cisco Aironet 2.4–GHz 13–dBi Directional Antenna,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT5180V-N=,Cisco Aironet 8–dBi Omnidirectional Antenna,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT5114P2M-N=,Cisco Aironet 5–GHz 14–dBi Directional Antenna,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2568VG-N,Cisco Aironet Dual-Band Omnidirectional Antenna,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2568VG-NS,"Cisco Aironet Dual-Band Omnidirectional Antenna, Self-Identifying",9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2513P4M-N=,Cisco Aironet Four-Port Dual-Band Polarization-Diverse Array Antenna,9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+AIR-ANT2513P4M-NS=,"Cisco Aironet Four-Port Dual-Band Polarization-Diverse ArrayAntenna, Self-Identifying",9124AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9124ax/install-guide/b-hig-9124ax/hardware-features.html#supported_external_antennas,
+C-ANT9101=,"Ceiling Mount Omni Self-Identifying Antenna with Bluetooth, 8-port, with DART connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48142,
+C-ANT9102=,"Pole or Wall Mount Omni Self-Identifying Antenna with Bluetooth, 8-port, with DART connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48143,
+C-ANT9103=,"Pole or Wall mount 75° Directional Self-Identifying Antenna with Bluetooth, 8-port, with DART connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48144,
+AIR-ANT2513P4M-N=,"Patch Antenna, 4-port, with N connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48145,Connect to AP using AIR-CAB003-D8-N=.
+AIR-ANT2524V4C-R=,"Ceiling Mount Omni Antenna, 4-port, with RP-TNC connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48146,Connect to AP using AIR-CAB002-D8-R=.
+AIR-ANT2524V4C-RS=,"Ceiling Mount Omni Self-Identifying Antenna, 4-port, with RP-TNC connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48147,Connect to AP using AIR-CAB002-D8-R=.
+AIR-ANT2544V4M-R=,"Wall Mount Omni Antenna, 4-port, with RP-TNC connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48148,Connect to AP using AIR-CAB002-D8-R=.
+AIR-ANT2544V4M-RS=,"Wall Mount Omni Self-Identifying Antenna, 4-port, with RP-TNC connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48149,Connect to AP using AIR-CAB002-D8-R=.
+AIR-ANT2566D4M-R=,"60° Patch Antenna, 4-port, with RP-TNC connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48150,Connect to AP using AIR-CAB002-D8-R=.
+AIR-ANT2566D4M-RS=,"60° Patch Self-Identifying Antenna, 4-port, with RP-TNC connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48151,Connect to AP using AIR-CAB002-D8-R=.
+AIR-ANT2566P4W-R=,"Directional Antenna, 4-port, with RP-TNC connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48152,Connect to AP using AIR-CAB002-D8-R=.
+AIR-ANT2566P4W-RS=,"Directional Self-Identifying Antenna, 4-port, with RP-TNC connectors.",C9130AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9130ax/quick/guide/ap9130ax-getstart.html#48153,Connect to AP using AIR-CAB002-D8-R=.
+AIR-ANT2524DB-R/=,"2.4 GHz 2 dBi/5 GHz 4 dBi Dipole Ant., Black, connectors RP-TNC","9120AXE, 9120AXP",https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/guide-c07-742311.html,
+AIR-ANT2524DG-R/=,"2.4 GHz 2 dBi/5 GHz 4 dBi Dipole Ant., Gray, connectors RP-TNC","9120AXE, 9120AXP",https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/guide-c07-742311.html,
+AIR-ANT2524DW-R/=,"2.4 GHz 2 dBi/5 GHz 4 dBi Dipole Ant., White, connectors RP-TNC","9120AXE, 9120AXP",https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/guide-c07-742311.html,
+AIR-ANT2535SDW-R,"2.4 GHz 3 dBi/5 GHz 5 dBi Low Profile Antenna, White, connectors RP-TNC","9120AXE, 9120AXP",https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/guide-c07-742311.html,
+AIR-ANT2566P4W-R=,"2.4 GHz 6 dBi/5 GHz 6 dBi Directionnel Ant., 4-port, connectors RP-TNC","9120AXE, 9120AXP",https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/guide-c07-742311.html,
+AIR-ANT2524V4C-R=,"2.4 GHz 2 dBi/5 GHz 4 dBi Ceiling Mount Omni Ant., 4-port, connectors RP-TNC","9120AXE, 9120AXP",https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/guide-c07-742311.html,
+AIR-ANT2544V4M-R=,"2.4 GHz 4 dBi/5 GHz 4 dBi Wall Mount Omni Ant., 4-port, connectors RP-TNC","9120AXE, 9120AXP",https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/guide-c07-742311.html,
+AIR-ANT2566D4M-R=,"2.4 GHz 6 dBi/5 GHz 6 dBi 60 Deg. Patch Ant., 4-port, RP-TNC","9120AXE, 9120AXP",https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/guide-c07-742311.html,
+AIR-CAB002-DART-R,Special connector for “e” series Flexible (XOR) radio to RP-TNC,"9120AXE, 9120AXP",https://www.cisco.com/c/en/us/products/collateral/wireless/catalyst-9100ax-access-points/guide-c07-742311.html,
+AIR-ANT2524DB-R/=,"Dipole Antenna, Black, with RP-TNC connectors.",9115AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9115ax/quick/guide/ap9115ax-getstart.html,
+AIR-ANT2524DG-R/=,"Dipole Antenna, Gray, with RP-TNC connectors.",9115AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9115ax/quick/guide/ap9115ax-getstart.html,
+AIR-ANT2524DW-R/=,"Dipole Antenna, White, with RP-TNC connectors.",9115AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9115ax/quick/guide/ap9115ax-getstart.html,
+AIR-ANT2535SDW-R=,"Low Profile Antenna, White, with RP-TNC connectors.",9115AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9115ax/quick/guide/ap9115ax-getstart.html,
+AIR-ANT2566P4W-R=,"Directional Antenna, 4-port, with RP-TNC connectors.",9115AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9115ax/quick/guide/ap9115ax-getstart.html,
+AIR-ANT2524V4C-R=,"Ceiling Mount Omni Antenna, 4-port, with RP-TNC connectors.",9115AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9115ax/quick/guide/ap9115ax-getstart.html,
+AIR-ANT2544V4M-R=,"Wall Mount Omni Antenna, 4-port, with RP-TNC connectors.",9115AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9115ax/quick/guide/ap9115ax-getstart.html,
+AIR-ANT2566D4M-R=,"60 Degree Patch Antenna, 4-port, with RP-TNC connectors.",9115AXE,https://www.cisco.com/c/en/us/td/docs/wireless/access_point/9115ax/quick/guide/ap9115ax-getstart.html,
+MA-ANT-3-A6,MA-ANT-3-A6: Meraki Dipole Antenna (3.8/5.5 dBi),MR46E,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR46E_Datasheet,
+MA-ANT-3-B6,MA-ANT-3-B6: Meraki Dipole Antenna (3/5.7 dBi),MR46E,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR46E_Datasheet,
+MA-ANT-3-C6,MA-ANT-3-C6: Meraki Panel Omni Antenna,MR46E,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR46E_Datasheet,
+MA-ANT-3-D6,MA-ANT-3-D6: Meraki Downtilt Panel Omni Antenna,MR46E,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR46E_Datasheet,
+MA-ANT-3-E6,MA-ANT-3-E6: Meraki Wide Patch Antenna,MR46E,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR46E_Datasheet,
+MA-ANT-3-F6,MA-ANT-3-F6: Meraki Narrow Patch Antenna,MR46E,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR46E_Datasheet,
+MA-ANT-20,MA-ANT-20 Meraki Dual-Band Omni Antennas,MR76,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR76_Datasheet,
+MA-ANT-21,MA-ANT-21 Meraki 5 GHz Sector Antenna,MR76,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR76_Datasheet,
+MA-ANT-23,MA-ANT-23 Meraki 2.4 GHz Sector Antenna,MR76,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR76_Datasheet,
+MA-ANT-25,MA-ANT-25 Meraki Dual-Band Patch Antenna,MR76,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR76_Datasheet,
+MA-ANT-27,MA-ANT-27 Meraki Dual-Band Sector Antenna,MR76,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR76_Datasheet,
+MA-ANT-20,MA-ANT-20 Meraki Dual-Band Omni Antennas,MR86,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR86_Datasheet,
+MA-ANT-25,MA-ANT-25 Meraki Dual-Band Patch Antenna,MR86,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR86_Datasheet,
+MA-ANT-27,MA-ANT-27 Meraki Dual-Band Sector Antenna,MR86,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR86_Datasheet,
+AIR-ANT2513P4M-N=,"AIR-ANT2513P4M-N= Dual-band, 4-port, 30° beam",MR86,https://documentation.meraki.com/Wireless/Product_Information/Overviews_and_Datasheets/MR86_Datasheet,"For AIR-ANT2513P4M-N= antenna, contact Cisco directly"
+ANT-GNSS-OUT-TNC,Outdoor GNSS Antenna with 15-ft cable,"IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-OMV-2567-N,"2.4/5/6 GHz 7dBi Omni Vertical Polarized Antenna, N Conn","IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-OMH-2567-N,"2.4/5/6 GHz 7dBi Omni Horizontal Polarized Antenna, N Conn","IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+AIR-ANT2547VG-NS,"2.4 GHz 4dBi/5 GHz 7dBi Dual Band Omni Antenna, N connector","IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-SKD-513-Q,"5GHz 13dBi Shark bidirectional antenna, 2 port, QMA conn",IW9167EH-E-URWB,,
+IW-ANT-SKS-514-Q,"5GHz 14dBi Shark antenna, 2 port, QMA connector",IW9167EH-E-URWB,,
+IW-ANT-PNL-59-N,"5GHz 9dBi Panel antenna, 2 port, N connector",IW9167EH-E-URWB,,
+IW-ANT-OMM-53-N,"5GHz 3dBi Omni multi-polarized antenna, 1 port, N connector",IW9167EH-E-WGB,,
+AIR-ANT2547V-N-HZ,"2.4 GHz 4dBi/5 GHz 7dBi Dual Band Omni Ant, N conn, HazLoc",IW9167EH-E-HZ,,
+IW-ANT-OMV-2567-N,"2.4/5/6 GHz 7dBi Omni Vertical Polarized Antenna, N Conn",IW9167EH-E-HZ,,
+IW-ANT-H90-510-N,"5GHz 10dBi Horn antenna, 2 port, N connector",IW9167EH-E-HZ,,
+IW-ANT-PNL5615-NS,"5/6GHz 15dBi Panel antenna, SIA, 2 port, N connector 5/6GHz 15dBi Panel antenna, Self-Identifying, 2 port, N connectorHide",IW9167EH-E-HZ,,
+IW-ANT-OMV-2567-N,"2.4/5/6 GHz 7dBi Omni Vertical Polarized Antenna, N Conn","IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-OMH-2567-N,"2.4/5/6 GHz 7dBi Omni Horizontal Polarized Antenna, N Conn","IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-GNSS-SMA,GNSS antenna with 10ft cable and SMA connector GNSS antenna with 10ft cable and SMA connector,"IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-OMM-53-N,"5GHz 3dBi Omni multi-polarized antenna, 1 port, N connector","IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-PNL5615-NS,"5/6GHz 15dBi Panel antenna, SIA, 2 port, N connector 5/6GHz 15dBi Panel antenna, Self-Identifying, 2 port, N connectorHide","IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-OMV-55-N,"5GHz, 5dBi Vertical pol. omni antenna N(f)-connectors 5 GHz, single-band, 5dBi omnidirectional antenna, vertical polarization, N(f) connector. Mounting Kit not included","IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-OMH-55-N,"5GHz, 5dBi Horizontal pol. omni antenna N(f)-connectors 5 GHz, single-band, 5dBi omnidirectional antenna, horizontal polarization, N(f) connector. Mounting Kit not included","IW9167EH-E-AP, IW9167EH-E-URWB, IW9167EH-E-WGB",,
+IW-ANT-SKD-513-Q,"5GHz 13dBi Shark bidirectional antenna, 2 port, QMA conn",IW9167EH-E-URWB,,
+IW-ANT-SKS-514-Q,"5GHz 14dBi Shark antenna, 2 port, QMA connector",IW9167EH-E-URWB,,
+,,,,
+,,,,
+,,,,
+,,,,

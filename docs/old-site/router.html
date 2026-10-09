@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisco & Meraki Router Selector - Routing</title>
+    <link rel="stylesheet" href="shared.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="shared.js"></script>
+    <style>
+        /* ---- Page-specific: filter colors ---- */
+        :root {
+            --color-type: #007bff; --color-cat: #6f42c1; --color-mod: #fd7e14; --color-users: #20c997;
+            --color-tun: #6610f2; --color-tp: #e83e8c; --color-feat: #198754;
+        }
+        .filter-type { border: 1px solid #cce5ff; background: #f8fbff; }
+        .filter-type .filter-btn.active { border-color: var(--color-type); box-shadow: 0 0 0 1px var(--color-type); font-weight: bold; color: var(--color-type); }
+        .filter-cat { border: 1px solid #e2d9f3; background: #fcfaff; }
+        .filter-cat .filter-btn.active { border-color: var(--color-cat); box-shadow: 0 0 0 1px var(--color-cat); font-weight: bold; color: var(--color-cat); }
+        .filter-mod { border: 1px solid #ffe5d0; background: #fffaf6; }
+        .filter-mod .filter-btn.active { border-color: var(--color-mod); box-shadow: 0 0 0 1px var(--color-mod); font-weight: bold; color: var(--color-mod); }
+        .filter-ports { border: 1px solid #d2f4ea; background: #f6fdfa; }
+        .filter-tpq { border: 1px solid #f8d7da; background: #fdf5f6; }
+        .pf-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: #555; }
+        .pf-input { width: 64px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; box-sizing: border-box; }
+        .pf-select { padding: 6px 4px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; background: white; max-width: 150px; }
+        .filter-tp { border: 1px solid #f8d7da; background: #fdf5f6; }
+        .filter-tp .filter-btn.active { border-color: var(--color-tp); box-shadow: 0 0 0 1px var(--color-tp); font-weight: bold; color: var(--color-tp); }
+        .filter-feat { border: 1px solid #d1e7dd; background: #f6fdf9; }
+        .filter-feat .filter-btn.active { border-color: var(--color-feat); box-shadow: 0 0 0 1px var(--color-feat); font-weight: bold; color: var(--color-feat); }
+        .features-grid { grid-template-columns: 1fr 1fr 1fr; }
+        .btn-catalyst-dna { background-color: var(--cisco-blue); }
+        .btn-meraki-sub { background-color: var(--meraki-green); }
+        .switch-family-title.active-title { color: var(--cisco-blue); }
+        .module-more-info { display: none; font-size: 11px; color: #555; margin-top: 6px; background: #f4f6f8; padding: 8px; border-radius: 4px; line-height: 1.4; }
+        .module-more-info.active { display: block; }
+        .mod-info-btn { font-size: 11px; padding: 2px 8px; border: 1px solid #bbb; background: #fff; border-radius: 3px; cursor: pointer; margin-top: 4px; }
+
+        /* ---- Page-specific: sleek router graphics (summary below) ---- */
+        .rt-graphic { padding: 4px 2px; }
+        .rt-body { position: relative; border-radius: 10px; background: #eef1f4; border: 1px solid #d1d5da; border-left: 4px solid var(--cisco-blue); box-shadow: inset 0 -2px 0 rgba(0,0,0,.06), 0 2px 5px rgba(0,0,0,.06); display: flex; align-items: center; gap: 8px; padding: 0 12px; transition: transform .1s, box-shadow .1s; box-sizing: border-box; }
+        .switch-family:hover .rt-body { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,.12); }
+        .rt-body.brand-Meraki { border-left-color: var(--meraki-green); }
+        .rt-body.rack { width: 70%; height: 42px; }
+        .rt-body.desktop { width: 44%; height: 38px; border-radius: 12px; }
+        .rt-body.rugged { width: 56%; height: 48px; background: #2c3e50; border-color: #1a252f; }
+        .rt-body.rugged .rt-tick { background: #8aa0b5; }
+        .rt-led { width: 8px; height: 8px; border-radius: 50%; background: var(--cisco-blue); box-shadow: 0 0 6px rgba(4,159,217,.8); flex-shrink: 0; }
+        .rt-body.brand-Meraki .rt-led { background: var(--meraki-green); box-shadow: 0 0 6px rgba(120,190,32,.8); }
+        .rt-ports { display: flex; gap: 3px; align-items: center; }
+        .rt-tick { width: 5px; height: 14px; background: #aeb6bf; border-radius: 1px; }
+        .rt-bays { display: flex; gap: 4px; margin-left: auto; }
+        .rt-bay { width: 14px; height: 18px; background: #cfd4da; border: 1px solid #b6bcc4; border-radius: 2px; }
+        .rt-body.rugged .rt-bay { background: #46586b; border-color: #3a4a5a; }
+        /* Chassis routers: stacked line-card face; body height is content-driven
+           (fixed-height cards) so it can never overflow. */
+        .rt-body.chassis { flex-direction: column; align-items: stretch; width: 64%; height: auto; padding: 5px; gap: 3px; background: #3a3f44; border-color: #222; }
+        .rt-lc { flex: 0 0 auto; height: 12px; background: #d4dae0; border: 1px solid #aab2bb; border-radius: 2px; display: flex; align-items: center; gap: 5px; padding: 0 5px; box-sizing: border-box; }
+        .rt-lc-ej { width: 3px; height: 55%; background: #7a8591; border-radius: 1px; flex-shrink: 0; }
+        .rt-lc-ports { display: flex; gap: 3px; flex: 1; }
+        .rt-lc-ports span { width: 4px; height: 4px; background: #5b6670; border-radius: 1px; }
+        .rt-lc-led { width: 5px; height: 5px; border-radius: 50%; background: var(--cisco-blue); flex-shrink: 0; }
+        /* Virtual routers: dashed VM-style body */
+        .rt-body.virtual { width: 44%; height: 38px; border-style: dashed; border-left-style: solid; background: #f4f9ff; }
+        .rt-ant { position: absolute; top: -10px; left: 12px; display: flex; gap: 5px; }
+        .rt-ant span { width: 4px; height: 12px; background: #95a5a6; border-radius: 2px; }
+        .rt-body.brand-Meraki .rt-ant span { background: var(--meraki-green); }
+        .rt-meta { font-size: 12px; color: #777; line-height: 1.5; margin-top: 8px; }
+        .rt-meta .meta-badge { display: inline-block; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; padding: 2px 7px; border-radius: 10px; background: #eef0f2; color: #555; margin-right: 5px; }
+        @media (max-width: 1150px) { .rt-body.rack, .rt-body.desktop, .rt-body.rugged { width: 100%; } }
+    </style>
+</head>
+<body>
+
+    <div id="chrome-top"></div>
+
+    <div class="main-container">
+        <div>
+            <div id="active-filters-bar" class="active-filter-bar"></div>
+            <div class="switch-list" id="router-list-container"><p data-i18n="loading">Loading dataset...</p></div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-section filter-type">
+                <h4 data-i18n="filter-type">Router Type</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="type" data-val="Rack" data-i18n="type-rack">Rack</button>
+                    <button class="filter-btn" data-filter="type" data-val="Desktop" data-i18n="type-desktop">Desktop</button>
+                    <button class="filter-btn" data-filter="type" data-val="Rugged" data-i18n="type-rugged">Rugged</button>
+                    <button class="filter-btn" data-filter="type" data-val="Virtual" data-i18n="type-virtual">Virtual</button>
+                    <button class="filter-btn" data-filter="type" data-val="Chassis" data-i18n="type-chassis">Chassis</button>
+                </div>
+            </div>
+            <div class="filter-section filter-cat">
+                <h4 data-i18n="filter-cat">Deployment Category</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="category" data-val="Small" data-i18n="cat-small">Small</button>
+                    <button class="filter-btn" data-filter="category" data-val="Medium" data-i18n="cat-medium">Medium</button>
+                    <button class="filter-btn" data-filter="category" data-val="Large" data-i18n="cat-large">Large</button>
+                    <button class="filter-btn" data-filter="category" data-val="DC" data-i18n="cat-dc">DC</button>
+                    <button class="filter-btn" data-filter="category" data-val="Aggregation" data-i18n="cat-agg">Aggregation</button>
+                </div>
+            </div>
+            <div class="filter-section filter-ports">
+                <h4 data-i18n="filter-ports">Ports</h4>
+                <div class="pf-row">
+                    <input type="text" id="pf-num" class="pf-input pf-ctl" data-i18n="pf-ph" placeholder="write #">
+                    <span data-i18n="pf-of">ports of</span>
+                    <select id="pf-speed" class="pf-select pf-ctl">
+                        <option value="ANY" data-i18n="opt-any">ANY</option>
+                        <option value="le1">&le; 1G</option>
+                        <option value="2.5-10">2.5G - 10G</option>
+                        <option value="25-100">25G - 100G</option>
+                        <option value="400">400G+</option>
+                    </select>
+                    <select id="pf-type" class="pf-select pf-ctl">
+                        <option value="ANY" data-i18n="opt-any">ANY</option>
+                        <option value="RJ45">RJ45 / Copper</option>
+                        <option value="mGig">mGig</option>
+                        <option value="SFP">SFP</option>
+                        <option value="SFP+">SFP+</option>
+                        <option value="QSFP">QSFP family</option>
+                        <option value="Combo">Combo</option>
+                        <option value="DSL">DSL</option>
+                        <option value="Cellular">Cellular</option>
+                        <option value="PON">PON</option>
+                    </select>
+                    <span data-i18n="pf-for">for</span>
+                    <select id="pf-side" class="pf-select pf-ctl">
+                        <option value="ANY" data-i18n="opt-any">ANY</option>
+                        <option value="WAN">WAN</option>
+                        <option value="LAN">LAN</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-section filter-tpq">
+                <h4 data-i18n="filter-tp">Throughput</h4>
+                <div class="pf-row">
+                    <input type="text" id="tp-num" class="pf-input pf-ctl" data-i18n="pf-ph" placeholder="write #">
+                    <select id="tp-unit" class="pf-select pf-ctl">
+                        <option value="ANY" data-i18n="opt-any">ANY</option>
+                        <option value="Mbps">Mbps</option>
+                        <option value="Gbps">Gbps</option>
+                        <option value="Tbps">Tbps</option>
+                    </select>
+                    <span data-i18n="tp-of">of</span>
+                    <select id="tp-type" class="pf-select pf-ctl">
+                        <option value="ANY" data-i18n="opt-any">ANY</option>
+                        <option value="Firewall" data-i18n="tp-fw">Firewall Throughput</option>
+                        <option value="AdvSec" data-i18n="tp-sec">Advanced Security Throughput</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-section filter-mod">
+                <h4 data-i18n="filter-modular">Modular (Accepts Modules)</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="modular" data-val="Yes" data-i18n="btn-yes">Yes</button>
+                    <button class="filter-btn" data-filter="modular" data-val="No" data-i18n="btn-no">No</button>
+                </div>
+                <div id="modtype-block" class="hidden">
+                    <h4 style="margin-top:12px;" data-i18n="filter-mod-types">Required Module Types</h4>
+                    <div class="filter-grid">
+                        <button class="filter-btn" data-filter="modtype" data-val="PIM">PIM</button>
+                        <button class="filter-btn" data-filter="modtype" data-val="NIM">NIM</button>
+                        <button class="filter-btn" data-filter="modtype" data-val="SM">SM</button>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-section filter-feat">
+                <h4 data-i18n="filter-feat">Features</h4>
+                <div class="filter-grid features-grid">
+                    <button class="filter-btn" data-filter="feature" data-val="Cellular" data-i18n="feat-cellular">Cellular</button>
+                    <button class="filter-btn" data-filter="feature" data-val="SD-WAN" data-i18n="feat-sdwan">SD-WAN</button>
+                    <button class="filter-btn" data-filter="feature" data-val="PoE" data-i18n="feat-poe">PoE</button>
+                    <button class="filter-btn" data-filter="feature" data-val="NGFW" data-i18n="feat-ngfw">NGFW</button>
+                    <button class="filter-btn" data-filter="feature" data-val="Redundant PSU" data-i18n="feat-redpsu">Redundant PSU</button>
+                    <button class="filter-btn" data-filter="feature" data-val="Fans" data-i18n="feat-fans">Fans</button>
+                    <button class="filter-btn" data-filter="feature" data-val="Multigig" data-i18n="feat-multigig">Multigig</button>
+                </div>
+            </div>
+            <div class="filter-section info-section">
+                <h4 data-i18n="info-title">Routing &amp; SD-WAN Licensing</h4>
+                <div class="info-buttons">
+                    <a href="https://www.cisco.com/c/dam/m/en_us/products/software/dna-software/dna-software-sd-wan-routing-matrix/pdf/Cisco_DNA_Software_SD-WAN_and_Routing_Matrices.pdf" target="_blank" class="info-btn btn-catalyst-dna" data-i18n="info-dna">DNA Routing/SDWAN</a>
+                    <a href="https://documentation.meraki.com/MX/MX_Licensing" target="_blank" class="info-btn btn-meraki-sub" data-i18n="info-meraki">Meraki MX Licensing</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chrome-feedback"></div>
+
+<script>
+    const DATA_VER = '2';
+    const ROUTER_CSV = 'data/routers.csv?v=' + DATA_VER;
+    const MODULE_CSV = 'data/router-modules.csv?v=' + DATA_VER;
+
+    const pageI18n = {
+        en: {
+            'filter-type': 'Router Type', 'type-rack': 'Rack', 'type-desktop': 'Desktop', 'type-rugged': 'Rugged', 'type-virtual': 'Virtual', 'type-chassis': 'Chassis',
+            'filter-cat': 'Deployment Category', 'cat-small': 'Small', 'cat-medium': 'Medium', 'cat-large': 'Large', 'cat-dc': 'DC', 'cat-agg': 'Aggregation',
+            'filter-ports': 'Ports', 'pf-of': 'ports of', 'pf-for': 'for', 'opt-any': 'ANY', 'pf-ph': 'write #',
+            'filter-tp': 'Throughput', 'tp-of': 'of', 'tp-fw': 'Firewall Throughput', 'tp-sec': 'Advanced Security Throughput',
+            'filter-modular': 'Modular (Accepts Modules)', 'btn-yes': 'Yes', 'btn-no': 'No', 'filter-mod-types': 'Required Module Types',
+            'filter-feat': 'Features', 'feat-cellular': 'Cellular', 'feat-sdwan': 'SD-WAN', 'feat-poe': 'PoE', 'feat-ngfw': 'NGFW', 'feat-redpsu': 'Redundant PSU', 'feat-fans': 'Fans', 'feat-multigig': 'Multigig',
+            'info-title': 'Routing & SD-WAN Licensing', 'info-dna': 'DNA Routing/SDWAN', 'info-meraki': 'Meraki MX Licensing',
+            'no-match': 'No routers match the selected filters.', 'drawer-select': 'Select Base Model:', 'drawer-modules': 'Compatible Modules:',
+            'label-wan': 'WAN:', 'label-lan': 'LAN:', 'label-tp': 'Throughput:', 'label-sectp': 'Adv. Sec Throughput:',
+            'label-tun': 'Max Tunnels:', 'label-users': 'Recommended Users:', 'label-desc': 'Description:', 'label-note': 'Note:',
+            'btn-moreinfo': 'More Info', 'mod-slots': 'Slots', 'mod-max': 'Max',
+            'sum-slots': 'slots', 'sum-upto': 'Up to', 'sum-modports': 'ports (modular)', 'mod-pool': 'Modules (shared slot pool)', 'label-slots': 'Modular Slots:', 'label-maxports': 'Max Ports:'
+        },
+        tr: {
+            'filter-type': 'Yönlendirici Tipi', 'type-rack': 'Rack', 'type-desktop': 'Masaüstü', 'type-rugged': 'Zorlu Ortam (Rugged)', 'type-virtual': 'Sanal (Virtual)', 'type-chassis': 'Şasi (Chassis)',
+            'filter-cat': 'Dağıtım Kategorisi', 'cat-small': 'Küçük', 'cat-medium': 'Orta', 'cat-large': 'Büyük', 'cat-dc': 'DC', 'cat-agg': 'Toplama (Aggregation)',
+            'filter-ports': 'Portlar', 'pf-of': 'port,', 'pf-for': 'için', 'opt-any': 'TÜMÜ', 'pf-ph': 'sayı girin',
+            'filter-tp': 'Verim (Throughput)', 'tp-of': '-', 'tp-fw': 'Güvenlik Duvarı Verimi', 'tp-sec': 'Gelişmiş Güvenlik Verimi',
+            'filter-modular': 'Modüler (Modül Destekler)', 'btn-yes': 'Evet', 'btn-no': 'Hayır', 'filter-mod-types': 'Gerekli Modül Tipleri',
+            'filter-feat': 'Özellikler', 'feat-cellular': 'Hücresel', 'feat-sdwan': 'SD-WAN', 'feat-poe': 'PoE', 'feat-ngfw': 'NGFW', 'feat-redpsu': 'Yedek PSU', 'feat-fans': 'Fanlı', 'feat-multigig': 'Multigigabit',
+            'info-title': 'Yönlendirme ve SD-WAN Lisanslama', 'info-dna': 'DNA Yönlendirme/SDWAN', 'info-meraki': 'Meraki MX Lisanslama',
+            'no-match': 'Seçilen filtrelere uygun yönlendirici bulunamadı.', 'drawer-select': 'Temel Modeli Seçin:', 'drawer-modules': 'Uyumlu Modüller:',
+            'label-wan': 'WAN:', 'label-lan': 'LAN:', 'label-tp': 'Verim:', 'label-sectp': 'Gelişmiş Güv. Verimi:',
+            'label-tun': 'Maks Tünel:', 'label-users': 'Önerilen Kullanıcı:', 'label-desc': 'Açıklama:', 'label-note': 'Not:',
+            'btn-moreinfo': 'Daha Fazla Bilgi', 'mod-slots': 'Yuva', 'mod-max': 'Maks',
+            'sum-slots': 'yuva', 'sum-upto': 'En fazla', 'sum-modports': 'port (modüler)', 'mod-pool': 'Modüller (ortak yuva havuzu)', 'label-slots': 'Modüler Yuva:', 'label-maxports': 'Maks Port:'
+        }
+    };
+
+    const valToKey = {
+        'Rack': 'type-rack', 'Desktop': 'type-desktop', 'Rugged': 'type-rugged', 'Virtual': 'type-virtual', 'Chassis': 'type-chassis',
+        'Small': 'cat-small', 'Medium': 'cat-medium', 'Large': 'cat-large', 'DC': 'cat-dc', 'Aggregation': 'cat-agg',
+        'Cellular': 'feat-cellular', 'SD-WAN': 'feat-sdwan', 'PoE': 'feat-poe', 'NGFW': 'feat-ngfw', 'Redundant PSU': 'feat-redpsu', 'Fans': 'feat-fans', 'Multigig': 'feat-multigig',
+        'Yes': 'btn-yes', 'No': 'btn-no'
+    };
+
+    let allRouters = [];
+    let allModules = [];
+    // portq/tpq are pseudo entries kept in sync by the modular Ports/Throughput
+    // controls so their state shows in the shared active-filter bar.
+    let activeFilters = { type: [], category: [], modular: [], modtype: [], feature: [], portq: [], tpq: [] };
+    let portFilter = { num: '', speed: 'ANY', ptype: 'ANY', side: 'ANY' };
+    let tpFilter = { num: '', unit: 'ANY', ttype: 'ANY' };
+    let selectedSupertype = null, selectedSKU = null, moduleCounts = {};
+
+    // ---- Ports-detail parser: "12x 10GbE SFP+ , 2x 40GbE QSFP+" -> segments ----
+    function parsePortDetail(str) {
+        str = (str || '').trim();
+        if (!str || /^(n\/a|modular|-)$/i.test(str)) return [];
+        // split on top-level commas only (parens can contain commas)
+        let segs = [], depth = 0, cur = '';
+        for (let ch of str) {
+            if (ch === '(') depth++;
+            if (ch === ')') depth = Math.max(0, depth - 1);
+            if (ch === ',' && depth === 0) { segs.push(cur); cur = ''; } else cur += ch;
+        }
+        if (cur.trim()) segs.push(cur);
+        let out = [];
+        segs.forEach(s => {
+            s = s.trim(); if (!s) return;
+            // count: "12x", "1 x", "12/20 (CSFP)x" -> take the larger of a/b
+            let cm = s.match(/^(\d+)(?:\s*\/\s*(\d+))?\s*(?:\([^)]*\))?\s*x/i);
+            let count = cm ? Math.max(parseInt(cm[1]), cm[2] ? parseInt(cm[2]) : 0) : 1;
+            // speed in Gbps: max over every G-figure in the segment, so
+            // "1GbE/10GbE" -> 10 and "1/10G" -> 10; "100M" -> 0.1; 0 = unknown
+            let sp = 0, gAll = s.match(/(\d+(?:\.\d+)?)\s*G/gi);
+            if (gAll) gAll.forEach(g => { sp = Math.max(sp, parseFloat(g)); });
+            else { let mm = s.match(/(\d+)\s*M(?![a-z0-9])/i); if (mm) sp = parseInt(mm[1]) / 1000; }
+            // port types present in the segment (a combo port counts for several)
+            let l = s.toLowerCase(), types = [];
+            if (/rj-?45|copper|\bcu\b|base-t/.test(l)) types.push('RJ45');
+            if (/combo/.test(l)) { if (!types.includes('Combo')) types.push('Combo'); if (!types.includes('RJ45')) types.push('RJ45'); if (!types.includes('SFP')) types.push('SFP'); }
+            if (/qsfp/.test(l)) types.push('QSFP');
+            if (/sfp\+/.test(l)) types.push('SFP+');
+            if (/(^|[^q+])sfp(?!\+)/.test(l) || /csfp/.test(l)) { if (!types.includes('SFP')) types.push('SFP'); }
+            if (/mgig|multigig/.test(l)) { types.push('mGig'); if (!types.includes('RJ45')) types.push('RJ45'); }
+            if (/dsl/.test(l)) types.push('DSL');
+            if (/cellular/.test(l)) types.push('Cellular');
+            if (/pon/.test(l)) types.push('PON');
+            // Free text like "Virtualized" or "Modular expansion via NIM slots" is
+            // not a port: no NxX pattern, no speed, no type -> contributes nothing.
+            if (!cm && sp === 0 && !types.length) return;
+            out.push({ count: count, speed: sp, types: types });
+        });
+        return out;
+    }
+    function speedInBucket(sp, bucket) {
+        if (bucket === 'ANY') return true;
+        if (sp <= 0) return false; // unknown speed only matches ANY
+        if (bucket === 'le1') return sp <= 1;
+        if (bucket === '2.5-10') return sp > 1 && sp <= 10;
+        if (bucket === '25-100') return sp > 10 && sp <= 100;
+        if (bucket === '400') return sp > 100;
+        return true;
+    }
+    function countMatching(segs) {
+        let total = 0;
+        segs.forEach(seg => {
+            if (!speedInBucket(seg.speed, portFilter.speed)) return;
+            if (portFilter.ptype !== 'ANY' && !seg.types.includes(portFilter.ptype)) return;
+            total += seg.count;
+        });
+        return total;
+    }
+    function portFilterActive() {
+        return portFilter.num !== '' || portFilter.speed !== 'ANY' || portFilter.ptype !== 'ANY' || portFilter.side !== 'ANY';
+    }
+    function tpFilterActive() { return tpFilter.num !== ''; }
+
+    function parseThroughput(str) {
+        if (!str || str.toLowerCase() === 'n/a') return 0;
+        let num = parseFloat(str.replace(/[^\d.]/g, ''));
+        if (str.toLowerCase().includes('tbps')) return num * 1000000;
+        if (str.toLowerCase().includes('gbps')) return num * 1000;
+        return num || 0;
+    }
+    function parseNumericStr(str) {
+        if (!str || str.toLowerCase() === 'n/a') return 0;
+        return parseInt(str.replace(/[^\d]/g, '')) || 0;
+    }
+
+    function parseRow(row) {
+        // BUG FIX: the CSV column is "Throughput" (was previously read as "Firewall Throughput").
+        let fwStr = (row['Throughput'] || '').trim();
+        let secStr = (row['Advanced Security Throughput'] || '').trim();
+        let pimSlots = parseInt(row['PIM Modules']) || 0;
+        let nimSlots = parseInt(row['NIM Modules']) || 0;
+        let smSlots = parseInt(row['SM Modules']) || 0;
+
+        let feats = (row['Features'] || '').split(',').map(s => s.trim()).filter(Boolean).map(f => {
+            let l = f.toLowerCase();
+            if (l.includes('ngfw')) return 'NGFW';
+            if (l.includes('redundant psu')) return 'Redundant PSU';
+            if (l.includes('fan') && !l.includes('fanless')) return 'Fans';
+            if (l.includes('multigig')) return 'Multigig';
+            if (l === 'cellular') return 'Cellular';
+            if (l === 'sd-wan' || l === 'sdwan') return 'SD-WAN';
+            if (l === 'poe') return 'PoE';
+            return f;
+        });
+        if ((row['SD-WAN'] || '').toLowerCase() === 'yes' && !feats.includes('SD-WAN')) feats.push('SD-WAN');
+        let cell = (row['Cellular'] || '').trim().toLowerCase();
+        if (cell && !['n/a', 'no', 'none'].includes(cell) && !feats.includes('Cellular')) feats.push('Cellular');
+
+        let modSlots = parseInt(row['Modular Slots']) || 0;
+        let devType = (row['Device Type'] || 'Rack').trim();
+        let typesArr = devType.split(',').map(s => s.trim()).filter(Boolean);
+        let wanDet = (row['WAN ports detail'] || '').trim();
+        let lanDet = (row['LAN ports detail'] || '').trim();
+        let lo = parseInt(row['List Order'], 10);
+        return {
+            family: row['Family'] || 'Unknown',
+            supertype: row['Supertype'] || 'Unknown',
+            model: row['Model'] || 'Unknown',
+            type: devType,
+            typesArr: typesArr,
+            isChassis: typesArr.includes('Chassis'),
+            modSlots: modSlots,
+            category: (row['Deployment Category'] || '').trim(),
+            unified: row['Unified architecture'] || 'No',
+            wanDetail: wanDet, lanDetail: lanDet,
+            wanSegs: parsePortDetail(wanDet), lanSegs: parsePortDetail(lanDet),
+            fwTpStr: fwStr, fwTpRaw: parseThroughput(fwStr),
+            secTpStr: secStr, secTpRaw: parseThroughput(secStr),
+            tunnelsStr: (row['Recommended Max VPN Tunnels'] || '').trim(), tunnelsRaw: parseNumericStr(row['Recommended Max VPN Tunnels']),
+            usersStr: (row['Client Recommendation'] || '').trim(), usersRaw: parseNumericStr(row['Client Recommendation']),
+            isModular: (pimSlots > 0 || nimSlots > 0 || smSlots > 0 || modSlots > 0) ? 'Yes' : 'No',
+            hasAntenna: (row['Antenna'] || '').trim().toLowerCase() === 'yes',
+            pimMax: pimSlots, nimMax: nimSlots, smMax: smSlots,
+            features: feats,
+            description: (row['Description'] || '').trim(),
+            notes: (row['Notes'] || '').trim(),
+            listOrder: isNaN(lo) ? 999 : lo,
+            datasheet: row['Datasheet'] || '#'
+        };
+    }
+
+    function brandOf(m) {
+        return (m.family.toUpperCase().includes('MERAKI') || m.supertype.toUpperCase().includes('MX')) ? 'Meraki' : 'Catalyst';
+    }
+    function typeBucket(t) {
+        let l = (t || '').toLowerCase();
+        if (l.includes('chassis')) return 'chassis';
+        if (l.includes('virtual')) return 'virtual';
+        if (l.includes('rugged')) return 'rugged';
+        if (l.includes('desktop') && !l.includes('rack')) return 'desktop';
+        return 'rack';
+    }
+
+    // Real port capability: fixed matching ports + what the module slots can add
+    // (slots x best matching compatible card). A filter combination no card or
+    // fixed port can satisfy yields zero -> the router is excluded.
+    function portCapability(m) {
+        let fixedW = countMatching(m.wanSegs), fixedL = countMatching(m.lanSegs);
+        let modCap = 0;
+        if (allModules.length) {
+            const comp = compatModulesFor(m);
+            if (m.isChassis && m.modSlots > 0) {
+                let per = 0;
+                comp.forEach(c => { per = Math.max(per, countMatching(c.segs)); });
+                modCap = m.modSlots * per;
+            } else if (m.pimMax || m.nimMax || m.smMax) {
+                [['PIM', m.pimMax], ['NIM', m.nimMax], ['SM', m.smMax]].forEach(pair => {
+                    if (!pair[1]) return;
+                    let per = 0;
+                    comp.filter(c => c.type === pair[0]).forEach(c => { per = Math.max(per, countMatching(c.segs)); });
+                    modCap += pair[1] * per;
+                });
+            }
+        }
+        // Module ports can face either side, so they add to both WAN and LAN capability.
+        return { wan: fixedW + modCap, lan: fixedL + modCap };
+    }
+
+    function passesPortFilter(m) {
+        if (!portFilterActive()) return true;
+        let need = parseInt(portFilter.num) || 1;
+        const cap = portCapability(m);
+        if (portFilter.side === 'WAN') return cap.wan >= need;
+        if (portFilter.side === 'LAN') return cap.lan >= need;
+        return cap.wan >= need || cap.lan >= need; // ANY = either side (WAN/LAN often list the same ports)
+    }
+
+    function passesTpFilter(m) {
+        if (!tpFilterActive()) return true;
+        let unitF = tpFilter.unit === 'Gbps' ? 1000 : tpFilter.unit === 'Tbps' ? 1000000 : 1; // ANY -> Mbps
+        let need = (parseFloat(tpFilter.num) || 0) * unitF;
+        if (tpFilter.ttype === 'Firewall') return m.fwTpRaw >= need;
+        if (tpFilter.ttype === 'AdvSec') return m.secTpRaw >= need;
+        return m.fwTpRaw >= need || m.secTpRaw >= need;
+    }
+
+    function mgmtPass(m) {
+        if (Shared.mgmt === 'On-Prem') return !(m.family.toUpperCase().includes('MERAKI') || m.supertype.toUpperCase().includes('MX'));
+        if (Shared.mgmt === 'Cloud') return m.family.toUpperCase().includes('MERAKI') || m.supertype.toUpperCase().includes('MX');
+        if (Shared.mgmt === 'Unified') return m.unified === 'Yes';
+        return true;
+    }
+
+    function modelPasses(m) {
+        if (activeFilters.type.length && !activeFilters.type.some(v => m.typesArr.includes(v))) return false;
+        if (activeFilters.category.length && !activeFilters.category.some(c => m.category === c)) return false;
+        if (!passesPortFilter(m)) return false;
+        if (!passesTpFilter(m)) return false;
+        if (activeFilters.modular.length && !activeFilters.modular.includes(m.isModular)) return false;
+        if (activeFilters.modtype.length) {
+            if (m.isModular !== 'Yes') return false;
+            let ok = activeFilters.modtype.some(mt => (mt === 'PIM' && m.pimMax > 0) || (mt === 'NIM' && m.nimMax > 0) || (mt === 'SM' && m.smMax > 0));
+            if (!ok) return false;
+        }
+        if (activeFilters.feature.length && !activeFilters.feature.every(f => m.features.includes(f))) return false;
+        return true;
+    }
+
+    function renderRouters() {
+        Shared.updateActiveFilterBar();
+
+        // "Required Module Types" appears only when Modular = Yes. It stays hidden
+        // with no selection and when "No" is picked; any stale sub-filter is cleared
+        // so it can't silently affect results.
+        const modBlock = document.getElementById('modtype-block');
+        const showModTypes = activeFilters.modular.includes('Yes');
+        if (modBlock) {
+            modBlock.classList.toggle('hidden', !showModTypes);
+            if (!showModTypes && activeFilters.modtype.length) {
+                activeFilters.modtype = [];
+                modBlock.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            }
+        }
+
+        const container = document.getElementById('router-list-container');
+        container.innerHTML = '';
+        const supertypes = [...new Set(allRouters.map(m => m.supertype))];
+        let valid = false;
+
+        supertypes.forEach(st => {
+            let members = allRouters.filter(m => m.supertype === st && mgmtPass(m) && modelPasses(m));
+            if (!members.length) return;
+            if (st === selectedSupertype && members.some(m => m.model === selectedSKU)) valid = true;
+            container.appendChild(createFamilyHTML(st, members));
+        });
+
+        if (!valid) { selectedSupertype = null; selectedSKU = null; moduleCounts = {}; }
+        if (!container.innerHTML) container.innerHTML = '<p>' + Shared.t('no-match') + '</p>';
+        else if (selectedSupertype && selectedSKU) {
+            const drawer = document.getElementById('drawer-' + Shared.cssId(selectedSupertype));
+            if (drawer) {
+                drawer.classList.add('active');
+                const title = drawer.parentElement.querySelector('.switch-family-title');
+                if (title) title.classList.add('active-title');
+                buildSKUDetailsUI(selectedSKU, selectedSupertype);
+            }
+        }
+    }
+
+    function compatModulesFor(m) {
+        return allModules.filter(mod => mod.supported.some(sup => m.supertype.includes(sup) || m.model.includes(sup)));
+    }
+    // Chassis max ports = Modular Slots x highest port count among compatible cards
+    function chassisMaxPorts(m) {
+        if (!m.isChassis || m.modSlots <= 0) return 0;
+        let per = 0;
+        compatModulesFor(m).forEach(mod => { per = Math.max(per, mod.portCount || 0); });
+        return per > 0 ? m.modSlots * per : 0;
+    }
+
+    function getRtGraphic(m) {
+        const brand = brandOf(m);
+        const tb = typeBucket(m.type);
+        let body;
+        if (tb === 'chassis') {
+            // Stacked line-card face; card count follows Modular Slots (visual cap 8),
+            // height is content-driven so the cards always fit.
+            let slots = m.modSlots > 0 ? m.modSlots : 4;
+            let n = Math.min(Math.max(slots, 2), 8);
+            let card = '<div class="rt-lc"><span class="rt-lc-ej"></span><div class="rt-lc-ports">' + '<span></span>'.repeat(10) + '</div><span class="rt-lc-led"></span></div>';
+            body = '<div class="rt-body chassis brand-' + brand + '">' + card.repeat(n) + '</div>';
+        } else {
+            let ticks = '<div class="rt-ports">' + '<div class="rt-tick"></div>'.repeat(tb === 'desktop' || tb === 'virtual' ? 6 : 8) + '</div>';
+            let bayCount = Math.min((m.pimMax || 0) + (m.nimMax || 0) + (m.smMax || 0), 6);
+            let bays = bayCount > 0 ? '<div class="rt-bays">' + '<div class="rt-bay"></div>'.repeat(bayCount) + '</div>' : '';
+            let ant = m.hasAntenna ? '<div class="rt-ant"><span></span><span></span></div>' : '';
+            body = '<div class="rt-body ' + tb + ' brand-' + brand + '">' + ant + '<div class="rt-led"></div>' + ticks + bays + '</div>';
+        }
+
+        let bits = [];
+        bits.push('<span class="meta-badge">' + (Shared.t('type-' + tb) || m.type) + '</span>');
+        if (m.isChassis && m.modSlots > 0) {
+            bits.push(m.modSlots + ' ' + Shared.t('sum-slots'));
+            let mp = chassisMaxPorts(m);
+            if (mp > 0) bits.push(Shared.t('sum-upto') + ' ' + mp + ' ' + Shared.t('sum-modports'));
+        }
+        if (m.category) bits.push(translateCat(m.category));
+        if (m.fwTpStr && m.fwTpStr !== 'N/A') bits.push(m.fwTpStr);
+        let cellBadge = m.features.includes('Cellular') ? ' <span class="meta-badge">' + Shared.t('feat-cellular') + '</span>' : '';
+        return '<div class="rt-graphic">' + body + '<div class="rt-meta">' + bits.join(' &middot; ') + cellBadge + '</div></div>';
+    }
+
+    function translateCat(cat) {
+        if (valToKey[cat]) return Shared.t(valToKey[cat]);
+        return cat;
+    }
+
+    function createFamilyHTML(supertype, members) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'switch-family';
+        const id = Shared.cssId(supertype);
+        wrapper.innerHTML =
+            '<div onclick="toggleDrawer(\'' + id + '\')"><div class="switch-family-title">' + supertype + '</div>' + getRtGraphic(members[0]) + '</div>' +
+            '<div class="drawer" id="drawer-' + id + '"><div style="font-weight:bold;margin-bottom:10px;">' + Shared.t('drawer-select') + '</div>' +
+                '<div class="sku-list">' +
+                    members.map(m => {
+                        let sel = m.model === selectedSKU ? 'selected-' + brandOf(m) : '';
+                        return '<button class="sku-btn ' + sel + '" onclick="selectSKU(\'' + encodeURIComponent(m.model) + '\',\'' + id + '\')">' + m.model + '</button>';
+                    }).join('') +
+                '</div><div id="details-' + id + '" class="drawer-details ' + (selectedSKU ? '' : 'hidden') + '"></div></div>';
+        return wrapper;
+    }
+
+    window.toggleDrawer = function (id) {
+        const drawer = document.getElementById('drawer-' + id);
+        drawer.classList.toggle('active');
+        drawer.parentElement.querySelector('.switch-family-title').classList.toggle('active-title');
+    };
+
+    window.selectSKU = function (modelEnc, id) {
+        const model = decodeURIComponent(modelEnc);
+        const m = allRouters.find(r => r.model === model);
+        selectedSupertype = m.supertype; selectedSKU = model; moduleCounts = {};
+        const drawer = document.getElementById('drawer-' + id);
+        drawer.querySelectorAll('.sku-btn').forEach(b => b.classList.remove('selected-Meraki', 'selected-Catalyst'));
+        drawer.querySelectorAll('.sku-btn').forEach(b => { if (b.textContent === model) b.classList.add('selected-' + brandOf(m)); });
+        buildSKUDetailsUI(model, id);
+    };
+
+    window.toggleMoreInfo = function (safeId) {
+        const d = document.getElementById('moreinfo-' + safeId);
+        if (d) d.classList.toggle('active');
+    };
+
+    function buildSKUDetailsUI(modelName, id) {
+        const details = document.getElementById('details-' + id);
+        if (!details) return;
+        const m = allRouters.find(r => r.model === modelName);
+        details.classList.remove('hidden');
+
+        let html = '<a href="' + m.datasheet + '" class="datasheet-link" target="_blank">Datasheet &rarr;</a>';
+        if (m.fwTpStr && m.fwTpStr !== 'N/A') html += '<p><strong>' + Shared.t('label-tp') + '</strong> ' + m.fwTpStr + '</p>';
+        if (m.secTpStr && m.secTpStr !== 'N/A') html += '<p><strong>' + Shared.t('label-sectp') + '</strong> ' + m.secTpStr + '</p>';
+        let ut = [];
+        if (m.usersStr && m.usersStr !== 'N/A') ut.push('<strong>' + Shared.t('label-users') + '</strong> ' + m.usersStr);
+        if (m.tunnelsStr && m.tunnelsStr !== 'N/A') ut.push('<strong>' + Shared.t('label-tun') + '</strong> ' + m.tunnelsStr);
+        if (ut.length) html += '<p>' + ut.join(' &nbsp; | &nbsp; ') + '</p>';
+        if (m.isChassis && m.modSlots > 0) {
+            let mp = chassisMaxPorts(m);
+            html += '<p><strong>' + Shared.t('label-slots') + '</strong> ' + m.modSlots +
+                (mp > 0 ? ' &nbsp; | &nbsp; <strong>' + Shared.t('label-maxports') + '</strong> ' + Shared.t('sum-upto') + ' ' + mp + ' ' + Shared.t('sum-modports') : '') + '</p>';
+        }
+        if (m.wanDetail && m.wanDetail !== 'N/A') html += '<p><strong>' + Shared.t('label-wan') + '</strong> ' + m.wanDetail + '</p>';
+        if (m.lanDetail && m.lanDetail !== 'N/A') html += '<p><strong>' + Shared.t('label-lan') + '</strong> ' + m.lanDetail + '</p>';
+        if (m.description && m.description !== 'N/A') html += '<p><strong>' + Shared.t('label-desc') + '</strong> ' + m.description + '</p>';
+        if (m.notes) html += '<div class="notes-section"><strong>' + Shared.t('label-note') + '</strong> ' + m.notes + '</div>';
+
+        let comp = compatModulesFor(m);
+        if (m.isChassis && m.modSlots > 0 && comp.length) {
+            // Chassis: every compatible card (any type, incl. IM) draws from ONE
+            // shared pool limited by Modular Slots.
+            html += '<div class="module-section"><strong>' + Shared.t('mod-pool') + '</strong>';
+            html += renderModuleGroup(comp, 'ALL', m.modSlots, id);
+            html += '</div>';
+        } else if (m.isModular === 'Yes' && comp.length) {
+            html += '<div class="module-section"><strong>' + Shared.t('drawer-modules') + '</strong>';
+            if (m.pimMax > 0) html += renderModuleGroup(comp.filter(x => x.type === 'PIM'), 'PIM', m.pimMax, id);
+            if (m.nimMax > 0) html += renderModuleGroup(comp.filter(x => x.type === 'NIM'), 'NIM', m.nimMax, id);
+            if (m.smMax > 0) html += renderModuleGroup(comp.filter(x => x.type === 'SM'), 'SM', m.smMax, id);
+            html += '</div>';
+        }
+
+        html += '<div id="sku-bar-' + id + '" class="dynamic-sku-bar"></div>';
+        details.innerHTML = html;
+        updateSkuBar(id);
+    }
+
+    function renderModuleGroup(mods, typeLabel, maxLimit, id) {
+        if (!mods.length) return '';
+        let head = (typeLabel === 'ALL' ? '' : typeLabel + ' ') + Shared.t('mod-slots') + ' (' + Shared.t('mod-max') + ': ' + maxLimit + ')';
+        let h = '<div style="margin-top:10px;font-weight:bold;font-size:12px;color:#555;">' + head + '</div>';
+        mods.forEach(mod => {
+            let safeId = Shared.cssId(mod.name);
+            let count = moduleCounts[mod.name] || 0;
+            h += '<div class="module-row"><div style="flex:1;padding-right:15px;">' +
+                '<strong>' + mod.name + '</strong> <span style="font-size:11px;color:#777;">(' + mod.type + ')</span>' +
+                '<div><button class="mod-info-btn" onclick="toggleMoreInfo(\'' + safeId + '\')">' + Shared.t('btn-moreinfo') + '</button></div>' +
+                '<div id="moreinfo-' + safeId + '" class="module-more-info">' + (mod.layman || '') +
+                '<br>Cellular: ' + mod.cellular + ' | Voice: ' + mod.voice +
+                (mod.notes ? '<br><em>' + mod.notes + '</em>' : '') +
+                (mod.datasheet && mod.datasheet !== '#' ? '<br><a href="' + mod.datasheet + '" target="_blank" style="color:var(--cisco-blue);">Datasheet &rarr;</a>' : '') +
+                '</div></div>' +
+                '<div class="lc-controls"><button class="lc-btn" onclick="updateModule(-1,\'' + encodeURIComponent(mod.name) + '\',\'' + mod.type + '\',' + maxLimit + ',\'' + safeId + '\',\'' + id + '\')">-</button>' +
+                '<span id="mc-' + safeId + '">' + count + '</span>' +
+                '<button class="lc-btn" onclick="updateModule(1,\'' + encodeURIComponent(mod.name) + '\',\'' + mod.type + '\',' + maxLimit + ',\'' + safeId + '\',\'' + id + '\')">+</button></div></div>';
+        });
+        h += '<div id="mod-error-' + typeLabel + '-' + id + '" class="error-text">' + typeLabel + ' (' + maxLimit + ')</div>';
+        return h;
+    }
+
+    window.updateModule = function (change, nameEnc, modType, maxLimit, safeId, id) {
+        const name = decodeURIComponent(nameEnc);
+        let totalOfType = 0;
+        for (let n in moduleCounts) {
+            if (modType === 'ALL') { totalOfType += moduleCounts[n]; continue; } // chassis: one shared pool
+            let md = allModules.find(x => x.name === n);
+            if (md && md.type === modType) totalOfType += moduleCounts[n];
+        }
+        const err = document.getElementById('mod-error-' + modType + '-' + id);
+        if (change > 0 && totalOfType >= maxLimit) { if (err) err.style.display = 'block'; return; }
+        if (err) err.style.display = 'none';
+        let n = (moduleCounts[name] || 0) + change;
+        if (n < 0) n = 0;
+        moduleCounts[name] = n;
+        document.getElementById('mc-' + safeId).textContent = n;
+        updateSkuBar(id);
+    };
+
+    function updateSkuBar(id) {
+        let sku = selectedSKU || '';
+        for (let [name, count] of Object.entries(moduleCounts)) for (let i = 0; i < count; i++) sku += ' + ' + name;
+        const bar = document.getElementById('sku-bar-' + id);
+        if (bar) bar.textContent = 'SKU: ' + sku;
+    }
+
+    // ---- Modular Ports / Throughput controls -> state + active-bar labels ----
+    function speedLabel(v) { return v === 'le1' ? '\u22641G' : v === '2.5-10' ? '2.5-10G' : v === '25-100' ? '25-100G' : v === '400' ? '400G+' : ''; }
+    function syncModularFilters() {
+        portFilter.num = document.getElementById('pf-num').value.trim().replace(/[^\d]/g, '');
+        document.getElementById('pf-num').value = portFilter.num;
+        portFilter.speed = document.getElementById('pf-speed').value;
+        portFilter.ptype = document.getElementById('pf-type').value;
+        portFilter.side = document.getElementById('pf-side').value;
+        tpFilter.num = document.getElementById('tp-num').value.trim().replace(/[^\d.]/g, '');
+        document.getElementById('tp-num').value = tpFilter.num;
+        tpFilter.unit = document.getElementById('tp-unit').value;
+        tpFilter.ttype = document.getElementById('tp-type').value;
+
+        activeFilters.portq = [];
+        if (portFilterActive()) {
+            let parts = ['\u2265' + (parseInt(portFilter.num) || 1)];
+            if (portFilter.speed !== 'ANY') parts.push(speedLabel(portFilter.speed));
+            if (portFilter.ptype !== 'ANY') parts.push(portFilter.ptype);
+            parts.push(portFilter.side === 'ANY' ? 'ports' : portFilter.side + ' ports');
+            activeFilters.portq = [parts.join(' ')];
+        }
+        activeFilters.tpq = [];
+        if (tpFilterActive()) {
+            let u = tpFilter.unit === 'ANY' ? 'Mbps' : tpFilter.unit;
+            let tl = tpFilter.ttype === 'Firewall' ? Shared.t('tp-fw') : tpFilter.ttype === 'AdvSec' ? Shared.t('tp-sec') : Shared.t('filter-tp');
+            activeFilters.tpq = ['\u2265' + tpFilter.num + ' ' + u + ' (' + tl + ')'];
+        }
+        renderRouters();
+    }
+
+    function pageReset() {
+        Shared.clearFilterUI();
+        portFilter = { num: '', speed: 'ANY', ptype: 'ANY', side: 'ANY' };
+        tpFilter = { num: '', unit: 'ANY', ttype: 'ANY' };
+        ['pf-num', 'tp-num'].forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
+        ['pf-speed', 'pf-type', 'pf-side', 'tp-unit', 'tp-type'].forEach(i => { const el = document.getElementById(i); if (el) el.value = 'ANY'; });
+        selectedSupertype = null; selectedSKU = null; moduleCounts = {};
+        renderRouters();
+    }
+
+    Shared.initPage({
+        active: 'routing',
+        mgmtButtons: ['ALL', 'On-Prem', 'Cloud', 'Unified'],
+        pageI18n: pageI18n,
+        valToKey: valToKey,
+        activeFilters: activeFilters,
+        exclusiveFilters: ['modular'],
+        render: renderRouters,
+        reset: pageReset,
+        onReady: function () {
+            Promise.all([Shared.loadCsv(ROUTER_CSV), Shared.loadCsv(MODULE_CSV)]).then(function (res) {
+                allRouters = res[0].filter(r => (r['Model'] || '').trim()).map(parseRow);
+                allRouters.sort((a, b) => a.listOrder - b.listOrder || a.supertype.localeCompare(b.supertype) || a.model.localeCompare(b.model));
+                allModules = res[1].filter(r => (r['Module name'] || '').trim()).map(row => ({
+                    name: (row['Module name'] || '').trim(),
+                    type: (row['Module type'] || '').trim(),
+                    supported: (row['Supported router models'] || '').split(',').map(s => s.trim()).filter(Boolean),
+                    ports: (row['Ports'] || '').trim(),
+                    portCount: parseInt((row['Ports'] || '').trim()) || 0,
+                    segs: parsePortDetail((row['Ports'] || '').trim()),
+                    layman: (row['Layman description'] || '').trim(),
+                    voice: (row['Voice'] || 'No').trim(),
+                    cellular: (row['5G/LTE'] || 'No').trim(),
+                    notes: (row['Notes'] || '').trim(),
+                    datasheet: (row['Datasheet'] || '#').trim() || '#'
+                }));
+                document.querySelectorAll('.pf-ctl').forEach(el => {
+                    el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', syncModularFilters);
+                });
+                renderRouters();
+            }).catch(function () {
+                document.getElementById('router-list-container').innerHTML = '<p style="color:#c00;">' + Shared.t('load-error') + '</p>';
+            });
+        }
+    });
+</script>
+</body>
+</html>

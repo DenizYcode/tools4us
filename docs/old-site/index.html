@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisco & Meraki Switch Selector - Switching</title>
+    <link rel="stylesheet" href="shared.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="shared.js"></script>
+    <style>
+        /* ---- Page-specific: filter colors ---- */
+        :root {
+            --color-port: #007bff; --color-type: #6f42c1; --color-cat: #fd7e14;
+            --color-downlink: #20c997; --color-dlspeed: #e83e8c; --color-uplink: #6610f2; --color-feat: #198754;
+        }
+        .filter-port { border: 1px solid #cce5ff; background: #f8fbff; }
+        .filter-port .filter-btn.active { border-color: var(--color-port); box-shadow: 0 0 0 1px var(--color-port); font-weight: bold; color: var(--color-port); }
+        .filter-type { border: 1px solid #e2d9f3; background: #fcfaff; }
+        .filter-type .filter-btn.active { border-color: var(--color-type); box-shadow: 0 0 0 1px var(--color-type); font-weight: bold; color: var(--color-type); }
+        .filter-cat { border: 1px solid #ffe5d0; background: #fffaf6; }
+        .filter-cat .filter-btn.active { border-color: var(--color-cat); box-shadow: 0 0 0 1px var(--color-cat); font-weight: bold; color: var(--color-cat); }
+        .filter-downlink { border: 1px solid #d2f4ea; background: #f6fdfa; }
+        .filter-downlink .filter-btn.active { border-color: var(--color-downlink); box-shadow: 0 0 0 1px var(--color-downlink); font-weight: bold; color: var(--color-downlink); }
+        .filter-downlink-speed { border: 1px solid #f8d7da; background: #fdf5f6; }
+        .filter-downlink-speed .filter-btn.active { border-color: var(--color-dlspeed); box-shadow: 0 0 0 1px var(--color-dlspeed); font-weight: bold; color: var(--color-dlspeed); }
+        .filter-uplink { border: 1px solid #e0cffc; background: #fbf9ff; }
+        .filter-uplink .filter-btn.active { border-color: var(--color-uplink); box-shadow: 0 0 0 1px var(--color-uplink); font-weight: bold; color: var(--color-uplink); }
+        .filter-feat { border: 1px solid #d1e7dd; background: #f6fdf9; }
+        .filter-feat .filter-btn.active { border-color: var(--color-feat); box-shadow: 0 0 0 1px var(--color-feat); font-weight: bold; color: var(--color-feat); }
+        .features-grid { grid-template-columns: 1fr 1fr 1fr; }
+        .btn-catalyst-dna { background-color: var(--cisco-blue); }
+        .btn-meraki-sub { background-color: var(--meraki-green); }
+        .switch-family-title.active-title { color: var(--meraki-green); }
+
+        /* ---- Page-specific: sleek switch graphics (summary below) ---- */
+        .sw-graphic { padding: 4px 2px; }
+        .sw-body { position: relative; border-radius: 10px; background: #eef1f4; border: 1px solid #d1d5da; border-left: 4px solid var(--cisco-blue); box-shadow: inset 0 -2px 0 rgba(0,0,0,.06), 0 2px 5px rgba(0,0,0,.06); display: flex; align-items: center; gap: 8px; padding: 0 12px; transition: transform .1s, box-shadow .1s; box-sizing: border-box; }
+        .switch-family:hover .sw-body { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,.12); }
+        .sw-body.brand-Meraki { border-left-color: var(--meraki-green); }
+        .sw-body.brand-Unified { border-left-color: var(--cisco-purple); }
+        .sw-body.rack { height: 40px; }
+        .sw-body.desktop { height: 36px; border-radius: 12px; }
+        .sw-body.rugged { height: 46px; background: #2c3e50; border-color: #1a252f; }
+        .sw-body.rugged .sw-tick { background: #8aa0b5; }
+        .sw-body.rugged .sw-tick.up { background: #cfd8e3; }
+        /* Width scales with the series' max port count (8-port small -> 48-port large) */
+        .sw-body.sw-w1 { width: 30%; } .sw-body.sw-w2 { width: 42%; } .sw-body.sw-w3 { width: 56%; } .sw-body.sw-w4 { width: 76%; } .sw-body.sw-w5 { width: 92%; }
+        .sw-body.chassis { width: 72%; height: 86px; flex-direction: column; align-items: stretch; padding: 6px; gap: 4px; background: #3a3f44; border-color: #222; }
+        .sw-led { width: 8px; height: 8px; border-radius: 50%; background: var(--cisco-blue); box-shadow: 0 0 6px rgba(4,159,217,.8); flex-shrink: 0; }
+        .sw-body.brand-Meraki .sw-led { background: var(--meraki-green); box-shadow: 0 0 6px rgba(120,190,32,.8); }
+        .sw-body.brand-Unified .sw-led { background: var(--cisco-purple); box-shadow: 0 0 6px rgba(111,66,193,.8); }
+        .sw-ports { display: flex; gap: 3px; flex: 1; align-items: center; }
+        .sw-ports.right { justify-content: flex-end; flex: 0 0 auto; }
+        .sw-tick { width: 5px; height: 14px; background: #aeb6bf; border-radius: 1px; }
+        .sw-tick.up { background: #6c7a89; height: 18px; }
+        /* Chassis interior: stacked line cards (ejector + port row + status LED) */
+        .sw-linecard { flex: 1; background: #d4dae0; border: 1px solid #aab2bb; border-radius: 2px; display: flex; align-items: center; gap: 6px; padding: 0 6px; }
+        .lc-ejector { width: 4px; height: 55%; background: #7a8591; border-radius: 1px; flex-shrink: 0; }
+        .lc-ports { display: flex; gap: 3px; flex: 1; }
+        .lc-ports span { width: 5px; height: 5px; background: #5b6670; border-radius: 1px; }
+        .lc-led { width: 6px; height: 6px; border-radius: 50%; background: var(--cisco-blue); box-shadow: 0 0 4px rgba(4,159,217,.7); flex-shrink: 0; }
+        .sw-body.brand-Meraki .lc-led { background: var(--meraki-green); box-shadow: 0 0 4px rgba(120,190,32,.7); }
+        .sw-body.brand-Unified .lc-led { background: var(--cisco-purple); box-shadow: 0 0 4px rgba(111,66,193,.7); }
+        .sw-meta { font-size: 12px; color: #777; line-height: 1.5; margin-top: 8px; }
+        .sw-meta .meta-badge { display: inline-block; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; padding: 2px 7px; border-radius: 10px; background: #eef0f2; color: #555; margin-right: 5px; }
+        @media (max-width: 1150px) { .sw-body.rack, .sw-body.chassis, .sw-body.rugged, .sw-body.desktop { width: 100%; } }
+    </style>
+</head>
+<body>
+
+    <div id="chrome-top"></div>
+
+    <div class="main-container">
+        <div>
+            <div id="active-filters-bar" class="active-filter-bar"></div>
+            <div id="unified-info-box" class="unified-info-box hidden">
+                <h4 data-i18n="unified-info">Next-gen Cisco Catalyst switches feature a unified license that lets you effortlessly pivot between Catalyst Center and Meraki Dashboard management.</h4>
+                <a href="https://documentation.meraki.com/Platform_Management/Product_Information/Licensing/Subscription_Unified_Licensing_-_WIFI7_Management_Mode" target="_blank" class="unified-info-btn" data-i18n="unified-btn">Click Here To Learn More</a>
+            </div>
+            <div class="switch-list" id="switch-list-container"><p data-i18n="loading">Loading dataset...</p></div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-section filter-port">
+                <h4 data-i18n="filter-port">Port Count</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="port" data-val="<8">&lt;8</button>
+                    <button class="filter-btn" data-filter="port" data-val="9-23">9-23</button>
+                    <button class="filter-btn" data-filter="port" data-val="24">24</button>
+                    <button class="filter-btn" data-filter="port" data-val="48+">48+</button>
+                </div>
+            </div>
+            <div class="filter-section filter-type">
+                <h4 data-i18n="filter-type">Switch Type</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="type" data-val="Rack" data-i18n="filter-type-rack">Rack</button>
+                    <button class="filter-btn" data-filter="type" data-val="Chassis" data-i18n="filter-type-chassis">Chassis</button>
+                    <button class="filter-btn" data-filter="type" data-val="Desktop" data-i18n="filter-type-desktop">Desktop</button>
+                    <button class="filter-btn" data-filter="type" data-val="Rugged" data-i18n="filter-type-rugged">Rugged</button>
+                </div>
+            </div>
+            <div class="filter-section filter-cat">
+                <h4 data-i18n="filter-cat">Category</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="category" data-val="Access" data-i18n="filter-cat-access">Access</button>
+                    <button class="filter-btn" data-filter="category" data-val="Core" data-i18n="filter-cat-core">Core</button>
+                    <button class="filter-btn" data-filter="category" data-val="Distribution" data-i18n="filter-cat-dist">Distribution</button>
+                </div>
+            </div>
+            <div class="filter-section filter-downlink">
+                <h4 data-i18n="filter-dl">Downlink Type</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="downlink" data-val="Copper" data-i18n="filter-dl-copper">Copper</button>
+                    <button class="filter-btn" data-filter="downlink" data-val="Fiber" data-i18n="filter-dl-fiber">Fiber</button>
+                    <button class="filter-btn" data-filter="downlink" data-val="Hybrid" data-i18n="filter-dl-hybrid">Hybrid</button>
+                </div>
+            </div>
+            <div class="filter-section filter-downlink-speed">
+                <h4 data-i18n="filter-dlspeed">Downlink Speed</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="downlinkSpeed" data-val="FE">FE</button>
+                    <button class="filter-btn" data-filter="downlinkSpeed" data-val="1G">1G</button>
+                    <button class="filter-btn" data-filter="downlinkSpeed" data-val="2.5/5G">2.5/5G</button>
+                    <button class="filter-btn" data-filter="downlinkSpeed" data-val="10G">10G</button>
+                    <button class="filter-btn" data-filter="downlinkSpeed" data-val="25/40/50G">25/40/50G</button>
+                    <button class="filter-btn" data-filter="downlinkSpeed" data-val="100G/400G">100G/400G</button>
+                </div>
+            </div>
+            <div class="filter-section filter-uplink">
+                <h4 data-i18n="filter-ul">Uplink Speed</h4>
+                <div class="filter-grid">
+                    <button class="filter-btn" data-filter="uplink" data-val="1Gbps">1 Gbps</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="10Gbps">10 Gbps</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="25Gbps">25 Gbps</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="40Gbps">40 Gbps</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="100Gbps">100 Gbps</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="200Gbps">200 Gbps</button>
+                    <button class="filter-btn" data-filter="uplink" data-val="400Gbps">400 Gbps</button>
+                </div>
+            </div>
+            <div class="filter-section filter-feat">
+                <h4 data-i18n="filter-feat">Features</h4>
+                <div class="filter-grid features-grid">
+                    <button class="filter-btn" data-filter="feature" data-val="PoE" data-i18n="filter-feat-poe">PoE</button>
+                    <button class="filter-btn" data-filter="feature" data-val="Stacking" data-i18n="filter-feat-stacking">Stacking</button>
+                    <button class="filter-btn" data-filter="feature" data-val="Multigigabit" data-i18n="filter-feat-multigig">Multigigabit</button>
+                    <button class="filter-btn" data-filter="layer3" data-val="Full L3" data-i18n="filter-feat-fulll3">Full L3</button>
+                    <button class="filter-btn" data-filter="feature" data-val="StackPower" data-i18n="filter-feat-stackpower">StackPower</button>
+                    <button class="filter-btn" data-filter="feature" data-val="Redundant PSU" data-i18n="filter-feat-redpsu">Red PSU</button>
+                    <button class="filter-btn" data-filter="feature" data-val="Fan" data-i18n="filter-feat-fan">Fan</button>
+                    <button class="filter-btn" data-filter="feature" data-val="SMB" data-i18n="filter-feat-smb">SMB</button>
+                    <button class="filter-btn" data-filter="feature" data-val="Heavyduty" data-i18n="filter-feat-heavyduty">Heavyduty</button>
+                </div>
+            </div>
+            <div class="filter-section info-section">
+                <h4 data-i18n="info-title">Learn more about Switching license types</h4>
+                <div class="info-buttons">
+                    <a href="https://www.cisco.com/c/m/en_us/products/software/dna-subscription-switching/en-sw-sub-matrix-switching.html" target="_blank" class="info-btn btn-catalyst-dna" data-i18n="info-dna">Catalyst DNA</a>
+                    <a href="https://documentation.meraki.com/Platform_Management/Product_Information/Licensing/Subscription_-_MS_Licensing#Features_Highlights" target="_blank" class="info-btn btn-meraki-sub" data-i18n="info-meraki">Meraki Subscription</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chrome-feedback"></div>
+
+<script>
+    const DATA_VER = '2';
+    const SWITCH_CSV = 'data/switching.csv?v=' + DATA_VER;
+
+    const pageI18n = {
+        en: {
+            'filter-port': 'Port Count', 'filter-type': 'Switch Type', 'filter-cat': 'Category', 'filter-dl': 'Downlink Type',
+            'filter-dlspeed': 'Downlink Speed', 'filter-ul': 'Uplink Speed', 'filter-feat': 'Features',
+            'filter-type-rack': 'Rack', 'filter-type-chassis': 'Chassis', 'filter-type-desktop': 'Desktop', 'filter-type-rugged': 'Rugged',
+            'filter-cat-access': 'Access', 'filter-cat-core': 'Core', 'filter-cat-dist': 'Distribution',
+            'filter-dl-copper': 'Copper', 'filter-dl-fiber': 'Fiber', 'filter-dl-hybrid': 'Hybrid',
+            'filter-feat-poe': 'PoE', 'filter-feat-stacking': 'Stacking', 'filter-feat-multigig': 'Multigigabit', 'filter-feat-fulll3': 'Full L3',
+            'filter-feat-stackpower': 'StackPower', 'filter-feat-redpsu': 'Red PSU', 'filter-feat-fan': 'Fan', 'filter-feat-smb': 'SMB', 'filter-feat-heavyduty': 'Heavyduty',
+            'info-title': 'Learn more about Switching license types', 'info-dna': 'Catalyst DNA', 'info-meraki': 'Meraki Subscription',
+            'unified-info': 'Next-gen Cisco Catalyst switches feature a unified license that lets you effortlessly pivot between Catalyst Center and Meraki Dashboard management.',
+            'unified-btn': 'Click Here To Learn More',
+            'no-match': 'No switches match the selected filters.', 'drawer-select': 'Select Base Model:', 'drawer-modules': 'Compatible Modules:',
+            'label-ports': 'Ports:', 'label-uplink': 'Uplink', 'label-type': 'Type:', 'label-desc': 'Description:', 'label-feat': 'Features:', 'label-note': 'Note:',
+            'limit-reached': 'Maximum global limit reached!',
+            'badge-poe': 'PoE'
+        },
+        tr: {
+            'filter-port': 'Port Sayısı', 'filter-type': 'Anahtar Tipi', 'filter-cat': 'Kategori', 'filter-dl': 'Downlink Tipi',
+            'filter-dlspeed': 'Downlink Hızı', 'filter-ul': 'Uplink Hızı', 'filter-feat': 'Özellikler',
+            'filter-type-rack': 'Rack', 'filter-type-chassis': 'Şasi', 'filter-type-desktop': 'Masaüstü', 'filter-type-rugged': 'Zorlu Ortam (Rugged)',
+            'filter-cat-access': 'Erişim (Access)', 'filter-cat-core': 'Omurga (Core)', 'filter-cat-dist': 'Dağıtım (Distribution)',
+            'filter-dl-copper': 'Bakır', 'filter-dl-fiber': 'Fiber', 'filter-dl-hybrid': 'Hibrit',
+            'filter-feat-poe': 'PoE', 'filter-feat-stacking': 'Yığınlama', 'filter-feat-multigig': 'Multigigabit', 'filter-feat-fulll3': 'Tam L3',
+            'filter-feat-stackpower': 'StackPower', 'filter-feat-redpsu': 'Yedek PSU', 'filter-feat-fan': 'Fanlı', 'filter-feat-smb': 'KOBİ (SMB)', 'filter-feat-heavyduty': 'Ağır Hizmet',
+            'info-title': 'Anahtarlama lisans türleri hakkında daha fazla bilgi edinin', 'info-dna': 'Catalyst DNA', 'info-meraki': 'Meraki Aboneliği',
+            'unified-info': 'Yeni nesil Cisco Catalyst anahtarları, Catalyst Center ve Meraki Dashboard yönetimi arasında zahmetsizce geçiş yapmanızı sağlayan birleşik bir lisansa sahiptir.',
+            'unified-btn': 'Daha Fazla Bilgi İçin Tıklayın',
+            'no-match': 'Seçilen filtrelere uygun anahtar bulunamadı.', 'drawer-select': 'Temel Modeli Seçin:', 'drawer-modules': 'Uyumlu Modüller:',
+            'label-ports': 'Portlar:', 'label-uplink': 'Uplink', 'label-type': 'Tip:', 'label-desc': 'Açıklama:', 'label-feat': 'Özellikler:', 'label-note': 'Not:',
+            'limit-reached': 'Maksimum limite ulaşıldı!',
+            'badge-poe': 'PoE'
+        }
+    };
+
+    const valToKey = {
+        'Rack': 'filter-type-rack', 'Chassis': 'filter-type-chassis', 'Desktop': 'filter-type-desktop', 'Rugged': 'filter-type-rugged',
+        'Access': 'filter-cat-access', 'Core': 'filter-cat-core', 'Distribution': 'filter-cat-dist',
+        'Copper': 'filter-dl-copper', 'Fiber': 'filter-dl-fiber', 'Hybrid': 'filter-dl-hybrid',
+        'PoE': 'filter-feat-poe', 'Stacking': 'filter-feat-stacking', 'Multigigabit': 'filter-feat-multigig', 'Full L3': 'filter-feat-fulll3',
+        'StackPower': 'filter-feat-stackpower', 'Redundant PSU': 'filter-feat-redpsu', 'Fan': 'filter-feat-fan', 'SMB': 'filter-feat-smb', 'Heavyduty': 'filter-feat-heavyduty'
+    };
+
+    let baseSwitches = [];
+    let modulesList = [];
+    let activeFilters = { port: [], type: [], category: [], downlink: [], downlinkSpeed: [], uplink: [], feature: [], layer3: [] };
+    let selectedSupertype = null, selectedSKU = null, selectedModule = null, lcCounts = {};
+
+    function parseRow(row) {
+        let dlRaw = (row['Downlink Type'] || '').toLowerCase();
+        let downlink = row['Downlink Type'] || '';
+        if (dlRaw.includes('copper') && dlRaw.includes('fiber')) downlink = 'Hybrid';
+        else if (dlRaw.includes('copper')) downlink = 'Copper';
+        else if (dlRaw.includes('fiber')) downlink = 'Fiber';
+        let feats = (row['Features'] || '').split(',').map(s => {
+            let t = s.trim();
+            if (t.toLowerCase() === 'smb') return 'SMB';
+            if (t.toLowerCase() === 'heavyduty') return 'Heavyduty';
+            return t;
+        }).filter(Boolean);
+        return {
+            family: row['Family'] || 'Unknown',
+            supertype: row['Supertype'] || 'Unknown',
+            model: row['Model'] || 'Unknown',
+            ports: parseInt(row['Downlink Port Count']) || null,
+            type: row['Switch Type'] || '',
+            category: (row['Switch Category'] || '').split(',').map(s => s.trim()).filter(Boolean),
+            downlink: downlink,
+            downlinkSpeed: (row['Downlink Port speed'] || '').split(',').map(s => s.trim()).filter(Boolean),
+            uplinks: (row['Uplink Speed'] || '').split(',').map(s => s.trim()).filter(Boolean),
+            unifiedArchitecture: (row['Unified Architecture'] || 'No').trim(),
+            modulesSupported: (row['Modules supported'] || 'No').trim(),
+            features: feats,
+            layer3: (row['Layer3 support'] || '').trim(),
+            lineCardLimit: parseInt(row['Line Cards Supported']) || null,
+            description: row['Description'] || '',
+            notes: row['Notes'] || '',
+            datasheet: row['Datasheet'] || '#'
+        };
+    }
+
+    function bucketPortCount(c) {
+        if (c === null) return 'Unknown';
+        if (c <= 8) return '<8';
+        if (c >= 9 && c <= 23) return '9-23';
+        if (c == 24) return '24';
+        if (c >= 48) return '48+';
+        return 'Unknown';
+    }
+    function getDownlinkBucket(s) {
+        if (s === '100M') return 'FE';
+        if (s === '1G') return '1G';
+        if (s === '2.5G' || s === '5G') return '2.5/5G';
+        if (s === '10G') return '10G';
+        if (s === '25G' || s === '40G' || s === '50G') return '25/40/50G';
+        if (s === '100G' || s === '400G') return '100G/400G';
+        return 'Unknown';
+    }
+
+    function brandOf(m) {
+        if (m.family && m.family.toLowerCase().includes('meraki')) return 'Meraki';
+        if (m.unifiedArchitecture === 'Yes') return 'Unified';
+        return 'Catalyst';
+    }
+
+    function modelPasses(model) {
+        if (activeFilters.port.length && !activeFilters.port.includes(bucketPortCount(model.ports))) return false;
+        if (activeFilters.type.length && !activeFilters.type.includes(model.type)) return false;
+        if (activeFilters.category.length && !activeFilters.category.some(c => model.category.includes(c))) return false;
+        if (activeFilters.downlink.length && !activeFilters.downlink.includes(model.downlink)) return false;
+        if (activeFilters.feature.length && !activeFilters.feature.every(f => model.features.includes(f))) return false;
+        if (activeFilters.layer3.length && !activeFilters.layer3.includes(model.layer3)) return false;
+
+        let dlSpeeds = model.downlinkSpeed, ulSpeeds = model.uplinks;
+        if (model.type === 'Chassis') {
+            let mods = modulesList.filter(m => m.supertype === model.supertype && (m.type === 'Line Card' || m.type === 'Expansion Module'));
+            let combined = [];
+            mods.forEach(mod => { combined.push.apply(combined, mod.downlinkSpeed); combined.push.apply(combined, mod.uplinks); });
+            dlSpeeds = combined; ulSpeeds = combined;
+        }
+        if (activeFilters.downlinkSpeed.length && !activeFilters.downlinkSpeed.some(b => dlSpeeds.some(s => getDownlinkBucket(s) === b))) return false;
+        if (activeFilters.uplink.length && !activeFilters.uplink.some(u => ulSpeeds.includes(u))) return false;
+        return true;
+    }
+
+    function mgmtPass(m) {
+        if (Shared.mgmt === 'On-Prem') return !(m.family.toLowerCase().includes('meraki'));
+        if (Shared.mgmt === 'Cloud') return m.family.toLowerCase().includes('meraki');
+        if (Shared.mgmt === 'Unified') return m.unifiedArchitecture === 'Yes';
+        return true;
+    }
+
+    function renderSwitches() {
+        Shared.updateActiveFilterBar();
+        document.getElementById('unified-info-box').classList.toggle('hidden', Shared.mgmt !== 'Unified');
+
+        const container = document.getElementById('switch-list-container');
+        container.innerHTML = '';
+        const supertypes = [...new Set(baseSwitches.map(m => m.supertype))];
+        let valid = false;
+
+        supertypes.forEach(st => {
+            let members = baseSwitches.filter(m => m.supertype === st && mgmtPass(m) && modelPasses(m));
+            if (!members.length) return;
+            if (st === selectedSupertype && members.some(m => m.model === selectedSKU)) valid = true;
+            container.appendChild(createFamilyHTML(st, members));
+        });
+
+        if (!valid) { selectedSupertype = null; selectedSKU = null; selectedModule = null; lcCounts = {}; }
+        if (!container.innerHTML) container.innerHTML = '<p>' + Shared.t('no-match') + '</p>';
+        else if (selectedSupertype && selectedSKU) {
+            const drawer = document.getElementById('drawer-' + Shared.cssId(selectedSupertype));
+            if (drawer) {
+                drawer.classList.add('active');
+                const title = drawer.parentElement.querySelector('.switch-family-title');
+                if (title) title.classList.add('active-title');
+                buildSKUDetailsUI(selectedSKU, selectedSupertype);
+            }
+        }
+    }
+
+    // ---- Series range helpers (for the summary line) ----
+    function uplinkMbps(s) { s = (s || '').toLowerCase(); let n = parseFloat(s.replace(/[^\d.]/g, '')); if (isNaN(n)) return null; return s.includes('g') ? n * 1000 : n; }
+    function fmtUplink(s) { return (s || '').replace(/^(\d+)\s*M$/i, '$1Mbps'); }
+    function portRange(members) {
+        let ps = members.map(m => m.ports).filter(p => p != null && !isNaN(p));
+        if (!ps.length) return '';
+        let mn = Math.min.apply(null, ps), mx = Math.max.apply(null, ps);
+        return mn === mx ? ('' + mx) : (mn + '-' + mx);
+    }
+    function uplinkRange(members) {
+        let toks = [];
+        members.forEach(m => (m.uplinks || []).forEach(u => { if (u) toks.push(u.trim()); }));
+        let numeric = toks.filter(t => uplinkMbps(t) != null);
+        if (!numeric.length) return toks.length ? fmtUplink(toks[0]) : '';
+        let low = numeric.reduce((a, b) => uplinkMbps(b) < uplinkMbps(a) ? b : a);
+        let high = numeric.reduce((a, b) => uplinkMbps(b) > uplinkMbps(a) ? b : a);
+        return uplinkMbps(low) === uplinkMbps(high) ? fmtUplink(high) : (fmtUplink(low) + '-' + fmtUplink(high));
+    }
+
+    function getSwGraphic(m, agg) {
+        const brand = brandOf(m);
+        const t = (m.type || '').toLowerCase();
+        let body;
+        if (t === 'chassis') {
+            // Switch face with stacked line cards (ejector handle + port row + status LED)
+            let card = '<div class="sw-linecard"><span class="lc-ejector"></span><div class="lc-ports">' +
+                '<span></span>'.repeat(12) + '</div><span class="lc-led"></span></div>';
+            body = '<div class="sw-body chassis brand-' + brand + '">' + card.repeat(4) + '</div>';
+        } else {
+            // Size by the series' representative (max) port count
+            let p = agg.repPorts || m.ports || 8;
+            let wcls = p <= 8 ? 'sw-w1' : p <= 16 ? 'sw-w2' : p <= 28 ? 'sw-w3' : p <= 48 ? 'sw-w4' : 'sw-w5';
+            let cls = (t === 'desktop') ? 'desktop' : (t === 'rugged') ? 'rugged' : 'rack';
+            let dn = Math.max(4, Math.min(Math.round(p / 2), 24));
+            let down = '<div class="sw-ports">' + '<div class="sw-tick"></div>'.repeat(dn) + '</div>';
+            let up = '<div class="sw-ports right">' + '<div class="sw-tick up"></div>'.repeat(4) + '</div>';
+            body = '<div class="sw-body ' + cls + ' ' + wcls + ' brand-' + brand + '"><div class="sw-led"></div>' + down + up + '</div>';
+        }
+        // Summary below the image: type badge, port range, downlink type, uplink-speed range, PoE
+        let bits = [];
+        bits.push('<span class="meta-badge">' + (Shared.t('filter-type-' + t) || m.type) + '</span>');
+        if (agg.ports) bits.push(Shared.t('label-ports').replace(':', '') + ' ' + agg.ports);
+        if (m.downlink) bits.push(m.downlink);
+        if (agg.uplink) bits.push(Shared.t('label-uplink') + ' ' + agg.uplink);
+        let poe = m.features.includes('PoE') ? ' <span class="meta-badge">' + Shared.t('badge-poe') + '</span>' : '';
+        return '<div class="sw-graphic">' + body + '<div class="sw-meta">' + bits.join(' &middot; ') + poe + '</div></div>';
+    }
+
+    function createFamilyHTML(supertype, members) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'switch-family';
+        const id = Shared.cssId(supertype);
+        const agg = {
+            repPorts: Math.max.apply(null, members.map(m => m.ports || 0)),
+            ports: portRange(members),
+            uplink: uplinkRange(members)
+        };
+        wrapper.innerHTML =
+            '<div onclick="toggleDrawer(\'' + id + '\')"><div class="switch-family-title">' + supertype + '</div>' + getSwGraphic(members[0], agg) + '</div>' +
+            '<div class="drawer" id="drawer-' + id + '"><div style="font-weight:bold;margin-bottom:10px;">' + Shared.t('drawer-select') + '</div>' +
+                '<div class="sku-list">' +
+                    members.map(m => {
+                        let sel = m.model === selectedSKU ? 'selected-' + brandOf(m) : '';
+                        return '<button class="sku-btn ' + sel + '" onclick="selectSKU(\'' + encodeURIComponent(m.model) + '\',\'' + id + '\')">' + m.model + '</button>';
+                    }).join('') +
+                '</div><div id="details-' + id + '" class="drawer-details ' + (selectedSKU ? '' : 'hidden') + '"></div></div>';
+        return wrapper;
+    }
+
+    window.toggleDrawer = function (id) {
+        const drawer = document.getElementById('drawer-' + id);
+        drawer.classList.toggle('active');
+        drawer.parentElement.querySelector('.switch-family-title').classList.toggle('active-title');
+    };
+
+    window.selectSKU = function (modelEnc, id) {
+        const model = decodeURIComponent(modelEnc);
+        const m = baseSwitches.find(s => s.model === model);
+        selectedSupertype = m.supertype; selectedSKU = model; selectedModule = null; lcCounts = {};
+        const drawer = document.getElementById('drawer-' + id);
+        drawer.querySelectorAll('.sku-btn').forEach(b => b.classList.remove('selected-Meraki', 'selected-Catalyst', 'selected-Unified'));
+        drawer.querySelectorAll('.sku-btn').forEach(b => { if (b.textContent === model) b.classList.add('selected-' + brandOf(m)); });
+        buildSKUDetailsUI(model, id);
+    };
+
+    function buildSKUDetailsUI(modelName, id) {
+        const details = document.getElementById('details-' + id);
+        if (!details) return;
+        const m = baseSwitches.find(s => s.model === modelName);
+        details.classList.remove('hidden');
+
+        let portDisplay = m.ports !== null ? m.ports : 'N/A';
+        if (m.downlinkSpeed.length) portDisplay += ' (' + m.downlinkSpeed.join(', ') + ')';
+        let typeString = [m.type, m.category.join(', '), m.layer3].filter(Boolean).join(' - ');
+
+        let html =
+            '<a href="' + m.datasheet + '" class="datasheet-link" target="_blank">Datasheet &rarr;</a>' +
+            '<p><strong>' + Shared.t('label-ports') + '</strong> ' + portDisplay + '</p>' +
+            '<p><strong>' + Shared.t('label-type') + '</strong> ' + typeString + '</p>' +
+            '<p><strong>' + Shared.t('label-desc') + '</strong> ' + m.description + '</p>' +
+            '<p><strong>' + Shared.t('label-feat') + '</strong> ' + (m.features.length ? m.features.join(', ') : 'None') + '</p>';
+        if (m.notes) html += '<div class="notes-section"><strong>' + Shared.t('label-note') + '</strong> ' + m.notes + '</div>';
+
+        const compModules = modulesList.filter(x => x.supertype === selectedSupertype);
+        if (compModules.length && (m.modulesSupported === 'Yes' || m.lineCardLimit > 0)) {
+            html += '<div class="module-section"><strong>' + Shared.t('drawer-modules') + '</strong>';
+            compModules.forEach(mod => {
+                let safeId = Shared.cssId(mod.model);
+                if ((mod.type === 'Line Card' || mod.type === 'Expansion Module') && m.lineCardLimit) {
+                    let count = lcCounts[mod.model] || 0;
+                    html += '<div class="module-row"><div style="flex:1;padding-right:15px;"><strong>' + mod.model + '</strong>' +
+                        '<div style="font-size:11px;color:#666;margin-top:3px;line-height:1.3;">' + (mod.description || 'Expansion Module') + '</div></div>' +
+                        '<div class="lc-controls"><button class="lc-btn" onclick="updateLC(-1,\'' + encodeURIComponent(mod.model) + '\',' + m.lineCardLimit + ',\'' + safeId + '\',\'' + id + '\')">-</button>' +
+                        '<span id="lc-' + safeId + '">' + count + '</span>' +
+                        '<button class="lc-btn" onclick="updateLC(1,\'' + encodeURIComponent(mod.model) + '\',' + m.lineCardLimit + ',\'' + safeId + '\',\'' + id + '\')">+</button></div></div>';
+                } else {
+                    let isSel = selectedModule === mod.model;
+                    html += '<div class="module-row"><div style="flex:1;padding-right:15px;"><strong>' + mod.model + '</strong>' +
+                        '<div style="font-size:11px;color:#666;margin-top:3px;line-height:1.3;">' + (mod.description || mod.type) + '</div></div>' +
+                        '<button class="mod-btn ' + (isSel ? 'selected' : '') + '" onclick="setModule(\'' + encodeURIComponent(mod.model) + '\',\'' + id + '\')">' +
+                        (isSel ? Shared.t('btn-selected') : Shared.t('btn-select')) + '</button></div>';
+                }
+            });
+            html += '<div id="lc-error-' + id + '" class="error-text">' + Shared.t('limit-reached') + ' (' + m.lineCardLimit + ')</div></div>';
+        }
+
+        html += '<div id="sku-bar-' + id + '" class="dynamic-sku-bar"></div>';
+        details.innerHTML = html;
+        updateSkuBar(id);
+    }
+
+    window.setModule = function (modEnc, id) {
+        const mod = decodeURIComponent(modEnc);
+        selectedModule = (selectedModule === mod) ? null : mod;
+        const details = document.getElementById('details-' + id);
+        details.querySelectorAll('.mod-btn').forEach(b => {
+            let bm = decodeURIComponent(b.getAttribute('onclick').match(/setModule\('([^']+)'/)[1]);
+            if (bm === selectedModule) { b.classList.add('selected'); b.textContent = Shared.t('btn-selected'); }
+            else { b.classList.remove('selected'); b.textContent = Shared.t('btn-select'); }
+        });
+        updateSkuBar(id);
+    };
+
+    window.updateLC = function (change, modEnc, maxLimit, safeId, id) {
+        const mod = decodeURIComponent(modEnc);
+        let total = Object.values(lcCounts).reduce((a, b) => a + b, 0);
+        const err = document.getElementById('lc-error-' + id);
+        if (change > 0 && total >= maxLimit) { if (err) err.style.display = 'block'; return; }
+        if (err) err.style.display = 'none';
+        let n = (lcCounts[mod] || 0) + change;
+        if (n < 0) n = 0;
+        lcCounts[mod] = n;
+        document.getElementById('lc-' + safeId).textContent = n;
+        updateSkuBar(id);
+    };
+
+    function updateSkuBar(id) {
+        let sku = selectedSKU || '';
+        if (selectedModule) sku += ' + ' + selectedModule;
+        for (let [name, count] of Object.entries(lcCounts)) for (let i = 0; i < count; i++) sku += ' + ' + name;
+        const bar = document.getElementById('sku-bar-' + id);
+        if (bar) bar.textContent = 'SKU: ' + sku;
+    }
+
+    function pageReset() {
+        Shared.clearFilterUI();
+        selectedSupertype = null; selectedSKU = null; selectedModule = null; lcCounts = {};
+        renderSwitches();
+    }
+
+    Shared.initPage({
+        active: 'switching',
+        mgmtButtons: ['ALL', 'On-Prem', 'Cloud', 'Unified'],
+        pageI18n: pageI18n,
+        valToKey: valToKey,
+        activeFilters: activeFilters,
+        exclusiveFilters: ['type', 'category', 'downlink'],
+        render: renderSwitches,
+        reset: pageReset,
+        onReady: function () {
+            Shared.loadCsv(SWITCH_CSV).then(function (rows) {
+                let all = rows.filter(r => (r['Model'] || '').trim()).map(parseRow);
+                baseSwitches = all.filter(m => ['Rack', 'Chassis', 'Desktop', 'Rugged'].includes(m.type));
+                modulesList = all.filter(m => ['Line Card', 'Supervisor', 'Network Module', 'Expansion Module'].includes(m.type) || (m.type && m.type.toLowerCase().includes('module')));
+                renderSwitches();
+            }).catch(function () {
+                document.getElementById('switch-list-container').innerHTML = '<p style="color:#c00;">' + Shared.t('load-error') + '</p>';
+            });
+        }
+    });
+</script>
+</body>
+</html>

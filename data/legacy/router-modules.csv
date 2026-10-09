@@ -1,0 +1,28 @@
+Module name,Module type,Ports,5G/LTE,Voice,Supported router models,Layman description,Notes,Datasheet
+P-LTEA-EA,PIM,No Ports,Yes,No,"C8200, C8300, C8355-G2, C8375-E-G2, ISR1000",4G LTE Advanced PIM for Europe and North America,Antenna connectors only,cisco.com/site/us/en/products/networking/sdwan-routers/catalyst-8300-series-platforms/interfaces-modules/index.html
+P-LTEA7-EAL,PIM,No Ports,Yes,No,"C8151-G2, C8161-G2",CAT7 LTE Advanced Pluggable for North America/Europe,Antenna connectors only,cisco.com/c/en/us/solutions/collateral/enterprise-networks/4g-lte-solutions/datasheet-c78-743503.html
+P-LTEA7-JP,PIM,No Ports,Yes,No,"C8151-G2, C8161-G2",CAT7 LTE Advanced Pluggable for Japan,Supported only on specific G2 secure routers,cisco.com/c/en/us/solutions/collateral/enterprise-networks/4g-lte-solutions/datasheet-c78-743503.html
+LTE Pluggable,PIM,No Ports,Yes,No,"C1101, C1109, C1121, C1126, C1127, C1161",Pluggable LTE module for ISR 1000 series,Various CAT models available,cisco.com/c/en/us/products/collateral/routers/1000-series-integrated-services-routers-isr/1kseries-integrated-services-routers-guide.html
+C-SM-16P4M2X,SM,"16x 1GbE, 4x 2.5GbE mGig, 2x 10GbE",No,No,"C8300, C8355-G2, C8375-E-G2",22-port Catalyst L2 switch module with UADP ASIC,Single-wide module with PoE,cisco.com/c/en/us/products/collateral/routers/catalyst-8300-series-edge-platforms/catalyst-8000-sm-switch-module-ds.html
+C-SM-40P8M2X,SM,"40x 1GbE, 8x 2.5GbE mGig, 2x 10GbE",No,No,"C8300, C8355-G2, C8375-E-G2",50-port Catalyst L2 switch module with UADP ASIC,Double-wide module with PoE,cisco.com/c/en/us/products/collateral/routers/catalyst-8300-series-edge-platforms/catalyst-8000-sm-switch-module-ds.html
+UCS-E Series,SM,Virtualized,No,No,C8300,UCS E-Series Server Blades,Allows for local compute/VNF hosting,cisco.com/site/us/en/products/networking/sdwan-routers/catalyst-8300-series-platforms/interfaces-modules/index.html
+C-NIM-8M,NIM,8x 2.5GbE RJ45,No,No,"C8200, C8300, C8355-G2, C8375-E-G2",8-port 2.5G RJ45 Layer 2/3 LAN/WAN Switch NIM,Supports UPOE,cisco.com/c/en/us/products/collateral/routers/catalyst-8300-series-edge-platforms/catalyst-8000-series-gigabit-ethernet-lan-wan-modules-ds.html
+C-NIM-4X,NIM,4x 1GbE/10GbE SFP+,No,No,"C8200, C8300, C8355-G2, C8375-E-G2",4-port 1/10G SFP+ Layer 2/3 LAN/WAN Switch NIM,Supports MACsec,cisco.com/c/en/us/products/collateral/routers/catalyst-8300-series-edge-platforms/catalyst-8000-series-gigabit-ethernet-lan-wan-modules-ds.html
+C-NIM-8T,NIM,8x 1GbE RJ45,No,No,"C8200, C8300, C8355-G2, C8375-E-G2",8-port 1G RJ45 Layer 2/3 LAN/WAN Switch NIM,Supports MACsec,cisco.com/c/en/us/products/collateral/routers/catalyst-8300-series-edge-platforms/catalyst-8000-series-gigabit-ethernet-lan-wan-modules-ds.html
+C-NIM-2T,NIM,2x 100Mbps/1Gbps SFP/RJ45,No,No,"C8200, C8300, C8355-G2, C8375-E-G2",2-port 100Mbps/1Gbps Ethernet WAN NIM,Dual mode SFP or RJ45,cisco.com/site/us/en/products/networking/sdwan-routers/catalyst-8300-series-platforms/interfaces-modules/index.html
+C-NIM-1M,NIM,1x 1GbE/2.5GbE RJ45,No,No,"C8200, C8300",1-port 2.5Gbps mGig RJ45 Ethernet WAN NIM,Supports UPOE,cisco.com/site/us/en/products/networking/sdwan-routers/catalyst-8300-series-platforms/interfaces-modules/index.html
+C-NIM-1X,NIM,1x 1GbE/10GbE SFP+,No,No,"C8200, C8300, C8355-G2, C8375-E-G2",1-port 10Gbps Ethernet WAN NIM,Supports MACsec,cisco.com/site/us/en/products/networking/sdwan-routers/catalyst-8300-series-platforms/interfaces-modules/index.html
+NIM-ES2-4,NIM,4x 1GbE RJ45,No,No,"C8200, C8300",4-port Gigabit Layer 2 Ethernet Switch NIM,Entry level LAN switch,cisco.com/site/us/en/products/networking/sdwan-routers/catalyst-8300-series-platforms/interfaces-modules/index.html
+NIM-ES2-8,NIM,8x 1GbE RJ45,No,No,"C8200, C8300",8-port Gigabit Layer 2 Ethernet Switch NIM,Also available in PoE (-P) variant,cisco.com/site/us/en/products/networking/sdwan-routers/catalyst-8300-series-platforms/interfaces-modules/index.html
+A900-IMA8S,IM,8x 1GbE SFP,No,No,"ASR-902, ASR-903, ASR-907, ASR-914",8-port Gigabit Ethernet SFP Interface Module,Fiber expansion,cisco.com/c/en/us/td/docs/routers/asr903/release/notes/17-12-1/b-rn-xe-17-12-x-asr900/m-intro-17-12-x-asr900.html
+A900-IMA8T,IM,8x 1GbE RJ45,No,No,"ASR-902, ASR-903, ASR-907, ASR-914",8-port Gigabit Ethernet RJ45 Interface Module,Copper expansion,cisco.com/c/en/us/td/docs/routers/asr903/release/notes/17-12-1/b-rn-xe-17-12-x-asr900/m-intro-17-12-x-asr900.html
+A900-IMA1X,IM,1x 10GbE XFP,No,No,"ASR-902, ASR-903, ASR-907, ASR-914",1-port 10-Gigabit Ethernet XFP Interface Module,Single high-speed uplink,(https://data.nag.wiki/Cisco/Datasheets/Cisco_ASR_900_Series_Interface_Modules_Data_sheet.pdf)
+A900-IMA16D,IM,16x T1/E1,No,Yes,"ASR-902, ASR-903, ASR-907, ASR-914",16-port T1/E1 Interface Module,Supports Data and Voice,cisco.com/c/en/us/td/docs/routers/asr903/release/notes/17-12-1/b-rn-xe-17-12-x-asr900/m-intro-17-12-x-asr900.html
+A900-IMA2Z,IM,2x 10GbE XFP/SFP+,No,No,"ASR-902, ASR-903, ASR-907, ASR-914",2-port 10-Gigabit Ethernet Interface Module,Dual high-speed uplinks,(https://data.nag.wiki/Cisco/Datasheets/Cisco_ASR_900_Series_Interface_Modules_Data_sheet.pdf)
+N560-IMA-2C,IM,,,,,,,
+A900-IMA-8Z,IM,,,,,,,
+A900-IMA-8CS1Z,IM,,,,,,,
+N560-IMA-1W,IM,,,,,,,
+N560-IMA-2C-DD,IM,,,,,,,
+A900-IMA-8Z-L,IM,,,,,,,
+N560-IMA-8Q/4L,IM,,,,,,,
