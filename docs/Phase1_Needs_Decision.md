@@ -132,7 +132,7 @@ Lifecycle values applied from the audit's Lifecycle tab: 92 PIDs. Everything els
 
 ### Meraki MX and Z rows (1)
 
-- The legacy router file also holds Meraki MX and Z appliances. The SPEC puts Meraki MX under Security; they stay in the routing workbook for now and move when the Security family is built (Phase 4).
+- The legacy router file also holds Meraki MX, vMX and Z-Series appliances. Decision of 10 Oct 2026: Meraki MX stays in Routing next to the Catalyst routers (there is no separate Security family at launch). The management filter separates cloud (Meraki) from on-prem (Catalyst) models.
 
 ### Module name is a family label, not a PID (2)
 

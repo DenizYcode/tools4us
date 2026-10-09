@@ -116,7 +116,7 @@ export function migrateRouting(ctx, legacyDir) {
 
   decide(ctx, FAMILY, 'Carrier-grade rows excluded', `${excluded} routers in the ASR and NCS product lines (ASR 900/920/9000, NCS 540/560/5500/5700) are scope=excluded: kept in the workbook, skipped by every check, never on the site. This is by product line (Supertype starts with ASR or NCS), not by the legacy "Aggregation" category, which would also have caught Catalyst 8500 and industrial IR routers. Change scope to "in" to bring any back.`);
   decide(ctx, FAMILY, 'Throughput missing in the legacy data', `${noThroughput} routers have no throughput. throughput_mbps is left empty, so they must be excluded from throughput queries explicitly (audit "Filter tests").`);
-  decide(ctx, FAMILY, 'Meraki MX and Z rows', 'The legacy router file also holds Meraki MX and Z appliances. The SPEC puts Meraki MX under Security; they stay in the routing workbook for now and move when the Security family is built (Phase 4).');
+  decide(ctx, FAMILY, 'Meraki MX and Z rows', 'The legacy router file also holds Meraki MX, vMX and Z-Series appliances. Decision of 10 Oct 2026: Meraki MX stays in Routing next to the Catalyst routers (there is no separate Security family at launch). The management filter separates cloud (Meraki) from on-prem (Catalyst) models.');
 
   // Router modules.
   const accessories = [];

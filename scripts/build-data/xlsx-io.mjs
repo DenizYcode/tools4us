@@ -24,7 +24,7 @@ function columnLetter(index) {
 // rowsBySheet: { models: [...], accessories: [...], compat: [...], series: [...] } of typed row objects.
 export async function writeWorkbook(path, family, rowsBySheet) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'cisco-partner-rehberi';
+  wb.creator = 'tools4us';
   wb.created = new Date(0);
   wb.modified = new Date(0);
 

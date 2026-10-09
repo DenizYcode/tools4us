@@ -16,4 +16,5 @@ paths:
 - Accessibility: WCAG 2.1 AA, keyboard reachable, visible focus, alt text in both languages.
 - External links open in a new tab with an external-link icon. Video embeds load only on click (youtube-nocookie.com).
 - Footer on every page: TR/EN disclaimer that this is a personal, independent guide, not an official Cisco or Ingram Micro site.
+- Graphics are original vector drawings (SVG) generated from model data: no product photos, no Cisco logo or wordmark, no assets from ciscosizing.com. Same background, stroke weight and crop everywhere.
 - Before saying a UI task is done, take screenshots at 375 px and 1280 px and check them.

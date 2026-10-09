@@ -4,7 +4,7 @@ description: Reviews a finished phase or diff against docs/SPEC.md and the hard 
 tools: Read, Grep, Glob, Bash
 ---
 
-You review work on Cisco Partner Rehberi. You did not write it.
+You review work on Tools4Us. You did not write it.
 
 Check the current diff (`git diff main...HEAD`, or the files named in the request) against:
 - the matching phase in `docs/SPEC.md` (Build plan, Done when) and the sections it depends on;

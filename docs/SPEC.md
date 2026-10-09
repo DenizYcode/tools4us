@@ -1,10 +1,10 @@
-# Cisco Partner Rehberi — Site Refresh Spec
+# Tools4Us — Site Refresh Spec
 
 Oct 9, 2026 · @Deniz
 
 ## How to use this spec
 
-This spec is the single source of truth for rebuilding the Cisco Sizing Tool as Cisco Partner Rehberi, a Turkish-first partner hub, in Claude Code. It lives in the repo as `docs/SPEC.md`, and `CLAUDE.md` points at it so every session starts with the same rules. From Phase 0 on, this repo copy is the source of truth; the Claude doc it was exported from is an archived draft.
+This spec is the single source of truth for rebuilding the Cisco Sizing Tool as Tools4Us (working title until 10 Oct 2026: Cisco Partner Rehberi), a Turkish-first partner hub, in Claude Code. It lives in the repo as `docs/SPEC.md`, and `CLAUDE.md` points at it so every session starts with the same rules. From Phase 0 on, this repo copy is the source of truth; the Claude doc it was exported from is an archived draft.
 
 - **MUST** = required for launch. **SHOULD** = launch if time allows. **LATER** = backlog.
 - Build phase by phase (see Build plan). A phase is finished only when its acceptance checks pass.
@@ -36,13 +36,13 @@ The hub lets a Turkish partner describe a need in plain Turkish and leave with t
 
 ## Pages and sections
 
-One hub, six product families on a shared template (Collaboration and Security are new), two basic list pages for Cameras and Cellular, plus content and tool pages that work across families.
+**Launch scope (decided 10 Oct 2026): three families, Switching, Wireless and Routing, on a shared template.** Routing also carries the Meraki MX appliances (with the Z-Series teleworker gateways and vMX that sit with them in the legacy data), next to the Catalyst routers. Data Center, Collaboration, Security, Cameras and Cellular are to be decided: the hub shows them as a muted "Yakında" (coming soon) row and they have no pages. Their data stays in the workbooks. Plus content and tool pages that work across families.
 
 Site map:
 
 - **Hub** (`/tr/`, `/en/`) → family buttons, featured stories, shortcuts
-- **Families:** Switching, Wireless, Routing, Data Center, Collaboration, Security → series → model detail pages
-- **Basic lists:** Cameras (Meraki MV), Cellular (Meraki MG)
+- **Families (launch):** Switching, Wireless, Routing (Catalyst routers and Meraki MX) → series → model detail pages. Page slugs are readable Turkish: `/tr/anahtarlama/`, `/tr/kablosuz/`, `/tr/yonlendirme/` (EN: `/en/switching/`, `/en/wireless/`, `/en/routing/`).
+- **To be decided, shown as "Yakında" only:** Data Center, Collaboration, Security, and basic lists for Cameras (Meraki MV) and Cellular (Meraki MG)
 - **Content:** Stories index → story pages; Glossary
 - **Tools:** Compare, Shortlist ("Seçimlerim"), Search, Migration finder, Contact form
 
@@ -53,12 +53,12 @@ Every family page leads to model detail pages; every story page links back to th
 | Home hub | Hero, search, family buttons, featured stories, shortcuts | MUST |
 | Switching | Catalyst 1200/1300, 9200/9300/9500, Meraki MS and Meraki-mode Catalyst | MUST |
 | Wireless | Wi-Fi 6E and Wi-Fi 7 indoor/outdoor APs, wireless controllers, Meraki-mode APs | MUST |
-| Routing | Branch and edge routers, SD-WAN, industrial and cellular routers | MUST |
-| Data Center | Nexus 9000 leaf and spine switches | SHOULD |
-| Collaboration (new) | Room devices, boards, desk devices, phones, headsets | SHOULD |
-| Security (new) | Secure Firewall and Meraki MX appliances | MUST |
-| Cameras (basic) | Meraki MV models with lifecycle status only; no selector or comparison | SHOULD |
-| Cellular (basic) | Meraki MG gateways with lifecycle status only; no selector or comparison | SHOULD |
+| Routing | Branch and edge routers, SD-WAN, industrial and cellular routers, Meraki MX appliances and Z-Series gateways | MUST |
+| Data Center | Nexus 9000 leaf and spine switches | TBD ("Yakında") |
+| Collaboration (new) | Room devices, boards, desk devices, phones, headsets | TBD ("Yakında") |
+| Security (new) | Secure Firewall appliances (Meraki MX is in Routing) | TBD ("Yakında") |
+| Cameras (basic) | Meraki MV models with lifecycle status only; no selector or comparison | TBD |
+| Cellular (basic) | Meraki MG gateways with lifecycle status only; no selector or comparison | TBD |
 | Stories | Featured strip on the hub plus a filterable stories index | MUST |
 | Glossary | Every tooltip term, TR and EN | SHOULD |
 | Compare, Shortlist, Search | Shared tools reachable from every page | MUST |
@@ -67,8 +67,9 @@ Every family page leads to model detail pages; every story page links back to th
 **Revisions to your draft:**
 
 - Meraki is a management choice, not a section. Show it as a filter in each family so partners compare Meraki and Catalyst options side by side.
-- Cameras (Meraki MV) and Cellular (Meraki MG) get basic pages: model list and lifecycle only, no selector or comparison.
-- Data Center and Collaboration rarely come from SMB partners. Launch them as SHOULD so the core four reach quality first.
+- Cameras (Meraki MV) and Cellular (Meraki MG) were planned as basic pages (model list and lifecycle only); they are now to be decided.
+- Data Center and Collaboration rarely come from SMB partners, so they are no longer part of the first launch. The core three reach quality first.
+- Meraki MX stays in Routing instead of moving to a Security family: partners compare MX with Catalyst routers side by side, separated by the management filter.
 
 ## Features
 
@@ -103,7 +104,7 @@ Your six features stay, each sharpened. Seven more are needed for the new vision
 | Recommended model ("Önerilen") | MUST | One pick per series, set by hand in the data with a one-line reason. The guided selector also returns it first when it fits. Never an End-of-Sale model. |
 | Configuration builder (carried over) | MUST | Modules, line cards and antennas with slot limits and a live SKU string, as on the old site. The result can be added to the shortlist. |
 | Management toggle (carried over) | MUST | On-Prem / Cloud / Unified first on each family page (Nexus / SAN / Hyperfabric on Data Center), driven by the explicit management field. |
-| Numeric queries (carried over) | SHOULD | Keep the router's ports and throughput inputs; add PoE budget (W) on switching and throughput on Security. |
+| Numeric queries (carried over) | SHOULD | Keep the router's ports and throughput inputs; add PoE budget (W) on switching and firewall throughput on Routing (Meraki MX). |
 | "Yeni" badge | SHOULD | Marks models added in the last 90 days, from an added_date field. |
 
 ## Content hub and stories
@@ -113,7 +114,7 @@ The hub shows 3–4 featured stories at a time, each leading to a story page and
 **Hub layout (top to bottom):**
 
 1. Hero: one-line promise in Turkish, global search box, TR/EN toggle.
-2. Family buttons: Switching, Wireless, Routing, Data Center, Collaboration, Security, plus smaller links to Cameras and Cellular.
+2. Family buttons: Switching, Wireless, Routing, then a muted "Yakında" row for the families still to be decided.
 3. Featured stories: 3–4 cards, chosen by a `featured: true` flag and an order number.
 4. Shortcuts: "Bana model öner", "Eski cihazım var", "Karşılaştır".
 
@@ -192,9 +193,9 @@ All content lives in files, separate from code: one spreadsheet per product fami
 - **Switching:** ports and speeds, uplinks, PoE budget (W), PoE standard, stacking, L2/L3, mGig.
 - **Wireless:** Wi-Fi generation, streams, bands (6 GHz), uplink speed, PoE needed for full function, indoor/outdoor, antenna type.
 - **Routing:** throughput, IPsec throughput and the licence it depends on, WAN ports, LTE/5G, SD-WAN support, module slots.
-- **Data Center:** port speeds, role (leaf / spine), NX-OS or ACI, licence tier.
-- **Collaboration:** device type, room size, camera, display, platform (Webex / Microsoft Teams), peripherals.
-- **Security:** firewall and threat throughput, VPN throughput, ports, HA, management (FMC / Security Cloud Control).
+- **Data Center (not in the first launch):** port speeds, role (leaf / spine), NX-OS or ACI, licence tier.
+- **Collaboration (not in the first launch):** device type, room size, camera, display, platform (Webex / Microsoft Teams), peripherals.
+- **Security (not in the first launch; MX throughput is covered under Routing):** firewall and threat throughput, VPN throughput, ports, HA, management (FMC / Security Cloud Control).
 
 **Story frontmatter:** `title_tr`, `title_en`, `teaser_tr`, `teaser_en`, `category`, `image`, `video_youtube_id`, `related_pids`, `featured`, `order`, `published`, `last_verified`, `review_by`, `sources`.
 
@@ -228,7 +229,7 @@ Aim for a calm product-catalog look: Ubiquiti's product pages for structure, App
 - Brand: personal and unofficial. Cisco names appear only as product names. No Cisco logo or wordmark, and no Ingram Micro branding.
 - Footer disclaimer (TR/EN): Cisco and related marks are trademarks of Cisco Systems; this is a personal, independent guide, not an official Cisco or Ingram Micro site. Verify part numbers against Cisco ordering guides before quoting.
 - Type: one sans-serif with full Turkish glyph support (test ı, İ, ş, ğ in bold and italic). Body at least 16 px.
-- Images: product photos only from Cisco's partner marketing assets or with confirmed rights. Same background and crop on every card.
+- Images: device graphics are original vector drawings generated from the data (port count, form factor, indoor or outdoor, antennas), so they are always accurate and need no image rights. Product photos are used only if rights from Cisco's partner marketing assets are confirmed later. Same background, stroke weight and crop on every card.
 - Design an original hero. The soft-landscape hero and struck-through title in your screenshot are ciscosizing.com's, so reusing them would read as a copy.
 - Plain Turkish everywhere: short sentences, no untranslated jargon without a tooltip.
 
@@ -294,9 +295,9 @@ Patterns on its Wireless page worth matching:
 - Natural-language search with rotating example queries in the box ("Primary connection, 2 SIMs").
 - A compare tray that stays docked at the bottom while you browse.
 - Dark mode, a 404 page that lists the valid family pages, and a link from each family page to Cisco's product page.
-- It uses Google Analytics; Cisco Partner Rehberi keeps cookieless GoatCounter instead.
+- It uses Google Analytics; Tools4Us keeps cookieless GoatCounter instead.
 
-Where Cisco Partner Rehberi differs: Turkish first, the enterprise portfolio beyond Meraki (routing, data center, collaboration, firewalls), a guided selector, and the stories hub.
+Where Tools4Us differs: Turkish first, the enterprise portfolio beyond Meraki (Catalyst switching, wireless and routing), a guided selector, and the stories hub.
 
 **Risk:** it is a separate project covering some of the same families. Borrow interaction patterns only; never its code, images, wording or data, and keep a visual identity of your own so the two sites aren't confused.
 
@@ -335,7 +336,7 @@ The old site at [denizycode.github.io/SelectorTool](https://denizycode.github.io
 The lost internal discussion is replaced by these, restated by the owner:
 
 1. Fix the dataset and the filter logic (table above; full dataset audit in Phase 1).
-2. Keep the scope additions already agreed: hub and stories, Collaboration, Security, Cameras and Cellular.
+2. Keep the scope additions already agreed: hub and stories. Collaboration, Security, Cameras and Cellular were also agreed but are deferred (see Decisions, 10 Oct 2026).
 3. Track lifecycle for every model.
 4. Add new products and remove End-of-Sale ones on a fixed routine (see Data model).
 5. Explain every family and series in plain words for non-technical readers, for example "C9200L: the SMB entry into the Catalyst switch portfolio".
@@ -343,14 +344,14 @@ The lost internal discussion is replaced by these, restated by the owner:
 
 ## Risks and open questions
 
-The biggest risk is stale data, not code: six families plus stories is a lot to keep current for one presales engineer.
+The biggest risk is stale data, not code: six families plus stories was a lot to keep current for one presales engineer, so the launch is three families.
 
 | Risk | Why it matters | Mitigation |
 | --- | --- | --- |
 | Stale catalog or stories | A partner quotes an End-of-Sale model or repeats an outdated licensing claim | `last_verified` and `review_by` fields, build checks, a monthly review slot |
-| Scope too wide for one maintainer | Six families at launch may never all reach good quality | Launch with 2–3 families done well; mark the rest "Yakında" |
-| Brand and trademark | A Cisco logo, look-alike branding or "Cisco" in the site name makes it read as official | No Cisco logo; independence disclaimer in every footer |
-| Image and video rights | Re-hosted Cisco media without permission | Partner marketing assets only; YouTube embeds for video |
+| Scope too wide for one maintainer | Six families at launch may never all reach good quality | Decided: launch with Switching, Wireless and Routing; mark the rest "Yakında" |
+| Brand and trademark | A Cisco logo, look-alike branding or "Cisco" in the site name makes it read as official | Decided: the site is called Tools4Us; text-only wordmark, no Cisco logo; independence disclaimer in every footer |
+| Image and video rights | Re-hosted Cisco media without permission | Device graphics are drawn from data, no photos; YouTube embeds for video |
 | Selector gives wrong advice | Under-powered PoE or wrong licence leads to a failed deployment | Every recommendation shows its assumptions plus "Cisco iş ortağınıza doğrulatın" |
 | KVKK | Contact data stored without a legal basis | Aydınlatma Metni, consent checkbox, and a note that Web3Forms processes data abroad |
 | Translation quality | Literal Turkish reads as machine-made and loses trust | Native review of all UI text and the first stories |
@@ -358,12 +359,15 @@ The biggest risk is stale data, not code: six families plus stories is a lot to 
 
 **Decisions and open questions:**
 
-- [x] Cameras and Cellular: added as basic families (model list and lifecycle only).
+- [x] Cameras and Cellular: added as basic families (model list and lifecycle only). Superseded 10 Oct 2026: to be decided, shown as "Yakında".
 - [x] Hosting: GitHub Pages at denizycode.github.io.
 - [x] Branding: personal and unofficial; no approval process.
 - [x] Editors: the owner only.
 - [x] Contact form: Web3Forms free account.
-- [x] Site name: Cisco Partner Rehberi.
+- [x] Site name: Tools4Us (changed 10 Oct 2026 from Cisco Partner Rehberi; this removes "Cisco" from the name and resolves the earlier conflict with the brand rules).
+- [x] Launch scope (10 Oct 2026): Switching, Wireless and Routing. Meraki MX goes into Routing next to the Catalyst routers. Data Center, Collaboration, Security, Cameras and Cellular are to be decided and shown as "Yakında".
+- [x] Graphics (10 Oct 2026): original vector drawings that represent each family and are generated from model data; no product photos.
+- [x] Repo and URL: rename the repo to `tools4us` (live at denizycode.github.io/tools4us/).
 - [x] Old site code and CSVs received; dataset audit done (docs/Phase1_Dataset_Audit.xlsx).
 - [x] Old internal discussion: decisions re-added under Old site review.
 - [x] ciscosizing.com: separate project, reviewed from its page HTML; patterns only, no reuse.
@@ -398,9 +402,9 @@ Eight phases, each ending with a working site you can open. Build one family end
 
 1. **Phase 0 — Setup.** Repo, `CLAUDE.md`, this spec as `docs/SPEC.md`, stack decision recorded, empty site deployed to GitHub Pages.
 2. **Phase 1 — Data pipeline.** Spreadsheet format, conversion script, schema and build checks. Import the old SelectorTool CSVs, normalize them to the new schema, and run the dataset audit: End-of-Sale status, controlled vocabularies, missing Turkish text, series explainers and recommended picks.
-3. **Phase 2 — Shell.** Design tokens, layout, TR/EN routing, hub page with family buttons and placeholder story cards.
+3. **Phase 2 — Shell.** Tools4Us brand, design tokens, layout, TR/EN routing, drawn family graphics, hub page with the three family buttons, a "Yakında" row and placeholder story cards.
 4. **Phase 3 — Wireless end to end.** Family page, filters, guided selector, model detail, comparison, lifecycle badges, PoE warnings.
-5. **Phase 4 — Remaining families.** Switching, Routing, Security, Data Center, Collaboration, reusing Phase 3 components, then basic Cameras and Cellular lists.
+5. **Phase 4 — Switching and Routing.** Switching, and Routing including the Meraki MX appliances and Z-Series gateways, reusing Phase 3 components. Data Center, Collaboration, Security, Cameras and Cellular are a backlog, to be decided after launch.
 6. **Phase 5 — Stories.** Story pages, featured strip, video embeds, freshness rules, the five seed stories.
 7. **Phase 6 — Search, shortlist, forms.** Global search, shortlist export, migration finder, request form, analytics.
 8. **Phase 7 — QA and launch.** Technical checks, native Turkish review, usability test, disclaimer and KVKK text check, go live.

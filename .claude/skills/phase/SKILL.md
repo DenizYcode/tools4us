@@ -1,6 +1,6 @@
 ---
 name: phase
-description: Start or resume a build phase of Cisco Partner Rehberi from the SPEC build plan
+description: Start or resume a build phase of Tools4Us from the SPEC build plan
 disable-model-invocation: true
 argument-hint: "[phase-number] [notes or decisions]"
 ---
