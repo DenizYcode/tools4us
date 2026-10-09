@@ -138,7 +138,14 @@ The hub shows 3–4 featured stories at a time, each leading to a story page and
 
 All content lives in files, separate from code: one spreadsheet per product family and one Markdown file per story. Editing means changing a cell or a text file, then running a build that checks everything before it publishes.
 
-**Stack (proposal for Claude Code to confirm):** a static site with no server and no database, deployed to GitHub Pages (denizycode.github.io) by a GitHub Actions workflow. A static generator (for example Astro), a static search index that handles Turkish (for example Pagefind), and plain CSS or Tailwind. Claude Code should propose the final stack in Phase 0 and record why in `docs/SPEC.md`.
+**Stack (decided in Phase 0, 9 Oct 2026):** a static site with no server and no database, deployed to GitHub Pages by a GitHub Actions workflow (`.github/workflows/deploy.yml`, which runs `npm run build` so the data check gates publishing).
+
+- **Generator: Astro** (7.x, Node 24). Why: it ships no JavaScript to the browser unless a component asks for it, which suits the 2.5 s on 4G target; it outputs plain static files for Pages; it has built-in i18n routing for `/tr/` and `/en/`; and it reads JSON and Markdown from files, which matches the data-in-files model. Interactive tools (selector, compare, shortlist) can be added later as small client components.
+- **Search: Pagefind**, a static index built after `astro build` (`pagefind --site dist`), so search runs in the browser with no server. **Unverified:** how well Pagefind folds Turkish characters (ı/i, ş/s, ğ/g) and tolerates typos. Phase 6 must test it against the "Text search" requirement. Fallback if it fails: a small client-side search such as Fuse.js over a pre-normalized JSON index.
+- **Styling: plain CSS with custom properties**, no Tailwind. Design tokens arrive in Phase 2.
+- **Considered and not chosen:** Eleventy (lighter, but no built-in i18n routing and no component model for the interactive tools); Next.js static export (heavier runtime than this site needs).
+- **Site URL and base:** `https://denizycode.github.io/cisco-partner-rehberi/`. The base path `/cisco-partner-rehberi/` is set once in `astro.config.mjs`, and internal links are built with `localePath()` in `src/i18n/index.ts`.
+- **Routing:** `/tr/` is the default and `/en/` the second language. The root page redirects to `/tr/` with a meta refresh, because GitHub Pages cannot send HTTP redirects.
 
 **GitHub Pages notes:** Pages serves static files only, so search runs in the browser and the contact form posts straight to Web3Forms. If the site lives in a project repo rather than the `denizycode.github.io` repo, every link and asset needs the repo name as a base path; set it once in the generator's config.
 

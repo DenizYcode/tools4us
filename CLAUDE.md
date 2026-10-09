@@ -21,10 +21,10 @@ The full spec is `docs/SPEC.md`. Before planning any task, read the SPEC.md sect
 - `data/catalog/`: new normalized data (created in Phase 1)
 
 ## Commands
-<!-- Fill in during Phase 0 once the stack is chosen, e.g.: -->
-<!-- - `npm run dev`: local preview -->
-<!-- - `npm run check:data`: validate data/ against the schema (must pass before any commit) -->
-<!-- - `npm run build`: production build -->
+- `npm run dev`: dev server at http://localhost:4321/cisco-partner-rehberi/ (the base path is part of every URL).
+- `npm run check:data`: validate data against the rules in `.claude/rules/data.md`; must pass before any commit. A stub until Phase 1.
+- `npm run build`: `check:data`, then `astro build`, then `pagefind --site dist`. Output in `dist/`. This is what CI runs.
+- `npm run preview`: serve the built `dist/` locally, as Pages will. Run `npm run build` first.
 
 ## Workflow
 - Work one phase at a time (SPEC "Build plan"). Start each phase in plan mode.
@@ -34,4 +34,6 @@ The full spec is `docs/SPEC.md`. Before planning any task, read the SPEC.md sect
 - When compacting, keep the current phase, the list of modified files and any failing checks.
 
 ## Status
-- Phase 0: not started
+- Phase 0: in progress. Built and checked locally (build passes; TR/EN shell, root redirect, 404 and footer disclaimer verified in `dist/` and in the browser pane). Left: push to `origin/main` (needs approval), confirm the Actions run and the live site.
+  - Decisions: Astro 7 + Pagefind, plain CSS, Node 24; recorded in SPEC "Data model and editing". Site `https://denizycode.github.io/cisco-partner-rehberi/`, base `/cisco-partner-rehberi/`. `/tr/` default, `/en/`, root meta-refresh to `/tr/`.
+  - Open for later: Turkish footer wording needs native review; Pagefind Turkish folding is untested (Phase 6); `scripts/build-data` (SPEC layout) arrives in Phase 1 next to the `check-data.mjs` stub.

@@ -2,6 +2,7 @@
 
 Kişisel, resmî olmayan bir Cisco ürün rehberi. Personal, unofficial guide to the current Cisco portfolio for Turkish partners.
 
+- Live site: https://denizycode.github.io/cisco-partner-rehberi/
 - Spec: `docs/SPEC.md`
 - Data audit: `docs/Phase1_Dataset_Audit.xlsx`
 - Old site (reference only): `docs/old-site/`
