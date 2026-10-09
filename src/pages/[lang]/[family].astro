@@ -1,0 +1,70 @@
+---
+// Family page stubs. They name the family and say what it is for, and never list models:
+// nothing is published until its rows are ready (hard rule: only verified, current models appear).
+import Base from '../../layouts/Base.astro';
+import Section from '../../components/Section.astro';
+import FamilyGraphic from '../../components/graphics/FamilyGraphic.astro';
+import { locales, t, localePath, type Lang } from '../../i18n';
+import { LAUNCH_FAMILIES, SLUGS, familySwitchPath, type Family } from '../../i18n/routes';
+
+export function getStaticPaths() {
+  return locales.flatMap((lang) => LAUNCH_FAMILIES.map((family) => ({ params: { lang, family: SLUGS[lang][family] }, props: { family } })));
+}
+
+const lang = Astro.params.lang as Lang;
+const { family } = Astro.props as { family: Family };
+---
+
+<Base lang={lang} title={`${t(lang, `family.${family}.name`)} · ${t(lang, 'site.name')}`} switchPath={familySwitchPath(lang, family)} current={family}>
+  <Section tone="soft" labelledby="family-title">
+    <div class="intro">
+      <div>
+        <h1 id="family-title">{t(lang, `family.${family}.title`)}</h1>
+        <p class="lead">{t(lang, `family.${family}.blurb`)}</p>
+      </div>
+      <div class="art"><FamilyGraphic family={family} /></div>
+    </div>
+  </Section>
+  <Section labelledby="soon-title">
+    <h2 id="soon-title">{t(lang, 'family.soon.title')}</h2>
+    <p class="note">{t(lang, 'family.soon.body')}</p>
+    <p><a href={localePath(lang)}>← {t(lang, 'nav.back')}</a></p>
+  </Section>
+</Base>
+
+<style>
+  .intro {
+    display: grid;
+    gap: var(--space-6);
+    align-items: center;
+  }
+
+  .lead {
+    max-width: 36rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .art {
+    width: 100%;
+    max-width: 26rem;
+  }
+
+  .note {
+    max-width: 40rem;
+    color: var(--muted);
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  @media (min-width: 48em) {
+    .intro {
+      grid-template-columns: 1fr 22rem;
+    }
+  }
+</style>

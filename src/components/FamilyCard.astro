@@ -1,0 +1,87 @@
+---
+import FamilyGraphic from './graphics/FamilyGraphic.astro';
+import { t, type Lang } from '../i18n';
+import { familyPath, type Family } from '../i18n/routes';
+
+interface Props {
+  lang: Lang;
+  family: Family;
+}
+
+const { lang, family } = Astro.props;
+---
+
+<article class="card">
+  <FamilyGraphic family={family} />
+  <div class="body">
+    <h3><a href={familyPath(lang, family)}>{t(lang, `family.${family}.title`)}</a></h3>
+    <p>{t(lang, `family.${family}.blurb`)}</p>
+    <span class="cta" aria-hidden="true">{t(lang, 'family.explore')} →</span>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgb(10 31 68 / 0.08), 0 12px 28px rgb(10 31 68 / 0.12);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: var(--space-5);
+  }
+
+  h3 {
+    margin-bottom: var(--space-2);
+  }
+
+  h3 a {
+    color: var(--navy-900);
+    text-decoration: none;
+  }
+
+  /* The whole card is the link target, with a single tab stop. */
+  h3 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  h3 a:focus-visible {
+    outline: none;
+  }
+
+  .card:has(a:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  p {
+    color: var(--muted);
+    margin-bottom: var(--space-4);
+  }
+
+  .cta {
+    margin-top: auto;
+    color: var(--accent);
+    font-weight: 650;
+  }
+
+  .card:hover .cta {
+    color: var(--accent-strong);
+  }
+</style>

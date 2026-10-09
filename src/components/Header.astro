@@ -1,0 +1,157 @@
+---
+import { t, localePath, type Lang } from '../i18n';
+import { LAUNCH_FAMILIES, familyPath, type Family } from '../i18n/routes';
+
+interface Props {
+  lang: Lang;
+  // Path after /<other-lang>/ for the same page in the other language. Omit to hide the toggle.
+  switchHref?: string;
+  switchLang?: Lang;
+  current?: Family | 'home';
+}
+
+const { lang, switchHref, switchLang, current } = Astro.props;
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="wordmark" href={localePath(lang)} aria-label={t(lang, 'nav.home')}>Tools<span class="four" aria-hidden="true">4</span>Us</a>
+    {
+      switchHref !== undefined && switchLang && (
+        <a class="lang-toggle" href={switchHref} lang={switchLang} hreflang={switchLang}>
+          {t(lang, 'nav.switchTo')}
+        </a>
+      )
+    }
+  </div>
+  <nav class="container families" aria-label={t(lang, 'nav.main')}>
+    <ul>
+      {
+        LAUNCH_FAMILIES.map((family) => (
+          <li>
+            <a href={familyPath(lang, family)} aria-current={current === family ? 'page' : undefined}>
+              {t(lang, `family.${family}.name`)}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    background: var(--navy-900);
+    color: var(--on-navy);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: 3.5rem;
+  }
+
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--on-navy);
+    font-size: 1.375rem;
+    font-weight: 780;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+
+  .wordmark:hover {
+    color: var(--on-navy);
+  }
+
+  .four {
+    color: var(--accent-bright);
+  }
+
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--tap);
+    min-height: var(--tap);
+    padding-inline: var(--space-4);
+    color: var(--on-navy);
+    font-weight: 650;
+    text-decoration: none;
+    border: 1px solid var(--on-navy-muted);
+    border-radius: var(--radius-s);
+  }
+
+  .lang-toggle:hover {
+    background: var(--navy-700);
+    color: var(--on-navy);
+  }
+
+  .families ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .families a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--on-navy-muted);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+  }
+
+  .families a:hover {
+    color: var(--on-navy);
+  }
+
+  .families a[aria-current='page'] {
+    color: var(--on-navy);
+    border-bottom-color: var(--accent-bright);
+  }
+
+  .site-header :focus-visible {
+    outline-color: var(--focus-on-navy);
+  }
+
+  @media (min-width: 48em) {
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-inline: max(var(--gutter), calc((100% - var(--max)) / 2 + var(--gutter)));
+    }
+
+    .site-header .container {
+      width: auto;
+      max-width: none;
+      padding-inline: 0;
+    }
+
+    .families {
+      order: 1;
+      margin-inline: auto var(--space-5);
+    }
+
+    .bar {
+      display: contents;
+    }
+
+    .wordmark {
+      order: 0;
+    }
+
+    .lang-toggle {
+      order: 2;
+    }
+  }
+</style>

@@ -1,0 +1,222 @@
+---
+// A drawing of one device, built from data-shaped props (port count, form factor, rack units,
+// indoor/outdoor, antennas, cellular). Same frame, stroke weight and background as FamilyGraphic.
+// It draws only what the props say, so a model's picture can never disagree with its specs.
+import { portGrid, cellSize, gridSize, portPositions, rackHeight, wifiArc } from '../../lib/graphic-layout.mjs';
+
+interface Props {
+  kind: 'switch' | 'ap' | 'router';
+  form?: 'rack' | 'desktop' | 'rugged' | 'chassis';
+  ports?: number;
+  uplinks?: number;
+  rackUnits?: number;
+  slots?: number;
+  environment?: 'indoor' | 'outdoor' | 'indoor_outdoor';
+  wallPlate?: boolean;
+  externalAntennas?: number;
+  cellular?: boolean;
+  // Text alternative. Without it the graphic is decorative and hidden from assistive technology.
+  label?: string;
+}
+
+const { kind, form = 'rack', ports = 0, uplinks = 0, rackUnits = 1, slots = 8, environment = 'indoor', wallPlate = false, externalAntennas = 0, cellular = false, label } = Astro.props;
+
+const W = 320;
+const H = 200;
+const GAP = 2;
+
+// --- boxed devices (switches and routers) ---
+const chassis = form === 'chassis';
+const bodyW = form === 'desktop' ? 176 : form === 'rugged' ? 200 : 248;
+const bodyX = (W - bodyW) / 2;
+const uplinkCols = Math.ceil(Math.min(uplinks, 8) / 2);
+const uplinkArea = uplinkCols ? uplinkCols * 24 + 6 : 0;
+const grid = portGrid(ports);
+const available = bodyW - 28 - uplinkArea;
+const cell = cellSize(grid.cols, available, { gap: GAP, max: 12, min: 4 });
+const gSize = gridSize(grid.rows, grid.cols, cell, GAP);
+const baseH = form === 'desktop' ? 40 : form === 'rugged' ? 64 : chassis ? 136 : Math.min(rackHeight(rackUnits), 120);
+const bodyH = chassis ? baseH : Math.min(Math.max(baseH, gSize.height + 22), 140);
+const bodyY = (H - bodyH) / 2 + (externalAntennas > 0 ? 10 : 0);
+const gridX = bodyX + 14;
+const gridY = bodyY + (bodyH - gSize.height) / 2;
+const cells = portPositions(ports, cell, GAP);
+const cages = Array.from({ length: Math.min(uplinks, 8) }, (_, i) => ({
+  x: bodyX + bodyW - 14 - uplinkArea + 6 + Math.floor(i / 2) * 24,
+  y: bodyY + bodyH / 2 - (uplinks > 1 ? 13 : 5.5) + (i % 2) * 15,
+}));
+const slotCount = Math.max(1, Math.min(slots, 16));
+const slotH = (bodyH - 16) / slotCount;
+const antennaXs = Array.from({ length: Math.min(externalAntennas, 4) }, (_, i) => bodyX + 22 + i * ((bodyW - 44) / Math.max(1, Math.min(externalAntennas, 4) - 1 || 1)));
+
+// --- access points ---
+const apAntennaXs = Array.from({ length: Math.min(externalAntennas, 4) }, (_, i, a) => 160 + (i - (a.length - 1) / 2) * 30);
+const outdoor = environment !== 'indoor';
+const apBodyW = outdoor ? 132 : 120;
+const apBodyH = outdoor ? 56 : 36;
+const arcs = [20, 36, 52].map((r) => wifiArc(160, 128, r));
+const plateCells = portPositions(Math.min(Math.max(ports, 1), 4), 12, 5, 4);
+---
+
+<svg class="device-graphic" viewBox={`0 0 ${W} ${H}`} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'} focusable="false">
+  <rect class="frame" x="0" y="0" width={W} height={H} rx="14"></rect>
+
+  {
+    (kind === 'switch' || kind === 'router') && (
+      <g>
+        {antennaXs.map((x) => (
+          <rect class="antenna" x={x - 3} y={bodyY - 30} width="6" height="32" rx="3" />
+        ))}
+        {form === 'rack' || form === 'chassis' ? (
+          <>
+            <rect class="ear" x={bodyX - 8} y={bodyY + 6} width="8" height={bodyH - 12} rx="2" />
+            <rect class="ear" x={bodyX + bodyW} y={bodyY + 6} width="8" height={bodyH - 12} rx="2" />
+          </>
+        ) : null}
+        {form === 'desktop' ? (
+          <>
+            <rect class="ear" x={bodyX + 14} y={bodyY + bodyH} width="22" height="5" rx="2" />
+            <rect class="ear" x={bodyX + bodyW - 36} y={bodyY + bodyH} width="22" height="5" rx="2" />
+          </>
+        ) : null}
+        {form === 'rugged' ? (
+          <>
+            <rect class="ear" x={bodyX + bodyW / 2 - 18} y={bodyY - 8} width="36" height="8" rx="2" />
+            <rect class="ear" x={bodyX + bodyW / 2 - 18} y={bodyY + bodyH} width="36" height="8" rx="2" />
+          </>
+        ) : null}
+        <rect class={form === 'rugged' ? 'body heavy' : 'body'} x={bodyX} y={bodyY} width={bodyW} height={bodyH} rx={form === 'desktop' ? 8 : 6} />
+        {chassis
+          ? Array.from({ length: slotCount }, (_, i) => (
+              <g>
+                <rect class="slot" x={bodyX + 12} y={bodyY + 8 + i * slotH + 1.5} width={bodyW - 24} height={Math.max(2, slotH - 3)} rx="1.5" />
+                <circle class="led" cx={bodyX + 20} cy={bodyY + 8 + i * slotH + slotH / 2} r="1.6" />
+              </g>
+            ))
+          : cells.map((p) => <rect class="port" x={gridX + p.x} y={gridY + p.y} width={cell} height={cell} rx="1.2" />)}
+        {cages.map((c) => (
+          <rect class="cage" x={c.x} y={c.y} width="20" height="11" rx="2" />
+        ))}
+        {cellular ? (
+          <g>
+            <path class="sim" d={`M${bodyX + bodyW - 30} ${bodyY + bodyH - 2} h16 v-14 l-4 -4 h-12 z`} />
+          </g>
+        ) : null}
+      </g>
+    )
+  }
+
+  {
+    kind === 'ap' && !wallPlate && (
+      <g>
+        <rect class="ceiling" x="30" y="22" width="260" height="8" rx="2" />
+        <rect class="mount" x={160 - 28} y="30" width="56" height="8" rx="2" />
+        {apAntennaXs.map((x) => (
+          <path class="stroke-only" d={`M${x} 46 L${x + (x - 160) * 0.25} 76`} />
+        ))}
+        <rect class={outdoor ? 'body heavy' : 'body'} x={160 - apBodyW / 2} y="38" width={apBodyW} height={apBodyH} rx={outdoor ? 10 : 18} />
+        {outdoor ? [-36, -18, 0, 18, 36].map((dx) => <path class="stroke-only" d={`M${160 + dx} 86 v10`} />) : null}
+        <circle class="led" cx="160" cy={38 + apBodyH / 2} r="4" />
+        {arcs.map(([x1, y1, x2, y2], i) => (
+          <path class="wave" d={`M${x1} ${y1} A${[20, 36, 52][i]} ${[20, 36, 52][i]} 0 0 0 ${x2} ${y2}`} style={`opacity:${1 - i * 0.22}`} />
+        ))}
+      </g>
+    )
+  }
+
+  {
+    kind === 'ap' && wallPlate && (
+      <g>
+        <rect class="ceiling" x="40" y="20" width="240" height="160" rx="6" />
+        <rect class="body" x="104" y="52" width="112" height="96" rx="10" />
+        <circle class="led" cx="160" cy="68" r="4" />
+        {plateCells.map((p) => (
+          <rect class="port" x={128 + p.x} y={90 + p.y} width="12" height="12" rx="1.5" />
+        ))}
+        {arcs.slice(0, 2).map(([x1, y1, x2, y2], i) => (
+          <path class="wave" d={`M${x1 + 0} ${y1 - 60} A${[20, 36][i]} ${[20, 36][i]} 0 0 1 ${x2} ${y2 - 60}`} style={`opacity:${1 - i * 0.25}`} />
+        ))}
+      </g>
+    )
+  }
+</svg>
+
+<style>
+  .device-graphic {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .frame {
+    fill: var(--bg-tint);
+  }
+
+  .body,
+  .ear,
+  .mount,
+  .antenna,
+  .slot {
+    stroke: var(--navy-900);
+    stroke-width: 2;
+  }
+
+  .body {
+    fill: var(--white);
+  }
+
+  .heavy {
+    stroke-width: 3.5;
+  }
+
+  .ear,
+  .mount,
+  .antenna {
+    fill: var(--navy-700);
+  }
+
+  .slot {
+    fill: var(--bg-tint);
+    stroke-width: 1.2;
+  }
+
+  .ceiling {
+    fill: var(--border);
+  }
+
+  .port {
+    fill: var(--bg-tint);
+    stroke: var(--navy-900);
+    stroke-width: 1;
+  }
+
+  .cage {
+    fill: var(--accent);
+    stroke: var(--navy-900);
+    stroke-width: 1.2;
+  }
+
+  .sim {
+    fill: var(--accent);
+    stroke: var(--navy-900);
+    stroke-width: 1.2;
+  }
+
+  .led {
+    fill: var(--accent);
+  }
+
+  .wave {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  .stroke-only {
+    fill: none;
+    stroke: var(--navy-900);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+</style>

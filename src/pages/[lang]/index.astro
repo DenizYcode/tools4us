@@ -1,17 +1,165 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Section from '../../components/Section.astro';
+import FamilyCard from '../../components/FamilyCard.astro';
+import ComingSoonTile from '../../components/ComingSoonTile.astro';
+import StoryCardPlaceholder from '../../components/StoryCardPlaceholder.astro';
+import HeroGraphic from '../../components/graphics/HeroGraphic.astro';
 import { locales, t, type Lang } from '../../i18n';
+import { LAUNCH_FAMILIES, LATER_FAMILIES } from '../../i18n/routes';
 
 export function getStaticPaths() {
   return locales.map((lang) => ({ params: { lang } }));
 }
 
 const lang = Astro.params.lang as Lang;
+const stories = ['new', 'licence', 'security'] as const;
+const shortcuts = ['recommend', 'legacy', 'compare'] as const;
 ---
 
-<Base lang={lang} title={t(lang, 'site.name')} switchPath="">
-  <h1>{t(lang, 'site.name')}</h1>
-  <p>{t(lang, 'site.tagline')}</p>
-  <h2>{t(lang, 'hub.soon.title')}</h2>
-  <p>{t(lang, 'hub.soon.body')}</p>
+<Base lang={lang} title={`${t(lang, 'site.name')}: ${t(lang, 'hero.title')}`} switchPath="" current="home">
+  <Section tone="navy" labelledby="hero-title" class="hero">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">{t(lang, 'hero.eyebrow')}</p>
+        <h1 id="hero-title">{t(lang, 'hero.title')}</h1>
+        <p class="lead">{t(lang, 'hero.lead')}</p>
+        <a class="button" href="#families">{t(lang, 'hero.cta')}</a>
+      </div>
+      <div class="hero-art"><HeroGraphic /></div>
+    </div>
+  </Section>
+
+  <Section labelledby="families-title">
+    <h2 id="families" class="anchor">
+      <span id="families-title">{t(lang, 'families.title')}</span>
+    </h2>
+    <ul class="grid three">
+      {
+        LAUNCH_FAMILIES.map((family) => (
+          <li>
+            <FamilyCard lang={lang} family={family} />
+          </li>
+        ))
+      }
+    </ul>
+    <h3 class="later-title">{t(lang, 'families.later')}</h3>
+    <ul class="grid three later">
+      {
+        LATER_FAMILIES.map((family) => (
+          <li>
+            <ComingSoonTile title={t(lang, `tbd.${family}`)} badge={t(lang, 'soon.badge')} />
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <Section tone="soft" labelledby="stories-title">
+    <h2 id="stories-title">{t(lang, 'stories.title')}</h2>
+    <ul class="grid three">
+      {
+        stories.map((story) => (
+          <li>
+            <StoryCardPlaceholder category={t(lang, `stories.cat.${story}`)} text={t(lang, 'stories.soon.body')} badge={t(lang, 'soon.badge')} />
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <Section labelledby="shortcuts-title">
+    <h2 id="shortcuts-title">{t(lang, 'shortcuts.title')}</h2>
+    <ul class="grid three">
+      {
+        shortcuts.map((shortcut) => (
+          <li>
+            <ComingSoonTile title={t(lang, `shortcuts.${shortcut}.title`)} text={t(lang, `shortcuts.${shortcut}.body`)} badge={t(lang, 'soon.badge')} />
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
 </Base>
+
+<style>
+  .hero-grid {
+    display: grid;
+    gap: var(--space-6);
+    align-items: center;
+  }
+
+  .eyebrow {
+    margin: 0 0 var(--space-3);
+    color: var(--accent-bright);
+    font-size: var(--text-small);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .lead {
+    max-width: 38rem;
+    margin-bottom: var(--space-5);
+    color: var(--on-navy-muted);
+    font-size: var(--text-lead);
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-5);
+    background: var(--accent);
+    color: var(--white);
+    font-weight: 650;
+    text-decoration: none;
+    border-radius: var(--radius-s);
+    border: 2px solid var(--accent-bright);
+  }
+
+  .button:hover {
+    background: var(--accent-strong);
+    color: var(--white);
+  }
+
+  .hero-art {
+    max-width: 30rem;
+    justify-self: center;
+    width: 100%;
+  }
+
+  .anchor {
+    scroll-margin-top: var(--space-5);
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .later-title {
+    margin: var(--space-7) 0 var(--space-4);
+    color: var(--muted);
+  }
+
+  .later .grid,
+  .later {
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 40em) {
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 56em) {
+    .hero-grid {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+  }
+</style>

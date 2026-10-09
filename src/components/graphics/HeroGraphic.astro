@@ -1,0 +1,97 @@
+---
+// Original hero art: a small network map with the three launch device types. Drawn on navy,
+// using only the bright accent and the on-navy colours so it passes the contrast check.
+import { wifiArc } from '../../lib/graphic-layout.mjs';
+
+const arcs = [16, 30, 44].map((r) => wifiArc(0, 0, r));
+const ports = Array.from({ length: 8 }, (_, i) => i);
+---
+
+<svg class="hero-graphic" viewBox="0 0 480 320" aria-hidden="true" focusable="false">
+  <!-- links -->
+  <path class="link" d="M240 92 V150" />
+  <path class="link" d="M240 150 C240 190 120 176 110 226" />
+  <path class="link" d="M240 150 C240 190 360 176 372 226" />
+
+  <!-- cloud -->
+  <g class="cloud">
+    <circle cx="214" cy="68" r="22" />
+    <circle cx="246" cy="56" r="30" />
+    <circle cx="280" cy="70" r="20" />
+    <rect x="214" y="66" width="66" height="26" rx="2" />
+  </g>
+
+  <!-- router -->
+  <g transform="translate(160 138)">
+    <rect class="box" x="0" y="0" width="160" height="38" rx="7" />
+    <rect class="accent-fill" x="14" y="12" width="18" height="14" rx="2" />
+    <rect class="accent-fill" x="38" y="12" width="18" height="14" rx="2" />
+    {[0, 1, 2, 3].map((i) => <rect class="port" x={78 + i * 16} y="13" width="11" height="12" rx="1.5" />)}
+    <rect class="rod" x="24" y="-26" width="5" height="28" rx="2.5" />
+    <rect class="rod" x="132" y="-26" width="5" height="28" rx="2.5" />
+  </g>
+
+  <!-- switch -->
+  <g transform="translate(40 226)">
+    <rect class="box" x="0" y="0" width="140" height="36" rx="6" />
+    {ports.map((i) => <rect class="port" x={14 + i * 14} y="9" width="10" height="10" rx="1.5" />)}
+    {ports.map((i) => <rect class="port" x={14 + i * 14} y="21" width="10" height="10" rx="1.5" />)}
+    <rect class="accent-fill" x="120" y="9" width="14" height="10" rx="2" />
+    <rect class="accent-fill" x="120" y="21" width="14" height="10" rx="2" />
+  </g>
+
+  <!-- access point with waves -->
+  <g transform="translate(372 226)">
+    <rect class="box" x="-46" y="0" width="92" height="30" rx="15" />
+    <circle class="accent-fill" cx="0" cy="15" r="4" />
+    {arcs.map(([x1, y1, x2, y2], i) => (
+      <path class="wave" d={`M${x1} ${y1 + 40} A${[16, 30, 44][i]} ${[16, 30, 44][i]} 0 0 0 ${x2} ${y2 + 40}`} style={`opacity:${1 - i * 0.22}`} />
+    ))}
+  </g>
+</svg>
+
+<style>
+  .hero-graphic {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .link,
+  .wave {
+    fill: none;
+    stroke: var(--accent-bright);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .link {
+    stroke-dasharray: 2 9;
+  }
+
+  .cloud {
+    fill: var(--navy-700);
+    stroke: var(--on-navy-muted);
+    stroke-width: 0;
+  }
+
+  .box {
+    fill: var(--navy-700);
+    stroke: var(--on-navy-muted);
+    stroke-width: 2.5;
+  }
+
+  .port {
+    fill: var(--navy-900);
+    stroke: var(--on-navy-muted);
+    stroke-width: 1.2;
+  }
+
+  .accent-fill {
+    fill: var(--accent-bright);
+  }
+
+  .rod {
+    fill: var(--on-navy-muted);
+  }
+</style>

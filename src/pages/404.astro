@@ -1,15 +1,34 @@
 ---
 import Base from '../layouts/Base.astro';
+import Section from '../components/Section.astro';
 import { t, localePath } from '../i18n';
 ---
 
-<Base lang="tr" title={`${t('tr', 'notFound.title')} · ${t('en', 'notFound.title')}`} bilingual>
-  <h1>{t('tr', 'notFound.title')}</h1>
-  <p>{t('tr', 'notFound.body')}</p>
-  <h2 lang="en">{t('en', 'notFound.title')}</h2>
-  <p lang="en">{t('en', 'notFound.body')}</p>
-  <ul class="link-list">
-    <li><a href={localePath('tr')} lang="tr">{t('tr', 'notFound.linkTr')}</a></li>
-    <li><a href={localePath('en')} lang="en">{t('en', 'notFound.linkEn')}</a></li>
-  </ul>
+<Base lang="tr" title={`${t('tr', 'notFound.title')} · ${t('en', 'notFound.title')} · ${t('tr', 'site.name')}`} bilingual>
+  <Section labelledby="nf-title">
+    <h1 id="nf-title">{t('tr', 'notFound.title')}</h1>
+    <p>{t('tr', 'notFound.body')}</p>
+    <h2 lang="en">{t('en', 'notFound.title')}</h2>
+    <p lang="en">{t('en', 'notFound.body')}</p>
+    <ul class="links">
+      <li><a href={localePath('tr')} lang="tr">{t('tr', 'notFound.linkTr')}</a></li>
+      <li><a href={localePath('en')} lang="en">{t('en', 'notFound.linkEn')}</a></li>
+    </ul>
+  </Section>
 </Base>
+
+<style>
+  .links {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-4) 0 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+</style>

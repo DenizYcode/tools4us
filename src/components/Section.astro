@@ -1,0 +1,43 @@
+---
+interface Props {
+  tone?: 'default' | 'soft' | 'navy';
+  // id of the heading inside the section, so the region is named for assistive technology
+  labelledby?: string;
+  class?: string;
+}
+
+const { tone = 'default', labelledby, class: extra = '' } = Astro.props;
+---
+
+<section class:list={['section', tone, extra]} aria-labelledby={labelledby}>
+  <div class="container">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-block: var(--space-7);
+  }
+
+  .soft {
+    background: var(--bg-soft);
+  }
+
+  .navy {
+    background: var(--navy-900);
+    color: var(--on-navy);
+  }
+
+  .navy :global(h1),
+  .navy :global(h2),
+  .navy :global(h3) {
+    color: var(--on-navy);
+  }
+
+  @media (min-width: 48em) {
+    .section {
+      padding-block: var(--space-8);
+    }
+  }
+</style>

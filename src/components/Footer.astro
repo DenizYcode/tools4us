@@ -13,3 +13,22 @@ const { langs } = Astro.props;
     {langs.map((lang) => <p lang={lang}>{t(lang, 'footer.disclaimer')}</p>)}
   </div>
 </footer>
+
+<style>
+  .site-footer {
+    background: var(--bg-soft);
+    border-top: 1px solid var(--border);
+    padding-block: var(--space-6);
+    color: var(--muted);
+    font-size: var(--text-body);
+  }
+
+  .site-footer p {
+    max-width: 62rem;
+    margin: 0 0 var(--space-3);
+  }
+
+  .site-footer p:last-child {
+    margin-bottom: 0;
+  }
+</style>

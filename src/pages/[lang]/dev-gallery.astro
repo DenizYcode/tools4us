@@ -1,0 +1,94 @@
+---
+// Developer-only gallery of every graphic and edge case, for visual checks. It exists only under
+// `astro dev`: getStaticPaths returns nothing in a production build, so it is never published.
+import Base from '../../layouts/Base.astro';
+import Section from '../../components/Section.astro';
+import FamilyGraphic from '../../components/graphics/FamilyGraphic.astro';
+import DeviceGraphic from '../../components/graphics/DeviceGraphic.astro';
+import HeroGraphic from '../../components/graphics/HeroGraphic.astro';
+import { locales, type Lang } from '../../i18n';
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? locales.map((lang) => ({ params: { lang } })) : [];
+}
+
+const lang = Astro.params.lang as Lang;
+
+// Synthetic examples shaped like catalog values. They are not real models and never leave dev.
+const devices = [
+  { name: 'switch rack 8 ports, 2 uplinks', props: { kind: 'switch', form: 'rack', ports: 8, uplinks: 2 } },
+  { name: 'switch rack 24 ports, 4 uplinks', props: { kind: 'switch', form: 'rack', ports: 24, uplinks: 4 } },
+  { name: 'switch rack 28 ports', props: { kind: 'switch', form: 'rack', ports: 28, uplinks: 4 } },
+  { name: 'switch rack 48 ports, 4 uplinks', props: { kind: 'switch', form: 'rack', ports: 48, uplinks: 4 } },
+  { name: 'switch desktop 8 ports', props: { kind: 'switch', form: 'desktop', ports: 8, uplinks: 2 } },
+  { name: 'switch desktop 16 ports', props: { kind: 'switch', form: 'desktop', ports: 16 } },
+  { name: 'switch rugged 8 ports, 2 uplinks', props: { kind: 'switch', form: 'rugged', ports: 8, uplinks: 2 } },
+  { name: 'switch chassis, 8 slots', props: { kind: 'switch', form: 'chassis', slots: 8 } },
+  { name: 'switch 96 ports (stress)', props: { kind: 'switch', form: 'rack', ports: 96, uplinks: 8 } },
+  { name: 'switch 0 ports (empty)', props: { kind: 'switch', form: 'rack', ports: 0 } },
+  { name: 'AP indoor', props: { kind: 'ap', environment: 'indoor' } },
+  { name: 'AP outdoor, 4 external antennas', props: { kind: 'ap', environment: 'outdoor', externalAntennas: 4 } },
+  { name: 'AP indoor, 2 external antennas', props: { kind: 'ap', environment: 'indoor', externalAntennas: 2 } },
+  { name: 'AP wall plate, 4 ports', props: { kind: 'ap', wallPlate: true, ports: 4 } },
+  { name: 'router desktop, 8 ports', props: { kind: 'router', form: 'desktop', ports: 8, uplinks: 2 } },
+  { name: 'router desktop, cellular + 2 antennas', props: { kind: 'router', form: 'desktop', ports: 4, uplinks: 1, cellular: true, externalAntennas: 2 } },
+  { name: 'router rack 2U, 12 ports', props: { kind: 'router', form: 'rack', rackUnits: 2, ports: 12, uplinks: 4 } },
+  { name: 'router rugged, 8 ports', props: { kind: 'router', form: 'rugged', ports: 8, cellular: true } },
+] as const;
+---
+
+<Base lang={lang} title="Graphics gallery (dev only)">
+  <Section labelledby="g-title">
+    <h1 id="g-title">Graphics gallery (dev only)</h1>
+    <h2>Family graphics</h2>
+    <ul class="grid">
+      <li><FamilyGraphic family="switching" /></li>
+      <li><FamilyGraphic family="wireless" /></li>
+      <li><FamilyGraphic family="routing" /></li>
+    </ul>
+    <h2>Device graphics</h2>
+    <ul class="grid">
+      {
+        devices.map((d) => (
+          <li>
+            <DeviceGraphic {...d.props} />
+            <p>{d.name}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <h2>Hero</h2>
+    <div class="hero"><HeroGraphic /></div>
+    <h2>Turkish glyph test</h2>
+    <p class="glyphs">ı İ ş Ş ğ Ğ ç Ç ö Ö ü Ü — <strong>ıİşŞğĞçÇöÖüÜ</strong> — <em>ıİşŞğĞçÇöÖüÜ</em></p>
+  </Section>
+</Base>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--space-4);
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .grid p {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-small);
+    color: var(--muted);
+  }
+
+  .hero {
+    background: var(--navy-900);
+    padding: var(--space-5);
+    border-radius: var(--radius-m);
+    max-width: 32rem;
+    margin-bottom: var(--space-6);
+  }
+
+  .glyphs {
+    font-size: 1.5rem;
+  }
+</style>

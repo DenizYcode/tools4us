@@ -1,0 +1,159 @@
+---
+// Original vector illustrations of the three launch families. Same frame, stroke weight and
+// background on all of them, so cards line up. Decorative: the card text names the family.
+import { wifiArc } from '../../lib/graphic-layout.mjs';
+
+interface Props {
+  family: 'switching' | 'wireless' | 'routing';
+}
+
+const { family } = Astro.props;
+
+const arcs = [22, 40, 58].map((r) => wifiArc(160, 84, r));
+const copper = Array.from({ length: 24 }, (_, i) => ({ x: 52 + (i % 12) * 11.5, y: i < 12 ? 90 : 106 }));
+---
+
+<svg class="family-graphic" viewBox="0 0 320 200" aria-hidden="true" focusable="false">
+  <rect class="frame" x="0" y="0" width="320" height="200" rx="14"></rect>
+
+  {
+    family === 'switching' && (
+      <g>
+        <rect class="ear" x="28" y="82" width="8" height="46" rx="2" />
+        <rect class="ear" x="284" y="82" width="8" height="46" rx="2" />
+        <rect class="body" x="36" y="78" width="248" height="52" rx="6" />
+        {copper.map((p) => (
+          <rect class="port" x={p.x} y={p.y} width="9" height="9" rx="1.5" />
+        ))}
+        {[214, 240].flatMap((x) => [90, 108].map((y) => <rect class="cage" x={x} y={y} width="20" height="11" rx="2" />))}
+        <path class="cable" d="M63 115 C63 150 84 156 90 182" />
+        <path class="cable" d="M121 115 C121 146 140 152 146 182" />
+        <path class="cable" d="M224 119 C224 150 212 160 206 182" />
+        <circle class="led" cx="46" cy="90" r="2" />
+        <circle class="led" cx="46" cy="98" r="2" />
+      </g>
+    )
+  }
+
+  {
+    family === 'wireless' && (
+      <g>
+        <rect class="ceiling" x="30" y="22" width="260" height="8" rx="2" />
+        <rect class="mount" x="132" y="30" width="56" height="8" rx="2" />
+        <rect class="body" x="100" y="38" width="120" height="36" rx="18" />
+        <circle class="led" cx="160" cy="58" r="4" />
+        {arcs.map(([x1, y1, x2, y2], i) => (
+          <path class="wave" d={`M${x1} ${y1} A${[22, 40, 58][i]} ${[22, 40, 58][i]} 0 0 0 ${x2} ${y2}`} style={`opacity:${1 - i * 0.2}`} />
+        ))}
+        <rect class="body" x="52" y="152" width="48" height="28" rx="3" />
+        <path class="stroke-only" d="M44 184 H108" />
+        <rect class="body" x="228" y="146" width="20" height="36" rx="4" />
+        <circle class="led" cx="238" cy="174" r="2" />
+      </g>
+    )
+  }
+
+  {
+    family === 'routing' && (
+      <g>
+        <g>
+          <circle class="cloud" cx="140" cy="46" r="15" />
+          <circle class="cloud" cx="165" cy="38" r="21" />
+          <circle class="cloud" cx="190" cy="48" r="14" />
+          <rect class="cloud" x="140" y="46" width="50" height="16" />
+          <circle class="cloud-fill" cx="140" cy="46" r="13.5" />
+          <circle class="cloud-fill" cx="165" cy="38" r="19.5" />
+          <circle class="cloud-fill" cx="190" cy="48" r="12.5" />
+          <rect class="cloud-fill" x="140" y="46" width="50" height="14.5" />
+        </g>
+        <path class="link" d="M160 64 V118" />
+        <rect class="antenna" x="84" y="92" width="6" height="28" rx="3" />
+        <rect class="antenna" x="230" y="92" width="6" height="28" rx="3" />
+        <rect class="body" x="64" y="118" width="192" height="46" rx="8" />
+        <rect class="cage" x="82" y="134" width="22" height="14" rx="2" />
+        <rect class="cage" x="110" y="134" width="22" height="14" rx="2" />
+        {[0, 1, 2, 3].map((i) => (
+          <rect class="port" x={156 + i * 18} y="136" width="12" height="12" rx="1.5" />
+        ))}
+        <circle class="led" cx="232" cy="141" r="3" />
+      </g>
+    )
+  }
+</svg>
+
+<style>
+  .family-graphic {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .frame {
+    fill: var(--bg-tint);
+  }
+
+  .body,
+  .ear,
+  .mount,
+  .antenna {
+    stroke: var(--navy-900);
+    stroke-width: 2;
+  }
+
+  .body {
+    fill: var(--white);
+  }
+
+  .ear,
+  .mount,
+  .antenna {
+    fill: var(--navy-700);
+  }
+
+  .ceiling {
+    fill: var(--border);
+  }
+
+  .port {
+    fill: var(--bg-tint);
+    stroke: var(--navy-900);
+    stroke-width: 1.2;
+  }
+
+  .cage {
+    fill: var(--accent);
+    stroke: var(--navy-900);
+    stroke-width: 1.2;
+  }
+
+  .led {
+    fill: var(--accent);
+  }
+
+  .cable,
+  .link,
+  .wave {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  .link {
+    stroke-dasharray: 2 7;
+  }
+
+  .stroke-only {
+    stroke: var(--navy-900);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .cloud {
+    fill: var(--navy-900);
+  }
+
+  .cloud-fill {
+    fill: var(--white);
+  }
+</style>
