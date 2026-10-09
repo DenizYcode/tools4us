@@ -1,6 +1,7 @@
 // Minimal RFC 4180 CSV reader (quoted fields, doubled quotes, newlines inside quotes).
-// Returns rows as objects keyed by the header. `line` is the physical line number of the header-relative
-// record start, which equals the audit's "CSV row" (header is line 1) for files without multi-line cells.
+// Returns rows as objects keyed by the header. `__line` is the spreadsheet row number: the header is row 1
+// and every record counts once, even when a cell spans several physical lines. This is the "CSV row"
+// numbering used by docs/Phase1_Dataset_Audit.xlsx.
 
 import { readFileSync } from 'node:fs';
 
@@ -49,8 +50,8 @@ export function readLegacyCsv(path) {
   const text = readFileSync(path, 'utf8').replace(/^﻿/, '');
   const [header, ...rest] = parseCsv(text);
   const keys = header.cells.map((k) => k.trim());
-  return rest.map(({ line, cells }) => {
-    const row = { __line: line };
+  return rest.map(({ cells }, index) => {
+    const row = { __line: index + 2 };
     keys.forEach((k, i) => {
       row[k] = (cells[i] ?? '').trim();
     });

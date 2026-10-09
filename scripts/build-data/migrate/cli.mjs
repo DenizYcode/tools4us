@@ -70,6 +70,9 @@ for (const entry of SEED.entries) {
     row.eol_bulletin_url = entry.eol_bulletin_url ?? null;
     if (entry.replacement_none) row.replacement_none = true;
     if (entry.replacement_text) {
+      if (/missing from data/i.test(entry.replacement_text) && !ctx.decisions.some((d) => d.topic === 'Replacement model missing from the data')) {
+        decide(ctx, 'switching', 'Replacement model missing from the data', `${entry.replacement_text}: the audit says these replacements are not in the legacy files (audit #4). They are named in replacement_note on the old models; add them as models, with specs from the datasheet, in Phase 4.`);
+      }
       const { pids, note } = splitReplacement(entry.replacement_text);
       row.replacement_pid = pids.filter((p) => p !== pid);
       row.replacement_note = note;

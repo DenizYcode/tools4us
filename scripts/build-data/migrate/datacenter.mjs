@@ -48,11 +48,12 @@ function management(text) {
   return ['nexus'];
 }
 
-// "1/10/25G; 40/100G uplink" -> downlink [1,10,25], uplink [40,100]. Plain text is all downlink.
+// "1/10/25G; 40/100G uplink" and "1/10/25G + 40/100G uplink" -> downlink [1,10,25], uplink [40,100].
+// Plain text is all downlink.
 function splitSpeeds(text) {
   const down = [];
   const up = [];
-  for (const segment of text.split(';')) (/uplink/i.test(segment) ? up : down).push(...parseGbpsList(segment));
+  for (const segment of text.split(/[;+]/)) (/uplink/i.test(segment) ? up : down).push(...parseGbpsList(segment));
   return { down: [...new Set(down)].sort((a, b) => a - b), up: [...new Set(up)].sort((a, b) => a - b) };
 }
 

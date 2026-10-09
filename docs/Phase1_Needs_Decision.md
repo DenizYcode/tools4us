@@ -29,6 +29,10 @@ Lifecycle values applied from the audit's Lifecycle tab: 92 PIDs. Everything els
 
 - C9606R, C9610R: the legacy data lists line cards but no supervisors or network modules for these chassis, so uplink_gbps stays empty. Add the uplink speeds from the datasheet.
 
+### Replacement model missing from the data (1)
+
+- C9400X-SUP-2 / C9400X-SUP-2XL (missing from data): the audit says these replacements are not in the legacy files (audit #4). They are named in replacement_note on the old models; add them as models, with specs from the datasheet, in Phase 4.
+
 ## wireless
 
 ### Rows split by SKU (19)

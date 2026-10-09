@@ -13,7 +13,8 @@
     "preview": "astro preview",
     "test:data": "node --test \"scripts/**/*.test.mjs\"",
     "build:data": "node scripts/build-data/cli.mjs build",
-    "migrate:legacy": "node scripts/build-data/migrate/cli.mjs"
+    "migrate:legacy": "node scripts/build-data/migrate/cli.mjs",
+    "audit:closure": "node scripts/build-data/audit-closure.mjs"
   },
   "dependencies": {
     "astro": "^7.3.8",
