@@ -1,0 +1,65 @@
+---
+// A shortcut tile on the hub that goes somewhere (the inactive ones stay ComingSoonTile).
+interface Props {
+  href: string;
+  title: string;
+  text: string;
+  cta: string;
+}
+
+const { href, title, text, cta } = Astro.props;
+---
+
+<article class="tile">
+  <h3><a href={href}>{title}</a></h3>
+  <p>{text}</p>
+  <span class="cta" aria-hidden="true">{cta} →</span>
+</article>
+
+<style>
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-5);
+    background: var(--white);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-card);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.0625rem;
+  }
+
+  /* The whole tile is the click target, with one link for assistive technology. */
+  h3 a {
+    color: var(--navy-900);
+    text-decoration: none;
+  }
+
+  h3 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .tile:hover h3 a {
+    color: var(--accent-strong);
+    text-decoration: underline;
+  }
+
+  p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .cta {
+    margin-top: auto;
+    color: var(--accent-strong);
+    font-weight: 650;
+  }
+</style>

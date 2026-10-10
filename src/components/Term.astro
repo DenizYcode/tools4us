@@ -1,0 +1,107 @@
+---
+// A technical term with a plain-language explanation from the glossary (SPEC "Info boxes"). The explanation
+// opens from a 44 px "?" button, works on touch and keyboard (Escape closes it) and never needs hover.
+import { glossaryEntry } from '../lib/catalog';
+import { tf, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  // glossary key, e.g. "mgig"
+  term: string;
+  // visible text; defaults to the glossary term
+  label?: string;
+  // set when the same term appears twice on one page
+  idSuffix?: string;
+}
+
+const { lang, term, label, idSuffix = '' } = Astro.props;
+const entry = glossaryEntry(lang, term);
+const text = label ?? entry.term;
+const id = `term-${term}${idSuffix}`;
+---
+
+<span class="term">
+  <span class="label">{text}</span>
+  <button type="button" class="help" aria-expanded="false" aria-controls={id} aria-label={tf(lang, 'note.glossaryOpen', { term: entry.term })}>
+    <span aria-hidden="true">?</span>
+  </button>
+  <span class="tip" id={id} role="note" hidden>{entry.meaning}</span>
+</span>
+
+<style>
+  .term {
+    display: inline;
+  }
+
+  .help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap);
+    height: var(--tap);
+    margin: calc((1.5rem - var(--tap)) / 2) calc(-0.5 * var(--space-2)) calc((1.5rem - var(--tap)) / 2) 0;
+    padding: 0;
+    vertical-align: middle;
+    background: none;
+    border: 0;
+    color: var(--accent);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .help span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    font-size: 0.8125rem;
+    line-height: 1;
+  }
+
+  .help:hover {
+    color: var(--accent-strong);
+  }
+
+  .tip[hidden] {
+    display: none;
+  }
+
+  .tip {
+    display: block;
+    margin: var(--space-1) 0 var(--space-2);
+    padding: var(--space-3);
+    background: var(--bg-tint);
+    border-radius: var(--radius-s);
+    color: var(--ink);
+    font-size: var(--text-small);
+    font-weight: 400;
+    line-height: 1.5;
+  }
+</style>
+
+<script>
+  // One shared handler for every term on the page.
+  document.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.term .help');
+    if (!button) return;
+    event.preventDefault();
+    const tip = document.getElementById(button.getAttribute('aria-controls') ?? '');
+    if (!tip) return;
+    const open = button.getAttribute('aria-expanded') === 'true';
+    button.setAttribute('aria-expanded', String(!open));
+    tip.hidden = open;
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    for (const button of document.querySelectorAll<HTMLButtonElement>('.term .help[aria-expanded="true"]')) {
+      button.setAttribute('aria-expanded', 'false');
+      const tip = document.getElementById(button.getAttribute('aria-controls') ?? '');
+      if (tip) tip.hidden = true;
+      button.focus();
+    }
+  });
+</script>

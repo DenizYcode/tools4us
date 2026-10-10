@@ -1,18 +1,18 @@
 ---
-// Family page stubs. They name the family and say what it is for, and never list models:
-// nothing is published until its rows are ready (hard rule: only verified, current models appear).
-import Base from '../../layouts/Base.astro';
-import Section from '../../components/Section.astro';
-import FamilyGraphic from '../../components/graphics/FamilyGraphic.astro';
-import { locales, t, localePath, type Lang } from '../../i18n';
-import { LAUNCH_FAMILIES, SLUGS, familySwitchPath, type Family } from '../../i18n/routes';
+// Family page stub for families that are not built yet (Switching and Routing, Phase 4). It names the family
+// and says what it is for, and never lists models: nothing is published until its rows are verified.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import FamilyGraphic from './graphics/FamilyGraphic.astro';
+import { t, localePath, type Lang } from '../i18n';
+import { familySwitchPath, type Family } from '../i18n/routes';
 
-export function getStaticPaths() {
-  return locales.flatMap((lang) => LAUNCH_FAMILIES.map((family) => ({ params: { lang, family: SLUGS[lang][family] }, props: { family } })));
+interface Props {
+  lang: Lang;
+  family: Family;
 }
 
-const lang = Astro.params.lang as Lang;
-const { family } = Astro.props as { family: Family };
+const { lang, family } = Astro.props;
 ---
 
 <Base lang={lang} title={`${t(lang, `family.${family}.name`)} · ${t(lang, 'site.name')}`} switchPath={familySwitchPath(lang, family)} current={family}>

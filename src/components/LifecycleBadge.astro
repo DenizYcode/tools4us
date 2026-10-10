@@ -1,0 +1,33 @@
+---
+// Current / End-of-Sale announced / End-of-Sale reached. Colour is never the only signal: the text says it.
+import { td, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  lifecycle: string;
+}
+
+const { lang, lifecycle } = Astro.props;
+---
+
+<span class:list={['life', lifecycle]}>{td(lang, `val.life.${lifecycle}`)}</span>
+
+<style>
+  .life {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0 var(--space-3);
+    border-radius: 999px;
+    background: var(--bg-tint);
+    color: var(--accent-strong);
+    font-size: var(--text-small);
+    font-weight: 650;
+  }
+
+  .eos_announced,
+  .eos {
+    background: var(--eos-bg);
+    color: var(--eos-ink);
+  }
+</style>

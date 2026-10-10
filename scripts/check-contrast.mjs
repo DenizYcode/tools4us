@@ -42,6 +42,12 @@ const PAIRS = [
   ['focus', 'bg', 3, 'focus ring on white'],
   ['focus', 'bg-soft', 3, 'focus ring on soft panels'],
   ['focus-on-navy', 'navy-900', 3, 'focus ring on navy'],
+  ['warn-ink', 'warn-bg', 4.5, 'caution note text'],
+  ['warn-edge', 'bg', 3, 'caution note edge'],
+  ['eos-ink', 'eos-bg', 4.5, 'End-of-Sale badge and banner text'],
+  ['eos-edge', 'bg', 3, 'End-of-Sale banner edge'],
+  ['ink', 'warn-bg', 4.5, 'body text inside a caution note'],
+  ['ink', 'eos-bg', 4.5, 'body text inside an End-of-Sale banner'],
   ['accent-bright', 'navy-900', 4.5, 'accent text and graphics on navy'],
   ['accent-bright', 'navy-700', 4.5, 'accent text and graphics on mid navy'],
 ];

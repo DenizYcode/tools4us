@@ -1,13 +1,13 @@
 ---
 import { t, localePath, type Lang } from '../i18n';
-import { LAUNCH_FAMILIES, familyPath, type Family } from '../i18n/routes';
+import { LAUNCH_FAMILIES, familyPath, comparePath, type Family } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
   // Full URL of the same page in the other language. Omit to hide the toggle.
   switchHref?: string;
   switchLang?: Lang;
-  current?: Family | 'home';
+  current?: Family | 'home' | 'compare';
 }
 
 const { lang, switchHref, switchLang, current } = Astro.props;
@@ -16,6 +16,7 @@ const { lang, switchHref, switchLang, current } = Astro.props;
 <header class="site-header">
   <div class="container inner">
     <a class="wordmark" href={localePath(lang)} aria-label={t(lang, 'nav.home')}>Tools<span class="four" aria-hidden="true">4</span>Us</a>
+    <a class="tool-link" href={comparePath(lang)} aria-current={current === 'compare' ? 'page' : undefined}>{t(lang, 'compare.title')}</a>
     {
       switchHref !== undefined && switchLang && (
         <a class="lang-toggle" href={switchHref} lang={switchLang} hreflang={switchLang}>
@@ -49,10 +50,10 @@ const { lang, switchHref, switchLang, current } = Astro.props;
      order too, so Tab follows what you see. On phones the links drop to a second row. */
   .inner {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     grid-template-areas:
-      'brand toggle'
-      'nav nav';
+      'brand tool toggle'
+      'nav nav nav';
     align-items: center;
     column-gap: var(--space-4);
   }
@@ -76,6 +77,27 @@ const { lang, switchHref, switchLang, current } = Astro.props;
 
   .four {
     color: var(--accent-bright);
+  }
+
+  .tool-link {
+    grid-area: tool;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: var(--space-2);
+    color: var(--on-navy-muted);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+  }
+
+  .tool-link:hover {
+    color: var(--on-navy);
+  }
+
+  .tool-link[aria-current='page'] {
+    color: var(--on-navy);
+    border-bottom-color: var(--accent-bright);
   }
 
   .lang-toggle {
@@ -136,8 +158,8 @@ const { lang, switchHref, switchLang, current } = Astro.props;
 
   @media (min-width: 48em) {
     .inner {
-      grid-template-columns: auto auto 1fr;
-      grid-template-areas: 'brand toggle nav';
+      grid-template-columns: auto auto auto 1fr;
+      grid-template-areas: 'brand tool toggle nav';
       column-gap: var(--space-6);
       min-height: 3.5rem;
     }

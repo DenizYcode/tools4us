@@ -18,6 +18,12 @@
   --on-navy-muted: #c5d3ea;
   --border: #d3dce8; /* decorative dividers and card edges */
   --border-strong: #66768d; /* edges of controls, must reach 3:1 */
+  --warn-bg: #fff3d1; /* caution notes: PoE warnings, 6 GHz note */
+  --warn-ink: #5a3a00;
+  --warn-edge: #9a6700;
+  --eos-bg: #f9e3e3; /* End-of-Sale badge and banner */
+  --eos-ink: #7a1a1a;
+  --eos-edge: #a33a3a;
   --focus: #007482;
   --focus-on-navy: #ffffff;
 

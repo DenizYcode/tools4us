@@ -20,7 +20,8 @@ export const ROWS = [
   ['poe_supported', (c) => [...c.poe_supported].sort()],
   ['features', (c) => [...c.features].sort()],
   ['rugged', (c) => c.rugged],
-  ['licence', (c) => c.text.tr.licence],
+  // The page passes a ready-made `licence` in the reader's language; full cards fall back to the Turkish text.
+  ['licence', (c) => (c.licence !== undefined ? c.licence : c.text.tr.licence)],
 ];
 
 /** Parses ?m=a,b,c into at most MAX_COMPARE known slugs, in order, without duplicates. */

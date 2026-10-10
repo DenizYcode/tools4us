@@ -23,3 +23,20 @@ export function localePath(lang: Lang, path = ''): string {
   const clean = path.replace(/^\/+/, '');
   return `${base}/${lang}/${clean}`;
 }
+
+/** Fills {name} placeholders: tf('tr', 'list.seriesCount', { n: 3 }). */
+export function tf(lang: Lang, key: Key, vars: Record<string, string | number> = {}): string {
+  return t(lang, key).replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? `{${name}}`));
+}
+
+/** Text for a key built at run time (value labels such as val.poe.bt). A missing key fails the build, not the reader. */
+export function td(lang: Lang, key: string): string {
+  const value = (dictionaries[lang] as Record<string, string>)[key];
+  if (value === undefined) throw new Error(`Missing i18n key "${key}" (${lang})`);
+  return value;
+}
+
+/** Every string under a prefix, for pages whose scripts need their own text: tp('tr', 'filters.') */
+export function tp(lang: Lang, prefix: string): Record<string, string> {
+  return Object.fromEntries(Object.entries(dictionaries[lang] as Record<string, string>).filter(([key]) => key.startsWith(prefix)));
+}

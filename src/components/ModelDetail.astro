@@ -1,0 +1,325 @@
+---
+// Model detail page: plain-language summary, key specs, power for full function, licence, ordering codes,
+// sources. End-of-Sale models get a banner with the last order date and links to the replacement models.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import DeviceGraphic from './graphics/DeviceGraphic.astro';
+import LifecycleBadge from './LifecycleBadge.astro';
+import ExtLink from './ExtLink.astro';
+import Term from './Term.astro';
+import { t, tf, td, tp, type Lang } from '../i18n';
+import { familyPath, modelSwitchPath, comparePath, selectorPath, modelPath } from '../i18n/routes';
+import { textOf, hasSixGhz, replacementCards, wirelessLookup, type Card } from '../lib/catalog';
+import { formatValue } from '../lib/format.mjs';
+
+interface Props {
+  lang: Lang;
+  card: Card;
+}
+
+const { lang, card } = Astro.props;
+const s = tp(lang, 'val.');
+const fmt = (key: string, value: unknown) => formatValue(key, value, s, lang);
+const current = card.lifecycle === 'current';
+const replacements = current ? [] : replacementCards(card, wirelessLookup);
+const poeNote = textOf(card, lang, 'poe_note');
+const licence = textOf(card, lang, 'licence');
+const variantNote = textOf(card, lang, 'variant_note');
+const why = card.recommended ? textOf(card, lang, 'recommended_why') : null;
+const dates = { date: card.last_order ?? '', ldos: card.ldos ?? '–' };
+const specs: [string, unknown][] = [
+  ['wifi_generation', card.wifi_generation],
+  ['environment', card.environment],
+  ['management', card.management],
+  ['bands_ghz', card.bands_ghz],
+  ['spatial_streams', card.spatial_streams],
+  ['radio_config', card.radio_config],
+  ['antenna_type', card.antenna_type],
+  ['uplink_max_gbps', card.uplink_max_gbps],
+  ['port_count', card.port_count],
+  ['features', card.features],
+  ['rugged', card.rugged],
+];
+const termFor: Record<string, string> = { wifi_generation: card.wifi_generation === '7' ? 'wifi_7' : card.wifi_generation === '6e' ? 'wifi_6e' : 'wifi_6' };
+---
+
+<Base lang={lang} title={`${card.name} · ${t(lang, 'family.wireless.name')} · ${t(lang, 'site.name')}`} switchPath={modelSwitchPath(lang, card.slug)} current="wireless">
+  <Section tone="soft" labelledby="model-title">
+    <p class="back"><a href={familyPath(lang, 'wireless')}>← {t(lang, 'detail.back')}</a></p>
+    <div class="intro">
+      <div>
+        <h1 id="model-title">{card.name}</h1>
+        <p class="badges">
+          <LifecycleBadge lang={lang} lifecycle={card.lifecycle} />
+          {card.recommended && <span class="badge rec">{t(lang, 'badge.recommended')}</span>}
+          <span class="badge">{td(lang, `val.gen.${card.wifi_generation}`)}</span>
+          <span class="badge">{td(lang, `val.env.${card.environment}`)}</span>
+        </p>
+        <p class="lead">{textOf(card, lang, 'summary')}</p>
+      </div>
+      <div class="art"><DeviceGraphic kind="ap" environment={card.environment} wallPlate={card.wall_plate} externalAntennas={card.antenna_type === 'external' ? 2 : 0} ports={card.port_count ?? 1} label={`${card.name}, ${td(lang, `val.env.${card.environment}`)}`} /></div>
+    </div>
+  </Section>
+
+  {
+    !current && (
+      <Section labelledby="eos-title">
+        <div class="banner eos" role="note">
+          <h2 id="eos-title">{t(lang, 'detail.eosTitle')}</h2>
+          <p>{tf(lang, card.lifecycle === 'eos' ? 'detail.eosReached' : 'detail.eosAnnounced', dates)}</p>
+          {replacements.length > 0 && (
+            <>
+              <h3>{t(lang, 'detail.replacement')}</h3>
+              <ul class="plain">
+                {replacements.map((r) => (
+                  <li>
+                    <a href={modelPath(lang, r.slug)}>{r.name}</a>: {textOf(r, lang, 'summary')}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {card.eol_bulletin_url && (
+            <p>
+              <ExtLink lang={lang} href={card.eol_bulletin_url}>{t(lang, 'detail.bulletin')}</ExtLink>
+            </p>
+          )}
+        </div>
+      </Section>
+    )
+  }
+
+  <Section labelledby="about-title">
+    <div class="cols">
+      <div>
+        <h2 id="about-title">{t(lang, 'detail.goodFor')}</h2>
+        <p>{textOf(card, lang, 'good_for')}</p>
+        {why && (
+          <>
+            <h3>{t(lang, 'detail.recommendedWhy')}</h3>
+            <p>{why}</p>
+          </>
+        )}
+
+        <h2>{t(lang, 'detail.power')} <Term lang={lang} term="poe" label="" /></h2>
+        <p><strong>{tf(lang, 'detail.powerFull', { poe: fmt('poe_full', card.poe_full) })}</strong> <Term lang={lang} term="poe_full" label="" /></p>
+        <p class="muted">{t(lang, 'spec.poe_supported')}: {fmt('poe_supported', card.poe_supported)}</p>
+        {poeNote && (
+          <div class="banner warn" role="note">
+            <h3>{t(lang, 'detail.powerBelow')}</h3>
+            <p>{poeNote}</p>
+          </div>
+        )}
+        {hasSixGhz(card) && (
+          <div class="banner warn" role="note">
+            <p>{t(lang, 'note.sixghz')} <Term lang={lang} term="six_ghz" label="" /></p>
+          </div>
+        )}
+
+        <h2>{t(lang, 'detail.licence')} <Term lang={lang} term="licence_subscription" label="" /></h2>
+        <p>{licence ?? td(lang, 'val.none')}</p>
+      </div>
+
+      <div>
+        <h2>{t(lang, 'detail.specs')}</h2>
+        <dl class="specs">
+          {specs.map(([key, value]) => (
+            <>
+              <dt>{td(lang, `spec.${key}`)}</dt>
+              <dd>
+                {fmt(key, value)}
+                {termFor[key] && <Term lang={lang} term={termFor[key]} label="" />}
+              </dd>
+            </>
+          ))}
+        </dl>
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="soft" labelledby="variants-title">
+    <h2 id="variants-title">{t(lang, 'detail.variants')}</h2>
+    <p>{t(lang, 'detail.variantsLead')}</p>
+    <ul class="pids">
+      {
+        card.variants.map((v) => (
+          <li>
+            <code>{v.pid}</code>
+            <span class="muted"> · {fmt('management', v.management)}</span>
+          </li>
+        ))
+      }
+    </ul>
+    {variantNote && <p class="muted">{variantNote}</p>}
+  </Section>
+
+  <Section labelledby="sources-title">
+    <h2 id="sources-title">{t(lang, 'detail.sources')}</h2>
+    <ul class="plain">
+      <li><ExtLink lang={lang} href={card.datasheet_url}>{t(lang, 'detail.datasheet')}</ExtLink></li>
+      <li class="muted">{t(lang, 'note.lastVerified')}: {card.last_verified}</li>
+    </ul>
+    <p class="verify"><strong>{t(lang, 'note.verify')}</strong></p>
+    <p class="actions">
+      {current && <a class="button" href={comparePath(lang, [card.slug])}>{t(lang, 'detail.addCompare')}</a>}
+      <a class="button ghost" href={selectorPath(lang)}>{t(lang, 'wireless.selectorCta')}</a>
+    </p>
+  </Section>
+</Base>
+
+<style>
+  .back a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  .intro {
+    display: grid;
+    gap: var(--space-5);
+    align-items: center;
+  }
+
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-4);
+  }
+
+  .rec {
+    background: var(--navy-900);
+    color: var(--on-navy);
+  }
+
+  .lead {
+    max-width: 40rem;
+    margin: 0;
+    font-size: var(--text-lead);
+  }
+
+  .art {
+    width: 100%;
+    max-width: 22rem;
+  }
+
+  .cols {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  .banner {
+    margin: var(--space-4) 0;
+    padding: var(--space-4) var(--space-5);
+    border: 2px solid;
+    border-radius: var(--radius-m);
+  }
+
+  .banner h2,
+  .banner h3 {
+    margin-top: 0;
+  }
+
+  .banner p:last-child {
+    margin-bottom: 0;
+  }
+
+  .warn {
+    background: var(--warn-bg);
+    border-color: var(--warn-edge);
+    color: var(--ink);
+  }
+
+  .eos {
+    background: var(--eos-bg);
+    border-color: var(--eos-edge);
+    color: var(--ink);
+  }
+
+  .specs {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin: 0;
+  }
+
+  .specs dt {
+    margin-top: var(--space-3);
+    color: var(--muted);
+    font-size: var(--text-small);
+    font-weight: 650;
+  }
+
+  .specs dd {
+    margin: 0;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .plain,
+  .pids {
+    margin: 0 0 var(--space-4);
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .pids li {
+    padding: var(--space-2) 0;
+  }
+
+  code {
+    padding: 0.125rem 0.375rem;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    font-size: 0.9375rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-5);
+    background: var(--accent);
+    color: var(--white);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius-s);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .button:hover {
+    background: var(--accent-strong);
+    color: var(--white);
+  }
+
+  .button.ghost {
+    background: var(--white);
+    color: var(--accent-strong);
+    border-color: var(--accent);
+  }
+
+  .button.ghost:hover {
+    background: var(--bg-tint);
+    color: var(--accent-strong);
+  }
+
+  @media (min-width: 48em) {
+    .intro {
+      grid-template-columns: 1fr 20rem;
+    }
+
+    .cols {
+      grid-template-columns: 1.2fr 1fr;
+    }
+  }
+</style>

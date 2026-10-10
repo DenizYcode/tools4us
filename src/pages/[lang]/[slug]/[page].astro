@@ -1,0 +1,21 @@
+---
+// Sub-pages of the Wireless family: one detail page per model card, and the guided selector.
+import ModelDetail from '../../../components/ModelDetail.astro';
+import SelectorPage from '../../../components/SelectorPage.astro';
+import { locales, type Lang } from '../../../i18n';
+import { SLUGS, SELECTOR_SLUG } from '../../../i18n/routes';
+import { wirelessCards, type Card } from '../../../lib/catalog';
+
+export function getStaticPaths() {
+  return locales.flatMap((lang) => [
+    ...wirelessCards.map((card) => ({ params: { lang, slug: SLUGS[lang].wireless, page: card.slug }, props: { kind: 'model' as const, card } })),
+    { params: { lang, slug: SLUGS[lang].wireless, page: SELECTOR_SLUG[lang] }, props: { kind: 'selector' as const, card: null } },
+  ]);
+}
+
+const lang = Astro.params.lang as Lang;
+const { kind, card } = Astro.props as { kind: 'model' | 'selector'; card: Card | null };
+---
+
+{kind === 'selector' && <SelectorPage lang={lang} />}
+{kind === 'model' && card && <ModelDetail lang={lang} card={card} />}

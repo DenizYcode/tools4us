@@ -1,0 +1,361 @@
+---
+// Comparison of 2-4 models side by side. The selection lives in the link (?m=slug,slug), so it can be shared.
+// A script builds the table from the published cards on the page; the first column stays pinned when it scrolls.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import { t, tp, type Lang } from '../i18n';
+import { compareSwitchPath, familyPath, modelPath } from '../i18n/routes';
+import { wirelessCards, textOf } from '../lib/catalog';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const cards = wirelessCards.map((c) => ({
+  slug: c.slug,
+  name: c.name,
+  lifecycle: c.lifecycle,
+  wifi_generation: c.wifi_generation,
+  environment: c.environment,
+  management: c.management,
+  bands_ghz: c.bands_ghz,
+  spatial_streams: c.spatial_streams,
+  radio_config: c.radio_config,
+  antenna_type: c.antenna_type,
+  uplink_max_gbps: c.uplink_max_gbps,
+  port_count: c.port_count,
+  poe_full: c.poe_full,
+  poe_supported: c.poe_supported,
+  features: c.features,
+  rugged: c.rugged,
+  licence: textOf(c, lang, 'licence'),
+}));
+const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spec.'), ...tp(lang, 'note.'), ...tp(lang, 'detail.') };
+---
+
+<Base lang={lang} title={`${t(lang, 'compare.title')} · ${t(lang, 'site.name')}`} switchPath={compareSwitchPath(lang)} current="compare">
+  <Section tone="soft" labelledby="compare-title">
+    <h1 id="compare-title">{t(lang, 'compare.title')}</h1>
+    <p class="lead">{t(lang, 'compare.lead')}</p>
+  </Section>
+
+  <Section labelledby="table-title">
+    <div id="compare-root" data-lang={lang} data-strings={JSON.stringify(strings)} data-model-base={modelPath(lang, '')} data-family-url={familyPath(lang, 'wireless')}>
+      <h2 id="table-title" class="sr">{t(lang, 'compare.table')}</h2>
+      <noscript><p>{t(lang, 'compare.nojs')}</p></noscript>
+      <div class="controls" id="controls" hidden>
+        <label class="check"><input type="checkbox" id="only-diff" /><span>{t(lang, 'compare.onlyDiff')}</span></label>
+        <label class="add">
+          <span>{t(lang, 'compare.add')}</span>
+          <select id="add-model"></select>
+        </label>
+        <button type="button" id="copy-link">{t(lang, 'compare.copy')}</button>
+        <button type="button" id="print">{t(lang, 'compare.print')}</button>
+        <span class="status" id="status" role="status" aria-live="polite"></span>
+      </div>
+      <div id="message"></div>
+      <div class="scroller" id="scroller" tabindex="0" role="region" aria-label={t(lang, 'compare.table')} hidden></div>
+    </div>
+    <script type="application/json" id="compare-cards" set:html={JSON.stringify(cards)} />
+  </Section>
+</Base>
+
+<style>
+  .lead {
+    max-width: 40rem;
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+
+  .controls[hidden],
+  .scroller[hidden] {
+    display: none;
+  }
+
+  .check,
+  .add {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--tap);
+  }
+
+  .add span {
+    white-space: nowrap;
+  }
+
+  .check input {
+    width: 1.375rem;
+    height: 1.375rem;
+    accent-color: var(--accent);
+  }
+
+  select,
+  button {
+    min-height: var(--tap);
+    padding: 0 var(--space-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-s);
+    background: var(--white);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  button {
+    color: var(--accent-strong);
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .status {
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  .scroller {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+  }
+
+  :global(.cmp-table) {
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 100%;
+    background: var(--white);
+  }
+
+  :global(.cmp-table th),
+  :global(.cmp-table td) {
+    min-width: 11rem;
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* The label column stays in view while the models swipe (ui.md). */
+  :global(.cmp-table th[scope='row']),
+  :global(.cmp-table thead th:first-child) {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 8rem;
+    background: var(--bg-soft);
+    border-right: 1px solid var(--border-strong);
+    font-weight: 650;
+    color: var(--navy-900);
+  }
+
+  :global(.cmp-table thead th) {
+    background: var(--bg-soft);
+    color: var(--navy-900);
+  }
+
+  :global(.cmp-table .diff th),
+  :global(.cmp-table .diff td) {
+    background: var(--bg-tint);
+  }
+
+  :global(.cmp-table .remove) {
+    display: block;
+    min-width: var(--tap);
+    min-height: var(--tap);
+    margin-top: var(--space-2);
+    padding: 0 var(--space-3);
+    background: var(--white);
+    color: var(--accent-strong);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-s);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  :global(.cmp-table .tag) {
+    display: inline-block;
+    margin-left: var(--space-2);
+    padding: 0 var(--space-2);
+    background: var(--navy-900);
+    color: var(--on-navy);
+    border-radius: 999px;
+    font-size: var(--text-small);
+  }
+
+  :global(.cmp-table th a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  @media print {
+    .controls,
+    :global(.cmp-table .remove) {
+      display: none !important;
+    }
+
+    .scroller {
+      overflow: visible;
+      border: 0;
+    }
+
+    :global(.cmp-table th),
+    :global(.cmp-table td) {
+      min-width: 0;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8125rem;
+    }
+
+    :global(.cmp-table th[scope='row']) {
+      position: static;
+    }
+  }
+</style>
+
+<script>
+  import { buildRows, parseSelection, MAX_COMPARE, MIN_COMPARE } from '../lib/compare.mjs';
+  import { formatValue } from '../lib/format.mjs';
+
+  const root = document.getElementById('compare-root');
+  if (root) {
+    const lang = root.dataset.lang === 'en' ? 'en' : 'tr';
+    const s = JSON.parse(root.dataset.strings ?? '{}') as Record<string, string>;
+    const base = root.dataset.modelBase ?? '';
+    const familyUrl = root.dataset.familyUrl ?? '#';
+    const all = JSON.parse(document.getElementById('compare-cards')?.textContent ?? '[]') as Array<Record<string, any>>;
+    const bySlug = new Map(all.map((c) => [c.slug as string, c]));
+    const controls = document.getElementById('controls') as HTMLElement;
+    const scroller = document.getElementById('scroller') as HTMLElement;
+    const message = document.getElementById('message') as HTMLElement;
+    const onlyDiff = document.getElementById('only-diff') as HTMLInputElement;
+    const addSelect = document.getElementById('add-model') as HTMLSelectElement;
+    const status = document.getElementById('status') as HTMLElement;
+    const fill = (text: string, vars: Record<string, string>) => text.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? '');
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string) => {
+      const node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+
+    let selection: string[] = parseSelection(new URLSearchParams(location.search).get('m'), [...bySlug.keys()]);
+
+    function syncUrl(): void {
+      const url = new URL(location.href);
+      if (selection.length) url.searchParams.set('m', selection.join(','));
+      else url.searchParams.delete('m');
+      history.replaceState(null, '', url);
+    }
+
+    function removeButton(c: Record<string, any>): HTMLButtonElement {
+      const b = el('button', 'remove', '×');
+      b.type = 'button';
+      b.setAttribute('aria-label', fill(s['compare.remove'], { name: c.name }));
+      b.addEventListener('click', () => {
+        selection = selection.filter((x) => x !== c.slug);
+        render();
+        addSelect.focus();
+      });
+      return b;
+    }
+
+    function render(): void {
+      syncUrl();
+      controls.hidden = false;
+      const chosen = selection.map((slug) => bySlug.get(slug)!);
+
+      addSelect.replaceChildren(new Option(s['compare.addPlaceholder'], ''));
+      for (const c of all) if (!selection.includes(c.slug)) addSelect.append(new Option(c.name, c.slug));
+      addSelect.disabled = selection.length >= MAX_COMPARE;
+      addSelect.value = '';
+
+      message.replaceChildren();
+      if (chosen.length < MIN_COMPARE) {
+        scroller.hidden = true;
+        const link = el('a', '', s['compare.goWireless']);
+        link.href = familyUrl;
+        message.append(el('p', '', chosen.length === 0 ? s['compare.empty'] : s['compare.one']), link);
+        if (chosen.length === 1) {
+          const ul = el('ul');
+          const li = el('li', '', chosen[0].name);
+          li.append(' ', removeButton(chosen[0]));
+          ul.append(li);
+          message.append(ul);
+        }
+        return;
+      }
+
+      const rows = buildRows(chosen);
+      const table = el('table', 'cmp-table');
+      table.setAttribute('aria-label', s['compare.table']);
+      const thead = el('thead');
+      const hr = el('tr');
+      const first = el('th', '', s['compare.row']);
+      first.scope = 'col';
+      hr.append(first);
+      for (const c of chosen) {
+        const th = el('th');
+        th.scope = 'col';
+        const a = el('a', '', c.name);
+        a.href = `${base}${c.slug}/`;
+        th.append(a, removeButton(c));
+        hr.append(th);
+      }
+      thead.append(hr);
+      table.append(thead);
+      const tbody = el('tbody');
+      let shown = 0;
+      for (const row of rows) {
+        if (onlyDiff.checked && !row.differs) continue;
+        shown += 1;
+        const tr = el('tr', row.differs ? 'diff' : '');
+        const th = el('th', '', s[`spec.${row.key}`] ?? row.key);
+        th.scope = 'row';
+        if (row.differs) th.append(el('span', 'tag', s['compare.differs']));
+        tr.append(th);
+        for (const v of row.values) tr.append(el('td', '', formatValue(row.key, v, s, lang)));
+        tbody.append(tr);
+      }
+      table.append(tbody);
+      scroller.replaceChildren(table);
+      scroller.hidden = false;
+      if (shown === 0) message.append(el('p', '', s['compare.noDiff']));
+    }
+
+    onlyDiff.addEventListener('change', render);
+    addSelect.addEventListener('change', () => {
+      if (addSelect.value && selection.length < MAX_COMPARE) {
+        selection = [...selection, addSelect.value];
+        render();
+        addSelect.focus();
+      }
+    });
+    document.getElementById('print')?.addEventListener('click', () => window.print());
+    document.getElementById('copy-link')?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        status.textContent = s['compare.copied'];
+      } catch {
+        status.textContent = location.href;
+      }
+    });
+    render();
+  }
+</script>

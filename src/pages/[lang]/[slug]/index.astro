@@ -1,0 +1,22 @@
+---
+// One route file for every top-level page under /<lang>/<slug>/: the three family pages and the compare tool.
+import FamilyStub from '../../../components/FamilyStub.astro';
+import WirelessFamily from '../../../components/WirelessFamily.astro';
+import ComparePage from '../../../components/ComparePage.astro';
+import { locales, type Lang } from '../../../i18n';
+import { LAUNCH_FAMILIES, SLUGS, COMPARE_SLUG, type Family } from '../../../i18n/routes';
+
+export function getStaticPaths() {
+  return locales.flatMap((lang) => [
+    ...LAUNCH_FAMILIES.map((family) => ({ params: { lang, slug: SLUGS[lang][family] }, props: { kind: 'family' as const, family } })),
+    { params: { lang, slug: COMPARE_SLUG[lang] }, props: { kind: 'compare' as const, family: null } },
+  ]);
+}
+
+const lang = Astro.params.lang as Lang;
+const { kind, family } = Astro.props as { kind: 'family' | 'compare'; family: Family | null };
+---
+
+{kind === 'compare' && <ComparePage lang={lang} />}
+{kind === 'family' && family === 'wireless' && <WirelessFamily lang={lang} />}
+{kind === 'family' && family !== 'wireless' && family && <FamilyStub lang={lang} family={family} />}

@@ -139,6 +139,16 @@ test('selector: the recommended model comes first, and a model that needs more P
   assert.ok(results.every((r) => !r.warnings.some((w) => w.startsWith('poe-short'))));
 });
 
+test('selector: among models that fit, the newest Wi-Fi generation comes first, then the smallest big-enough model', () => {
+  const pool = cards([
+    row('G6', { name_tr: 'G6', wifi_generation: '6', spatial_streams: 4 }),
+    row('G7S', { name_tr: 'G7S', wifi_generation: '7', spatial_streams: 6 }),
+    row('G7L', { name_tr: 'G7L', wifi_generation: '7', spatial_streams: 12 }),
+  ]);
+  const { results } = recommend(pool, { env: 'indoor', mgmt: 'any', poe: 'at', density: 'low', future: 'any' });
+  assert.deepEqual(results.map((r) => r.card.name), ['G7S', 'G7L', 'G6']);
+});
+
 test('selector: when nothing is fully powered, the closest are shown with a PoE warning and the relaxation is reported', () => {
   const pool = cards([row('BIG', { name_tr: 'BIG', poe_full: 'bt' })]);
   const { results, relaxed } = recommend(pool, { env: 'indoor', mgmt: 'any', poe: 'af', density: 'low', future: 'any' });
@@ -193,4 +203,19 @@ test('the real published catalog groups cleanly (skipped when src/data/generated
 test('Turkish possessive for the live count', () => {
   const cases = { 0: "0'ı", 1: "1'i", 2: "2'si", 3: "3'ü", 4: "4'ü", 5: "5'i", 6: "6'sı", 7: "7'si", 8: "8'i", 9: "9'u", 10: "10'u", 20: "20'si", 27: "27'si", 30: "30'u", 40: "40'ı", 50: "50'si", 60: "60'ı", 70: "70'i", 80: "80'i", 90: "90'ı", 100: "100'ü", 36: "36'sı", 54: "54'ü", 1000: "1000'i" };
   for (const [n, want] of Object.entries(cases)) assert.equal(trPossessive(Number(n)), want, String(n));
+});
+
+import { formatValue, num } from './format.mjs';
+
+test('format: numbers use the decimal comma in Turkish, and every value kind has a label', () => {
+  const s = Object.fromEntries(Object.entries(JSON.parse(readFileSync(new URL('../i18n/tr.json', import.meta.url), 'utf8'))).filter(([k]) => k.startsWith('val.')));
+  assert.equal(num(2.5, 'tr'), '2,5');
+  assert.equal(num(2.5, 'en'), '2.5');
+  assert.equal(formatValue('uplink_max_gbps', 2.5, s, 'tr'), '2,5 Gb/s');
+  assert.equal(formatValue('bands_ghz', [2.4, 5, 6], s, 'tr'), '2,4 / 5 / 6 GHz');
+  assert.equal(formatValue('poe_full', 'bt', s, 'tr'), '802.3bt (PoE++ / UPOE)');
+  assert.equal(formatValue('management', ['on_prem', 'cloud'], s, 'tr'), 'Şirket içi (on-prem), Bulut (Meraki)');
+  assert.equal(formatValue('features', [], s, 'tr'), '–');
+  assert.equal(formatValue('rugged', false, s, 'tr'), 'Hayır');
+  assert.throws(() => formatValue('poe_full', 'zz', s, 'tr'), /Missing label/);
 });

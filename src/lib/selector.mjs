@@ -60,7 +60,8 @@ export function recommend(cards, a) {
     const surplus = (c.spatial_streams ?? 0) - MIN_STREAMS[a.density];
     // Prefer the smallest model that is big enough, so a small office is not sent to the biggest access point.
     const sizeFit = a.density === 'high' ? -surplus : surplus;
-    return [Number(c.recommended) * -1, a.future === 'any' ? 0 : -(GEN_RANK[c.wifi_generation] ?? 0), sizeFit, POE_RANK[c.poe_full], c.name];
+    // Recommended first, then the newest Wi-Fi generation, then the smallest model that is big enough.
+    return [Number(c.recommended) * -1, -(GEN_RANK[c.wifi_generation] ?? 0), sizeFit, POE_RANK[c.poe_full], c.name];
   };
   const sorted = [...powered].sort((x, y) => {
     const sx = score(x);

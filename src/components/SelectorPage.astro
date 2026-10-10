@@ -1,0 +1,303 @@
+---
+// Guided selector for wireless: five plain questions, 1-3 current models, each with a one-line why,
+// its assumptions and "Cisco iş ortağınıza doğrulatın". The logic is src/lib/selector.mjs (tested).
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import Term from './Term.astro';
+import { t, tp, td, type Lang } from '../i18n';
+import { familyPath, selectorSwitchPath, modelPath } from '../i18n/routes';
+import { wirelessCards, textOf } from '../lib/catalog';
+import { ANSWER_OPTIONS } from '../lib/selector.mjs';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+// Only the fields the script needs. End-of-Sale models are never sent to the page.
+const slim = wirelessCards
+  .filter((c) => c.lifecycle === 'current')
+  .map((c) => ({
+    slug: c.slug,
+    name: c.name,
+    lifecycle: c.lifecycle,
+    environment: c.environment,
+    management: c.management,
+    unified: c.unified,
+    wifi_generation: c.wifi_generation,
+    bands_ghz: c.bands_ghz,
+    spatial_streams: c.spatial_streams,
+    poe_full: c.poe_full,
+    recommended: c.recommended,
+    summary: textOf(c, lang, 'summary'),
+  }));
+const strings = { ...tp(lang, 'selector.'), ...tp(lang, 'val.'), ...tp(lang, 'note.') };
+const questions = [
+  ['env', ANSWER_OPTIONS.env, 'indoor'],
+  ['mgmt', ANSWER_OPTIONS.mgmt, 'any'],
+  ['poe', ANSWER_OPTIONS.poe, 'unknown'],
+  ['density', ANSWER_OPTIONS.density, 'low'],
+  ['future', ANSWER_OPTIONS.future, 'any'],
+] as const;
+const poeTerm = 'poe';
+---
+
+<Base lang={lang} title={`${t(lang, 'selector.title')} · ${t(lang, 'site.name')}`} switchPath={selectorSwitchPath(lang)} current="wireless">
+  <Section tone="soft" labelledby="selector-title">
+    <p class="back"><a href={familyPath(lang, 'wireless')}>← {t(lang, 'detail.back')}</a></p>
+    <h1 id="selector-title">{t(lang, 'selector.title')}</h1>
+    <p class="lead">{t(lang, 'selector.lead')}</p>
+  </Section>
+
+  <Section labelledby="questions-title">
+    <div class="wrap" id="selector-root" data-strings={JSON.stringify(strings)} data-lang={lang} data-model-base={modelPath(lang, '')}>
+      <h2 id="questions-title" class="sr">{t(lang, 'selector.title')}</h2>
+      <form id="selector-form" novalidate>
+        {
+          questions.map(([name, options, def]) => (
+            <fieldset>
+              <legend>{t(lang, `selector.q.${name}`)}{name === 'poe' && <> <Term lang={lang} term={poeTerm} label="" /></>}</legend>
+              {options.map((value) => (
+                <label class="opt">
+                  <input type="radio" name={name} value={value} checked={value === def} />
+                  <span>{td(lang, `selector.o.${name}.${value}`)}</span>
+                </label>
+              ))}
+            </fieldset>
+          ))
+        }
+        <div class="actions">
+          <button type="submit" class="primary">{t(lang, 'selector.submit')}</button>
+          <button type="reset" class="secondary" id="selector-reset">{t(lang, 'selector.reset')}</button>
+        </div>
+      </form>
+
+      <section class="out" aria-labelledby="out-title">
+        <h2 id="out-title" tabindex="-1">{t(lang, 'selector.resultsTitle')}</h2>
+        <div id="selector-results" role="region" aria-live="polite">
+          <p class="muted">{t(lang, 'selector.pending')}</p>
+        </div>
+        <div class="assume">
+          <h3>{t(lang, 'selector.assumptionsTitle')}</h3>
+          <ul>
+            {[1, 2, 3, 4].map((n) => <li>{td(lang, `selector.assumption.${n}`)}</li>)}
+          </ul>
+          <p><strong>{t(lang, 'note.verify')}</strong></p>
+        </div>
+      </section>
+    </div>
+    <script type="application/json" id="selector-cards" set:html={JSON.stringify(slim)} />
+  </Section>
+</Base>
+
+<style>
+  .back a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  .lead {
+    max-width: 40rem;
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .wrap {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  fieldset {
+    margin: 0 0 var(--space-5);
+    padding: 0;
+    border: 0;
+  }
+
+  legend {
+    margin-bottom: var(--space-2);
+    color: var(--navy-900);
+    font-weight: 700;
+  }
+
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--tap);
+    cursor: pointer;
+  }
+
+  .opt input {
+    flex: none;
+    width: 1.375rem;
+    height: 1.375rem;
+    accent-color: var(--accent);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  button {
+    min-height: var(--tap);
+    padding: 0 var(--space-5);
+    border-radius: var(--radius-s);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .primary {
+    background: var(--accent);
+    color: var(--white);
+    border: 2px solid var(--accent);
+  }
+
+  .primary:hover {
+    background: var(--accent-strong);
+  }
+
+  .secondary {
+    background: var(--white);
+    color: var(--accent-strong);
+    border: 2px solid var(--accent);
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  .assume {
+    margin-top: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-soft);
+    border-radius: var(--radius-m);
+  }
+
+  .assume h3 {
+    margin-top: 0;
+  }
+
+  .assume ul {
+    margin: 0 0 var(--space-3);
+    padding-left: var(--space-5);
+  }
+
+  :global(.pick) {
+    margin-bottom: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    background: var(--white);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-m);
+  }
+
+  :global(.pick h3) {
+    margin: 0 0 var(--space-2);
+  }
+
+  :global(.pick .why) {
+    margin: 0 0 var(--space-3);
+    padding-left: var(--space-5);
+  }
+
+  :global(.pick .warn),
+  :global(.relaxed) {
+    margin: 0 0 var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--warn-bg);
+    border: 2px solid var(--warn-edge);
+    border-radius: var(--radius-s);
+    color: var(--ink);
+  }
+
+  :global(.pick .go) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-weight: 650;
+  }
+
+  @media (min-width: 64em) {
+    .wrap {
+      grid-template-columns: 24rem 1fr;
+      align-items: start;
+    }
+  }
+</style>
+
+<script>
+  import { recommend } from '../lib/selector.mjs';
+
+  const root = document.getElementById('selector-root');
+  if (root) {
+    const s = JSON.parse(root.dataset.strings ?? '{}') as Record<string, string>;
+    const lang = root.dataset.lang;
+    const base = root.dataset.modelBase ?? '';
+    const cards = JSON.parse(document.getElementById('selector-cards')?.textContent ?? '[]');
+    const form = document.getElementById('selector-form') as HTMLFormElement;
+    const out = document.getElementById('selector-results') as HTMLElement;
+    const heading = document.getElementById('out-title') as HTMLElement;
+    const fill = (text: string, vars: Record<string, string>) => text.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? '');
+    const el = (tag: string, cls?: string, text?: string) => {
+      const node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+
+    function warning(code: string): string {
+      const [kind, level] = code.split('.');
+      if (kind === 'six-ghz-turkey') return s['selector.warn.six-ghz-turkey'];
+      return fill(s[`selector.warn.${kind}`], { need: s[`val.poe.${level}`] });
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+      const { results, relaxed } = recommend(cards, data as never);
+      out.replaceChildren();
+      if (results.length === 0) {
+        out.append(el('p', '', s['selector.none']));
+        heading.focus();
+        return;
+      }
+      for (const note of relaxed) out.append(el('p', 'relaxed', s[`selector.relaxed.${note}`]));
+      for (const r of results) {
+        const article = el('article', 'pick');
+        const h = el('h3');
+        const a = el('a', '', r.card.name) as HTMLAnchorElement;
+        a.href = `${base}${r.card.slug}/`;
+        h.append(a);
+        article.append(h, el('p', '', r.card.summary));
+        article.append(el('h4', '', s['selector.whyTitle']));
+        const ul = el('ul', 'why');
+        for (const code of r.why) ul.append(el('li', '', s[`selector.why.${code}`]));
+        article.append(ul);
+        for (const w of r.warnings) article.append(el('p', 'warn', warning(w)));
+        const go = el('a', 'go', `${s['selector.see']} →`) as HTMLAnchorElement;
+        go.href = `${base}${r.card.slug}/`;
+        article.append(go);
+        out.append(article);
+      }
+      heading.focus();
+    });
+
+    document.getElementById('selector-reset')?.addEventListener('click', () => {
+      window.setTimeout(() => {
+        out.replaceChildren(el('p', 'muted', s['selector.pending']));
+      }, 0);
+    });
+    void lang;
+  }
+</script>

@@ -1,0 +1,178 @@
+---
+// One model on the family page: drawing, name, badges, one-line summary, compare box. The data-card attribute
+// carries the few fields the filter script needs, so the filter logic is the same tested code as in src/lib.
+import DeviceGraphic from './graphics/DeviceGraphic.astro';
+import LifecycleBadge from './LifecycleBadge.astro';
+import { t, tf, td, type Lang } from '../i18n';
+import { modelPath } from '../i18n/routes';
+import { textOf, hasSixGhz, wirelessLookup, replacementCards, type Card } from '../lib/catalog';
+
+interface Props {
+  lang: Lang;
+  card: Card;
+}
+
+const { lang, card } = Astro.props;
+const filterData = {
+  lifecycle: card.lifecycle,
+  management: card.management,
+  unified: card.unified,
+  wifi_generation: card.wifi_generation,
+  environment: card.environment,
+  poe_full: card.poe_full,
+  bands_ghz: card.bands_ghz,
+  uplink_max_gbps: card.uplink_max_gbps,
+  features: card.features,
+};
+const current = card.lifecycle === 'current';
+const replacements = current ? [] : replacementCards(card, wirelessLookup);
+const why = card.recommended ? textOf(card, lang, 'recommended_why') : null;
+---
+
+<li class:list={['row', { old: !current }]} data-card={JSON.stringify(filterData)} data-slug={card.slug}>
+  <div class="art">
+    <DeviceGraphic kind="ap" environment={card.environment} wallPlate={card.wall_plate} externalAntennas={card.antenna_type === 'external' ? 2 : 0} ports={card.port_count ?? 1} />
+  </div>
+  <div class="main">
+    <h3><a href={modelPath(lang, card.slug)}>{card.name}</a></h3>
+    <p class="badges">
+      <LifecycleBadge lang={lang} lifecycle={card.lifecycle} />
+      {card.recommended && <span class="badge rec">{t(lang, 'badge.recommended')}</span>}
+      <span class="badge">{td(lang, `val.gen.${card.wifi_generation}`)}</span>
+      <span class="badge">{td(lang, `val.env.${card.environment}`)}</span>
+      {hasSixGhz(card) && <span class="badge">{t(lang, 'badge.sixghz')}</span>}
+      {card.uplink_max_gbps !== null && card.uplink_max_gbps >= 2.5 && <span class="badge">{t(lang, 'badge.mgig')}</span>}
+      {textOf(card, lang, 'licence') && !/gerekmez|no licence/i.test(textOf(card, lang, 'licence') ?? '') && <span class="badge">{t(lang, 'badge.licence')}</span>}
+    </p>
+    <p class="summary">{textOf(card, lang, 'summary')}</p>
+    {why && <p class="why"><strong>{t(lang, 'badge.recommended')}:</strong> {why}</p>}
+    {
+      !current && (
+        <p class="eos">
+          {card.last_order && tf(lang, 'list.lastOrder', { date: card.last_order })}
+          {replacements.length > 0 && (
+            <>
+              {' '}
+              {t(lang, 'list.replacedBy')}{' '}
+              {replacements.map((r, i) => (
+                <>
+                  {i > 0 && ', '}
+                  <a href={modelPath(lang, r.slug)}>{r.name}</a>
+                </>
+              ))}
+            </>
+          )}
+        </p>
+      )
+    }
+  </div>
+  <label class="cmp">
+    <input type="checkbox" class="cmp-box" value={card.slug} aria-label={tf(lang, 'list.compareAddFor', { name: card.name })} />
+    <span>{t(lang, 'list.compareAdd')}</span>
+  </label>
+</li>
+
+<style>
+  .row {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    grid-template-areas:
+      'art main'
+      'cmp cmp';
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-4);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    list-style: none;
+  }
+
+  .row[hidden] {
+    display: none;
+  }
+
+  .art {
+    grid-area: art;
+    align-self: start;
+  }
+
+  .main {
+    grid-area: main;
+    min-width: 0;
+  }
+
+  h3 {
+    margin: 0 0 var(--space-2);
+  }
+
+  h3 a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--navy-900);
+    text-decoration: none;
+  }
+
+  h3 a:hover {
+    color: var(--accent-strong);
+    text-decoration: underline;
+  }
+
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-3);
+  }
+
+  .rec {
+    background: var(--navy-900);
+    color: var(--on-navy);
+  }
+
+  .summary {
+    margin: 0 0 var(--space-2);
+  }
+
+  .why,
+  .eos {
+    margin: 0 0 var(--space-2);
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  .eos a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  .cmp {
+    grid-area: cmp;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--tap);
+    justify-self: start;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .cmp input {
+    width: 1.5rem;
+    height: 1.5rem;
+    accent-color: var(--accent);
+  }
+
+  .old {
+    background: var(--bg-soft);
+  }
+
+  @media (min-width: 48em) {
+    .row {
+      grid-template-columns: 8rem 1fr auto;
+      grid-template-areas: 'art main cmp';
+      align-items: start;
+    }
+  }
+</style>

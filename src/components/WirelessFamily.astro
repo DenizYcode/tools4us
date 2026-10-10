@@ -1,0 +1,555 @@
+---
+// The Wireless family page: series explainers, management first, filters, results grouped by series, compare tray.
+// Every model is in the static HTML; the script only shows and hides rows, so the page works without JavaScript.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import FamilyGraphic from './graphics/FamilyGraphic.astro';
+import FilterPanel from './FilterPanel.astro';
+import ModelRow from './ModelRow.astro';
+import { t, tf, tp, type Lang } from '../i18n';
+import { familySwitchPath, comparePath, selectorPath } from '../i18n/routes';
+import { wirelessSeries, wirelessCards, wirelessVerified, seriesIntro } from '../lib/catalog';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const featureValues = [...new Set(wirelessCards.filter((c) => c.lifecycle === 'current').flatMap((c) => c.features))].filter((f) => ['cleanair', 'security_radio', 'air_marshal', 'gnss_gps', 'uwb', 'urwb'].includes(f));
+const strings = { ...tp(lang, 'list.'), ...tp(lang, 'filters.'), ...tp(lang, 'tray.') };
+const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').length;
+---
+
+<Base lang={lang} title={`${t(lang, 'family.wireless.name')} · ${t(lang, 'site.name')}`} switchPath={familySwitchPath(lang, 'wireless')} current="wireless">
+  <Section tone="soft" labelledby="family-title">
+    <div class="intro">
+      <div>
+        <h1 id="family-title">{t(lang, 'wireless.heading')}</h1>
+        <p class="lead">{t(lang, 'wireless.lead')}</p>
+        <p class="verified">{tf(lang, 'wireless.verified', { date: wirelessVerified })}</p>
+        <p class="cta-row"><a class="button" href={selectorPath(lang)}>{t(lang, 'wireless.selectorCta')}</a><span class="hint">{t(lang, 'wireless.selectorHint')}</span></p>
+      </div>
+      <div class="art"><FamilyGraphic family="wireless" /></div>
+    </div>
+  </Section>
+
+  <Section labelledby="results-title">
+    <div class="page" id="family-root" data-lang={lang} data-strings={JSON.stringify(strings)} data-compare-url={comparePath(lang)} data-current-count={currentCount}>
+      <aside class="side" id="filter-sheet" aria-label={t(lang, 'filters.title')}>
+        <FilterPanel lang={lang} features={featureValues} />
+      </aside>
+
+      <div class="results" id="results-region">
+        <h2 id="results-title" tabindex="-1">{t(lang, 'list.resultsTitle')}</h2>
+        <p class="count" id="count" role="status" aria-live="polite" aria-atomic="true"></p>
+        <ul class="chips" id="chips" aria-label={t(lang, 'filters.active')}></ul>
+        <p class="none" id="none" hidden>{t(lang, 'list.none')}</p>
+
+        {
+          wirelessSeries.map((band) => (
+            <details class="band" open data-series={band.series}>
+              <summary>
+                <span class="series-name">{band.series}</span>
+                <span class="series-count" data-total={band.cards.length}>{tf(lang, 'list.seriesCount', { n: band.cards.length })}</span>
+              </summary>
+              <p class="intro-line">{seriesIntro(band, lang)}</p>
+              <ul class="rows">
+                {band.cards.map((card) => (
+                  <ModelRow lang={lang} card={card} />
+                ))}
+              </ul>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </Section>
+
+  <div class="bar" id="bar">
+    <div class="bar-inner container">
+      <button type="button" class="bar-filters" id="filters-open" aria-controls="filter-sheet" aria-expanded="false">
+        {t(lang, 'filters.open')} <span id="filters-badge" class="pill" hidden></span>
+      </button>
+      <div class="tray" id="tray" aria-label={t(lang, 'tray.label')} hidden>
+        <span id="tray-count"></span>
+        <a class="tray-go" id="tray-go" href={comparePath(lang)} aria-disabled="true">{t(lang, 'tray.compare')}</a>
+        <button type="button" class="tray-clear" id="tray-clear">{t(lang, 'tray.clear')}</button>
+        <span class="tray-need" id="tray-need">{t(lang, 'tray.need')}</span>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .intro {
+    display: grid;
+    gap: var(--space-6);
+    align-items: center;
+  }
+
+  .lead {
+    max-width: 38rem;
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .verified {
+    margin: 0 0 var(--space-4);
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+    margin: 0;
+  }
+
+  .hint {
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-5);
+    background: var(--accent);
+    color: var(--white);
+    border-radius: var(--radius-s);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .button:hover {
+    background: var(--accent-strong);
+    color: var(--white);
+  }
+
+  /* Decorative: on phones the models should come first. */
+  .art {
+    display: none;
+    width: 100%;
+    max-width: 22rem;
+  }
+
+  /* Results come first on phones: the filters live in a bottom sheet that is closed until asked for. */
+  .page {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .side {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 30;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: var(--space-5) var(--gutter) var(--space-6);
+    background: var(--white);
+    border-radius: var(--radius-l) var(--radius-l) 0 0;
+    box-shadow: 0 -8px 32px rgb(10 31 68 / 0.25);
+    visibility: hidden;
+    transform: translateY(100%);
+    transition: transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+
+  .side.open {
+    visibility: visible;
+    transform: none;
+    transition: transform 0.2s ease;
+  }
+
+  :global(.scrim) {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    background: rgb(10 31 68 / 0.5);
+  }
+
+  .count {
+    margin: 0 0 var(--space-3);
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    list-style: none;
+  }
+
+  :global(.chip) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-3);
+    background: var(--bg-tint);
+    color: var(--accent-strong);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .chips:empty {
+    display: none;
+  }
+
+  .none {
+    padding: var(--space-5);
+    background: var(--bg-soft);
+    border-radius: var(--radius-m);
+  }
+
+  .band {
+    margin-bottom: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    background: var(--bg-soft);
+  }
+
+  .band[hidden] {
+    display: none;
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-height: var(--tap);
+    padding: var(--space-2) var(--space-4);
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--navy-900);
+  }
+
+  .series-count {
+    color: var(--muted);
+    font-size: var(--text-small);
+    font-weight: 600;
+  }
+
+  .intro-line {
+    margin: 0;
+    padding: 0 var(--space-4) var(--space-3);
+    color: var(--muted);
+  }
+
+  .rows {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0 var(--space-3) var(--space-3);
+    list-style: none;
+  }
+
+  /* Bottom bar: the filter button on phones, the compare tray whenever something is picked. */
+  .bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    background: var(--navy-900);
+    color: var(--on-navy);
+  }
+
+  .bar-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    padding-block: var(--space-2);
+  }
+
+  .bar button,
+  .tray-go {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-s);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .bar-filters {
+    background: var(--white);
+    color: var(--navy-900);
+    border: 1px solid var(--white);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 var(--space-2);
+    background: var(--navy-900);
+    color: var(--on-navy);
+    border-radius: 999px;
+    font-size: var(--text-small);
+  }
+
+  .pill[hidden] {
+    display: none;
+  }
+
+  .tray {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    flex: 1;
+  }
+
+  .tray[hidden] {
+    display: none;
+  }
+
+  .tray-go {
+    background: var(--accent-bright);
+    color: var(--navy-900);
+    text-decoration: none;
+  }
+
+  .tray-go[aria-disabled='true'] {
+    background: transparent;
+    color: var(--on-navy-muted);
+    border: 1px solid var(--on-navy-muted);
+    pointer-events: none;
+  }
+
+  .tray-clear {
+    background: transparent;
+    color: var(--on-navy);
+    border: 1px solid var(--on-navy-muted);
+  }
+
+  .tray-need {
+    color: var(--on-navy-muted);
+    font-size: var(--text-small);
+  }
+
+  .bar :global(:focus-visible) {
+    outline-color: var(--focus-on-navy);
+  }
+
+  @media (min-width: 48em) {
+    .intro {
+      grid-template-columns: 1fr 20rem;
+    }
+
+    .art {
+      display: block;
+    }
+  }
+
+  /* Desktop: the filters are a left column and the bottom bar only shows the compare tray. */
+  @media (min-width: 64em) {
+    .page {
+      grid-template-columns: 18rem 1fr;
+      gap: var(--space-6);
+      align-items: start;
+    }
+
+    .side {
+      position: sticky;
+      top: var(--space-4);
+      inset: auto;
+      max-height: calc(100vh - 2 * var(--space-4));
+      padding: 0 var(--space-3) 0 0;
+      background: transparent;
+      border-radius: 0;
+      box-shadow: none;
+      visibility: visible;
+      transform: none;
+    }
+
+    .bar-filters {
+      display: none;
+    }
+
+    .bar:has(.tray[hidden]) {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { matches, activeCount, EMPTY_FILTERS } from '../lib/filter.mjs';
+  import { trPossessive } from '../lib/tr.mjs';
+
+  type Filters = typeof EMPTY_FILTERS;
+
+  const root = document.getElementById('family-root');
+  if (root) {
+    const lang = root.dataset.lang === 'en' ? 'en' : 'tr';
+    const s = JSON.parse(root.dataset.strings ?? '{}') as Record<string, string>;
+    const fill = (text: string, vars: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
+    const form = document.getElementById('filter-form') as HTMLFormElement;
+    const sheet = document.getElementById('filter-sheet') as HTMLElement;
+    const rows = [...document.querySelectorAll<HTMLElement>('.row')].map((el) => ({ el, data: JSON.parse(el.dataset.card ?? '{}'), slug: el.dataset.slug ?? '' }));
+    const bands = [...document.querySelectorAll<HTMLDetailsElement>('.band')];
+    const count = document.getElementById('count') as HTMLElement;
+    const none = document.getElementById('none') as HTMLElement;
+    const chips = document.getElementById('chips') as HTMLElement;
+    const badge = document.getElementById('filters-badge') as HTMLElement;
+    const heading = document.getElementById('results-title') as HTMLElement;
+    const picked = new Set<string>();
+
+    const readState = (): Filters => {
+      const data = new FormData(form);
+      const all = (name: string) => data.getAll(name).map(String);
+      return {
+        mgmt: all('mgmt'),
+        gen: all('gen'),
+        env: all('env'),
+        poeMax: String(data.get('poeMax') ?? ''),
+        sixGhz: data.has('sixGhz'),
+        mgig: data.has('mgig'),
+        features: all('features'),
+        showOld: data.has('showOld'),
+      } as Filters;
+    };
+
+    const labelOf = (input: HTMLInputElement) => input.closest('label')?.querySelector('span')?.textContent?.trim() ?? input.value;
+
+    function renderChips(): void {
+      chips.replaceChildren();
+      const checked = [...form.querySelectorAll<HTMLInputElement>('input:checked')].filter((i) => !(i.name === 'poeMax' && i.value === ''));
+      for (const input of checked) {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip';
+        const text = labelOf(input);
+        b.textContent = `${text} ×`;
+        b.setAttribute('aria-label', fill(s['filters.remove'] ?? '', { label: text }));
+        b.addEventListener('click', () => {
+          if (input.type === 'radio') (form.querySelector('input[name="poeMax"][value=""]') as HTMLInputElement).checked = true;
+          else input.checked = false;
+          apply();
+          heading.focus();
+        });
+        li.append(b);
+        chips.append(li);
+      }
+    }
+
+    function apply(): void {
+      const state = readState();
+      const baseline = { ...EMPTY_FILTERS, showOld: state.showOld } as Filters;
+      let shown = 0;
+      let total = 0;
+      for (const r of rows) {
+        const ok = matches(r.data, state);
+        r.el.hidden = !ok;
+        if (ok) shown += 1;
+        if (matches(r.data, baseline)) total += 1;
+      }
+      for (const band of bands) {
+        const visible = band.querySelectorAll('.row:not([hidden])').length;
+        band.hidden = visible === 0;
+        const label = band.querySelector('.series-count');
+        if (label) label.textContent = fill(s['list.seriesCount'] ?? '', { n: visible });
+      }
+      count.textContent = fill(s['list.count'] ?? '', { total, shown: lang === 'tr' ? trPossessive(shown) : shown });
+      none.hidden = shown !== 0;
+      const n = activeCount(state);
+      badge.hidden = n === 0;
+      badge.textContent = String(n);
+      renderChips();
+    }
+
+    form.addEventListener('change', apply);
+    document.getElementById('filters-clear')?.addEventListener('click', () => {
+      form.reset();
+      apply();
+    });
+
+    // Bottom sheet on phones and tablets.
+    const openButton = document.getElementById('filters-open') as HTMLButtonElement;
+    let scrim: HTMLDivElement | null = null;
+    const desktop = window.matchMedia('(min-width: 64em)');
+    function setSheet(open: boolean): void {
+      sheet.classList.toggle('open', open);
+      openButton.setAttribute('aria-expanded', String(open));
+      document.getElementById('results-region')?.toggleAttribute('inert', open);
+      if (open) {
+        sheet.setAttribute('role', 'dialog');
+        sheet.setAttribute('aria-modal', 'true');
+        scrim = document.createElement('div');
+        scrim.className = 'scrim';
+        scrim.addEventListener('click', () => setSheet(false));
+        document.body.append(scrim);
+        (sheet.querySelector('input, button') as HTMLElement | null)?.focus();
+      } else {
+        sheet.removeAttribute('role');
+        sheet.removeAttribute('aria-modal');
+        scrim?.remove();
+        scrim = null;
+      }
+    }
+    openButton.addEventListener('click', () => setSheet(true));
+    document.getElementById('filters-close')?.addEventListener('click', () => {
+      setSheet(false);
+      openButton.focus();
+    });
+    document.getElementById('filters-show')?.addEventListener('click', () => {
+      setSheet(false);
+      heading.focus();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sheet.classList.contains('open')) {
+        setSheet(false);
+        openButton.focus();
+      }
+    });
+    desktop.addEventListener('change', () => desktop.matches && sheet.classList.contains('open') && setSheet(false));
+
+    // Compare tray (2 to 4 models). The selection travels in the link, so it can be shared.
+    const tray = document.getElementById('tray') as HTMLElement;
+    const trayCount = document.getElementById('tray-count') as HTMLElement;
+    const trayGo = document.getElementById('tray-go') as HTMLAnchorElement;
+    const trayNeed = document.getElementById('tray-need') as HTMLElement;
+    const boxes = [...document.querySelectorAll<HTMLInputElement>('.cmp-box')];
+    function renderTray(): void {
+      const n = picked.size;
+      tray.hidden = n === 0;
+      trayCount.textContent = fill(s['tray.count'] ?? '', { n });
+      const ready = n >= 2;
+      trayGo.setAttribute('aria-disabled', String(!ready));
+      trayGo.tabIndex = ready ? 0 : -1;
+      trayGo.href = ready ? `${root!.dataset.compareUrl}?m=${[...picked].join(',')}` : root!.dataset.compareUrl ?? '#';
+      trayNeed.hidden = ready;
+      for (const box of boxes) box.disabled = n >= 4 && !box.checked;
+    }
+    for (const box of boxes) {
+      box.addEventListener('change', () => {
+        if (box.checked) picked.add(box.value);
+        else picked.delete(box.value);
+        renderTray();
+      });
+    }
+    document.getElementById('tray-clear')?.addEventListener('click', () => {
+      picked.clear();
+      for (const box of boxes) box.checked = false;
+      renderTray();
+    });
+
+    apply();
+    renderTray();
+  }
+</script>

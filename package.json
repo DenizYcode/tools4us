@@ -7,6 +7,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "predev": "npm run build:data",
     "dev": "astro dev",
     "build": "npm run check:design && npm run build:data && astro build && npm run check:dist && pagefind --site dist",
     "check:data": "node scripts/build-data/cli.mjs check",
