@@ -155,7 +155,7 @@ All content lives in files, separate from code: one spreadsheet per product fami
 ```
 /data/catalog/switching.xlsx   — one workbook per family (switching, wireless, routing, datacenter)
                                  sheets: models, accessories, compat, series
-/data/glossary.csv             — term, TR, EN
+/data/glossary.xlsx            — sheet `terms`: key, term_tr, term_en, meaning_tr, meaning_en (xlsx for the same Turkish-Excel reason as the catalog)
 /content/stories/*.md          — one file per story, TR + EN
 /public/images/                — product and story images
 /scripts/build-data            — converts sheets to JSON and validates
@@ -182,7 +182,9 @@ All content lives in files, separate from code: one spreadsheet per product fami
 | datasheet_url, source_url | cisco.com link | Required |
 | last_verified | 2026-10-09 | Required |
 | eos_announced, last_order, ldos | 2026-03-30 / 2026-12-31 / 2031-12-31 | `last_order` and the EoL bulletin URL are required when lifecycle is eos_announced or eos. `ldos` is required where the bulletin gives it. The announcement date `eos_announced` is optional, because the Phase 1 audit lists last-order and last-support dates but no announcement dates |
-| added_date | 2026-10-09 | Required; drives the "Yeni" badge |
+| added_date | 2026-10-09 | Required. The date the model entered the catalog. Drives the "Yeni" badge, which is only built once models that are really new are added (the first catalog load of 10 Oct 2026 would otherwise mark every model new) |
+| poe_note_tr, poe_note_en | "2.4 GHz radyo 2x2'ye düşer, bağlantı 2,5G olur" | Wireless. Required when a model works on a weaker PoE standard than the one it needs for full function: says what degrades (content rule 2) |
+| variant_note_tr, variant_note_en | "-CFG: bölge kodu seçilebilir" | What a PID suffix (-CFG, -RTG, -MR) means. Variants of one model share a card and a detail page on the site; data stays one PID per row |
 | recommended, recommended_why_tr | yes / "Çoğu ofis için yeterli PoE ve 10G uplink" | At most one per series; build fails if an End-of-Sale model is recommended |
 | series_intro_tr, series_intro_en | "Catalyst anahtarlama ailesine KOBİ giriş noktası" | Kept in a separate series sheet, one row per series; TR required |
 
@@ -191,7 +193,7 @@ All content lives in files, separate from code: one spreadsheet per product fami
 **Family-specific key specs:**
 
 - **Switching:** ports and speeds, uplinks, PoE budget (W), PoE standard, stacking, L2/L3, mGig.
-- **Wireless:** Wi-Fi generation, streams, bands (6 GHz), uplink speed, PoE needed for full function, indoor/outdoor, antenna type.
+- **Wireless:** Wi-Fi generation, streams, bands (6 GHz), uplink speed, PoE needed for full function and what degrades below it, indoor/outdoor, antenna type. A `ready` wireless row must carry `wifi_generation`, `environment`, `bands_ghz`, `poe_supported`, `poe_full` and `uplink_max_gbps`.
 - **Routing:** throughput, IPsec throughput and the licence it depends on, WAN ports, LTE/5G, SD-WAN support, module slots.
 - **Data Center (not in the first launch):** port speeds, role (leaf / spine), NX-OS or ACI, licence tier.
 - **Collaboration (not in the first launch):** device type, room size, camera, display, platform (Webex / Microsoft Teams), peripherals.
@@ -368,6 +370,7 @@ The biggest risk is stale data, not code: six families plus stories was a lot to
 - [x] Launch scope (10 Oct 2026): Switching, Wireless and Routing. Meraki MX goes into Routing next to the Catalyst routers. Data Center, Collaboration, Security, Cameras and Cellular are to be decided and shown as "Yakında".
 - [x] Graphics (10 Oct 2026): original vector drawings that represent each family and are generated from model data; no product photos.
 - [x] Repo and URL: repo renamed to `tools4us`, live at denizycode.github.io/tools4us/ (done 10 Oct 2026).
+- [x] Phase 3 (10 Oct 2026): Wireless is verified model by model against Cisco datasheets and End-of-Sale bulletins; a row without a verifiable source stays draft. Turkish copy is drafted from the verified specs and awaits native review. Variants share one card. The configuration builder (antennas, SKU string) moves to Phase 4 because the Phase 3 build-plan entry does not list it. The glossary is an xlsx with definitions (tooltips need a meaning, not just a TR/EN pair); the glossary page stays Phase 6.
 - [x] Old site code and CSVs received; dataset audit done (docs/Phase1_Dataset_Audit.xlsx).
 - [x] Old internal discussion: decisions re-added under Old site review.
 - [x] ciscosizing.com: separate project, reviewed from its page HTML; patterns only, no reuse.

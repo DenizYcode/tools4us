@@ -179,6 +179,7 @@ export function validateCatalog(catalog, { now = today() } = {}) {
           error('SERIES_NOT_READY', `${loc}: series "${row.series}" must be ready too (its explainer is shown above its models)`);
         }
         if (sheet === 'series') continue;
+        if (family === 'wireless' && sheet === 'models') checkWirelessPoe({ row, loc, error });
         checkReadyLifecycle({ family, sheet, row, loc, byPid, error });
       }
     }
@@ -205,5 +206,20 @@ function checkReadyLifecycle({ row, loc, byPid, error }) {
     } else if (!isReady(target.row) || target.row.lifecycle !== 'current') {
       error('REPLACEMENT_NOT_PUBLISHABLE', `${loc}: replacement ${pid} must be a ready, current model`);
     }
+  }
+}
+
+// SPEC content rule 2: power for full function, and what degrades below it.
+const POE_RANK = { af: 1, at: 2, bt: 3 };
+
+function checkWirelessPoe({ row, loc, error }) {
+  const supported = row.poe_supported ?? [];
+  if (!hasValue(row.poe_full) || supported.length === 0) return;
+  if (!supported.includes(row.poe_full)) {
+    error('POE_FULL_NOT_SUPPORTED', `${loc}: poe_full ${row.poe_full} is not in poe_supported (${supported.join(', ')})`);
+  }
+  const weaker = supported.some((p) => POE_RANK[p] < POE_RANK[row.poe_full]);
+  if (weaker && !hasValue(row.poe_note_tr)) {
+    error('POE_NOTE_MISSING', `${loc}: runs on a weaker PoE standard than the ${row.poe_full} it needs for full function, so poe_note_tr must say what degrades`);
   }
 }

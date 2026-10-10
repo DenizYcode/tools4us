@@ -23,6 +23,12 @@ function model(over = {}) {
     source_url: 'https://www.cisco.com/src',
     last_verified: '2026-10-09',
     added_date: '2026-10-09',
+    wifi_generation: '7',
+    environment: 'indoor',
+    bands_ghz: [2.4, 5, 6],
+    uplink_max_gbps: 2.5,
+    poe_supported: ['at'],
+    poe_full: 'at',
     ...over,
   };
 }
@@ -271,4 +277,18 @@ test('parseCell: numbers, number lists and booleans', () => {
 test('i18n key parity finds missing keys either way', () => {
   assert.deepEqual(compareKeys({ a: '1', b: '2' }, { a: '1' }), { missingInEn: ['b'], missingInTr: [] });
   assert.deepEqual(compareKeys({ a: '1' }, { a: '1', c: '3' }), { missingInEn: [], missingInTr: ['c'] });
+});
+
+test('wireless: a model that runs on weaker PoE than it needs for full function must say what degrades', () => {
+  const weak = model({ poe_supported: ['at', 'bt'], poe_full: 'bt' });
+  assert.ok(codes(run(catalog({ models: [weak] }))).includes('POE_NOTE_MISSING'));
+  const noted = model({ poe_supported: ['at', 'bt'], poe_full: 'bt', poe_note_tr: '802.3at ile 2,4 GHz radyo 2x2 çalışır.' });
+  assert.deepEqual(run(catalog({ models: [noted] })).errors, []);
+});
+
+test('wireless: poe_full must be one of the supported standards, and the spec fields are required', () => {
+  assert.ok(codes(run(catalog({ models: [model({ poe_supported: ['af'], poe_full: 'bt' })] }))).includes('POE_FULL_NOT_SUPPORTED'));
+  for (const key of ['wifi_generation', 'environment', 'bands_ghz', 'poe_supported', 'poe_full', 'uplink_max_gbps']) {
+    assert.ok(codes(run(catalog({ models: [model({ [key]: null })] }))).includes('READY_MISSING_FIELD'), key);
+  }
 });

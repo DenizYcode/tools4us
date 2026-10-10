@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './catalog.mjs';
+import { glossaryJson } from './glossary.mjs';
 
 export const GENERATED_DIR = join(ROOT, 'src', 'data', 'generated');
 
@@ -34,7 +35,7 @@ export function buildFamilyJson(family, sheets) {
   };
 }
 
-export function emitCatalog(catalog, dir = GENERATED_DIR) {
+export function emitCatalog(catalog, dir = GENERATED_DIR, glossaryTerms = []) {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   const manifest = { files: {} };
@@ -43,6 +44,10 @@ export function emitCatalog(catalog, dir = GENERATED_DIR) {
     writeFileSync(join(dir, `${family}.json`), text);
     manifest.files[`${family}.json`] = createHash('sha256').update(text).digest('hex');
   }
+  const glossary = `${JSON.stringify(glossaryJson(glossaryTerms), null, 2)}
+`;
+  writeFileSync(join(dir, 'glossary.json'), glossary);
+  manifest.files['glossary.json'] = createHash('sha256').update(glossary).digest('hex');
   writeFileSync(join(dir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   return manifest;
 }

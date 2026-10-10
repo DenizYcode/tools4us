@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { loadCatalog, ROOT } from './catalog.mjs';
 import { validateCatalog } from './validate.mjs';
 import { checkI18nParity } from './i18n-parity.mjs';
+import { readGlossary, validateGlossary } from './glossary.mjs';
 
 const MAX_LISTED = 40;
 
@@ -37,12 +38,15 @@ export async function runCheck() {
   const result = validateCatalog(catalog);
   const parity = checkI18nParity(join(ROOT, 'src', 'i18n', 'tr.json'), join(ROOT, 'src', 'i18n', 'en.json'));
 
-  const errors = [...problems.filter((p) => p.level === 'error'), ...result.errors, ...parity];
+  const glossary = await readGlossary();
+  const glossaryErrors = [...glossary.problems.filter((p) => p.level === 'error'), ...validateGlossary(glossary.terms)];
+
+  const errors = [...problems.filter((p) => p.level === 'error'), ...result.errors, ...parity, ...glossaryErrors];
   const warnings = [...problems.filter((p) => p.level === 'warning'), ...result.warnings];
 
   printStats(result.stats);
   listFindings('Warnings', warnings);
   listFindings('Errors', errors);
   console.log(errors.length ? `\ncheck:data FAILED with ${errors.length} error(s)` : `\ncheck:data passed (${warnings.length} warning(s))`);
-  return { catalog, errors, warnings };
+  return { catalog, glossary: glossary.terms, errors, warnings };
 }
