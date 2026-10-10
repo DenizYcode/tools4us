@@ -29,9 +29,12 @@ test('only ready, in-scope rows reach the site data, and none is left unverified
   }
 });
 
-test('the seeded catalog starts fully draft (expected to change as rows become ready)', () => {
-  const ready = Object.values(catalog.families).flatMap((f) => [...f.models, ...f.accessories]).filter((r) => r.status === 'ready');
-  assert.equal(ready.length, 0, 'rows were marked ready: update this test and the lifecycle expectations below');
+test('only wireless models are ready so far (Phase 3); every other family and every accessory is still draft', () => {
+  for (const [family, sheets] of Object.entries(catalog.families)) {
+    const ready = [...sheets.models, ...sheets.accessories].filter((r) => r.status === 'ready');
+    if (family === 'wireless') assert.ok(ready.every((r) => sheets.models.includes(r)), 'wireless accessories are still draft');
+    else assert.equal(ready.length, 0, `${family}: rows were marked ready, update this test and the lifecycle expectations below`);
+  }
 });
 
 test('PIDs: one per row, no spare suffix, no lists (rules/data.md)', () => {
@@ -155,11 +158,10 @@ test('lifecycle: replacements that exist in the catalog become PID links, others
 });
 
 test('lifecycle: unverified groups stay empty rather than being guessed', () => {
-  for (const [f, pid] of [['switching', 'C9200L-24T-4G'], ['datacenter', 'DS-C9148T'], ['wireless', 'IW9167EH-E-HZ']]) {
+  for (const [f, pid] of [['switching', 'C9200L-24T-4G'], ['datacenter', 'DS-C9148T']]) {
     const m = model(f, pid);
     if (m) assert.equal(m.lifecycle, null, pid);
   }
-  assert.equal(life('wireless', 'CW9177I-CFG').lifecycle, null);
 });
 
 test('audit #18/#19: end-of-sale network modules have no replacement; the switches carry the replacement PID', () => {
@@ -175,8 +177,9 @@ test('current rows carry no end-of-sale bulletin, and unconfirmed lifecycles are
       if (r.lifecycle === 'current') assert.equal(r.eol_bulletin_url, null, r.pid);
     }
   }
-  assert.match(model('wireless', 'C9136I').needs_data, /confirm on cisco\.com/i);
-  assert.match(model('wireless', 'CW9172I-CFG').needs_data, /legacy "Current" label/);
+  // Wireless rows were verified in Phase 3, so their legacy flag is cleared; the draft extender keeps its reason.
+  assert.equal(model('wireless', 'C9136I').needs_data, null);
+  assert.match(model('wireless', 'CBW151AXM-E-EU').needs_data, /datasheet does not state ports/i);
 });
 
 test('inferred values are left empty, not false (ac_powered, poe, uplink_mgig)', () => {

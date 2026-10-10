@@ -234,6 +234,11 @@ export async function buildClosure() {
       test: (i) => ['Missing data', 'Content', 'Verify'].includes(i.category),
       run: (i) => {
         const rows = rowsFor(i);
+        // Rows that became ready passed check:data, which refuses a ready row with a missing required spec,
+        // lifecycle, source or date. That is the proof; the data itself is in docs/Phase3_Wireless_Verification.md.
+        if (rows.length > 0 && rows.every((r) => r.row.status === 'ready' && r.row.last_verified)) {
+          return ok(`${rows.length} row(s) (${rows.slice(0, 3).map((r) => r.row.pid).join(', ')}${rows.length > 3 ? ', ...' : ''}) are ready: check:data requires the specs, lifecycle, source and last_verified date`);
+        }
         return allDraft(rows) ? tracked(`${rows.length} row(s) (${rows.slice(0, 3).map((r) => r.row.pid).join(', ')}${rows.length > 3 ? ', ...' : ''}) are draft; the gap is counted by check:data and cannot reach the site`) : no('rows not located');
       },
     },
