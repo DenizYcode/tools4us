@@ -241,5 +241,6 @@
   "compare.differs": "differs",
   "shortcuts.recommend.go": "Start with wireless",
   "compare.add": "Add a model",
-  "compare.addPlaceholder": "Pick a model…"
+  "compare.addPlaceholder": "Pick a model…",
+  "filters.skip": "Skip to results"
 }

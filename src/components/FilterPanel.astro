@@ -20,6 +20,7 @@ const TERM_FOR: Record<string, string> = { unified: 'unified', on_prem: 'on_prem
 ---
 
 <form class="filters" id="filter-form" aria-labelledby="filters-title" novalidate>
+  <a class="skip" href="#results-title">{t(lang, 'filters.skip')}</a>
   <div class="head">
     <h2 id="filters-title">{t(lang, 'filters.title')}</h2>
     <button type="button" class="close" id="filters-close">{t(lang, 'filters.close')}</button>
@@ -148,6 +149,19 @@ const TERM_FOR: Record<string, string> = { unified: 'unified', on_prem: 'on_prem
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+  }
+
+  /* Keyboard users can jump past the filter controls. Shown when focused. */
+  .skip {
+    position: absolute;
+    left: -9999px;
+  }
+
+  .skip:focus {
+    position: static;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
   }
 
   .head {

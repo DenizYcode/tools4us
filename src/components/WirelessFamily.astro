@@ -483,8 +483,11 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
     const openButton = document.getElementById('filters-open') as HTMLButtonElement;
     let scrim: HTMLDivElement | null = null;
     const desktop = window.matchMedia('(min-width: 64em)');
+    // A closed sheet must not be reachable by keyboard or screen reader, whatever the CSS transition is doing.
+    const syncInert = () => sheet.toggleAttribute('inert', !desktop.matches && !sheet.classList.contains('open'));
     function setSheet(open: boolean): void {
       sheet.classList.toggle('open', open);
+      syncInert();
       openButton.setAttribute('aria-expanded', String(open));
       document.getElementById('results-region')?.toggleAttribute('inert', open);
       if (open) {
@@ -517,7 +520,11 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
         openButton.focus();
       }
     });
-    desktop.addEventListener('change', () => desktop.matches && sheet.classList.contains('open') && setSheet(false));
+    desktop.addEventListener('change', () => {
+      if (desktop.matches && sheet.classList.contains('open')) setSheet(false);
+      syncInert();
+    });
+    syncInert();
 
     // Compare tray (2 to 4 models). The selection travels in the link, so it can be shared.
     const tray = document.getElementById('tray') as HTMLElement;

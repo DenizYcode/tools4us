@@ -241,5 +241,6 @@
   "compare.differs": "fark var",
   "shortcuts.recommend.go": "Kablosuz için başla",
   "compare.add": "Model ekle",
-  "compare.addPlaceholder": "Model seçin…"
+  "compare.addPlaceholder": "Model seçin…",
+  "filters.skip": "Sonuçlara geç"
 }

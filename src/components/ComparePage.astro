@@ -92,9 +92,16 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
   .check,
   .add {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2) var(--space-3);
+    max-width: 100%;
     min-height: var(--tap);
+  }
+
+  select {
+    max-width: 100%;
+    min-width: 0;
   }
 
   .add span {
@@ -282,7 +289,11 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
       const chosen = selection.map((slug) => bySlug.get(slug)!);
 
       addSelect.replaceChildren(new Option(s['compare.addPlaceholder'], ''));
-      for (const c of all) if (!selection.includes(c.slug)) addSelect.append(new Option(c.name, c.slug));
+      for (const c of all) {
+        if (selection.includes(c.slug)) continue;
+        // Models that are no longer sold say so in the list, so nobody adds one by mistake.
+        addSelect.append(new Option(c.lifecycle === 'current' ? c.name : `${c.name} (${s[`val.life.${c.lifecycle}`]})`, c.slug));
+      }
       addSelect.disabled = selection.length >= MAX_COMPARE;
       addSelect.value = '';
 
