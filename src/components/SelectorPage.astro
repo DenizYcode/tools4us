@@ -52,6 +52,7 @@ const poeTerm = 'poe';
   <Section labelledby="questions-title">
     <div class="wrap" id="selector-root" data-strings={JSON.stringify(strings)} data-lang={lang} data-model-base={modelPath(lang, '')}>
       <h2 id="questions-title" class="sr">{t(lang, 'selector.title')}</h2>
+      <noscript><p>{t(lang, 'selector.nojs')}</p></noscript>
       <form id="selector-form" novalidate>
         {
           questions.map(([name, options, def]) => (
@@ -280,10 +281,9 @@ const poeTerm = 'poe';
         a.href = `${base}${r.card.slug}/`;
         h.append(a);
         article.append(h, el('p', '', r.card.summary));
-        article.append(el('h4', '', s['selector.whyTitle']));
-        const ul = el('ul', 'why');
-        for (const code of r.why) ul.append(el('li', '', s[`selector.why.${code}`]));
-        article.append(ul);
+        article.querySelector('p')?.after(el('h4', '', s['selector.whyTitle']));
+        const parts = r.why.map((code: string) => s[`selector.why.${code}`]);
+        article.append(el('p', 'why', parts.join(', ')));
         for (const w of r.warnings) article.append(el('p', 'warn', warning(w)));
         const go = el('a', 'go', `${s['selector.see']} →`) as HTMLAnchorElement;
         go.href = `${base}${r.card.slug}/`;

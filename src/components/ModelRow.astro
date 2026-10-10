@@ -42,7 +42,7 @@ const why = card.recommended ? textOf(card, lang, 'recommended_why') : null;
       <span class="badge">{td(lang, `val.env.${card.environment}`)}</span>
       {hasSixGhz(card) && <span class="badge">{t(lang, 'badge.sixghz')}</span>}
       {card.uplink_max_gbps !== null && card.uplink_max_gbps >= 2.5 && <span class="badge">{t(lang, 'badge.mgig')}</span>}
-      {textOf(card, lang, 'licence') && !/gerekmez|no licence/i.test(textOf(card, lang, 'licence') ?? '') && <span class="badge">{t(lang, 'badge.licence')}</span>}
+      {card.licence_required === true && <span class="badge">{t(lang, 'badge.licence')}</span>}
     </p>
     <p class="summary">{textOf(card, lang, 'summary')}</p>
     {why && <p class="why"><strong>{t(lang, 'badge.recommended')}:</strong> {why}</p>}

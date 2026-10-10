@@ -87,3 +87,11 @@ Each model's `source_url` is its datasheet; `datasheet_url` is the same link. Th
 - **Uncertain "current"**: CW9177 (datasheet from Aug 2026; I found no official ordering statement, only reseller listings with long lead times), CW9172H (one reseller page calls it "soon End of Sale"; no Cisco notice found), IW9165 (datasheet May 2026; its series page returned 404 and Cisco's industrial wireless page lists it beside the IW9167). Ask your Cisco contact to confirm orderability.
 - **Indoor/outdoor for CBW150AX and C9120/C9115/C9130**: the datasheets describe indoor use but give no formal rating; the legacy value (indoor) is kept.
 - **Datasheet age**: C9124 (2023) and the Meraki pages (undated) carry no EoS notice, but their specs were not re-confirmed by a recent revision.
+
+## Added after the independent review
+
+- **Licence badge** now comes from a controlled `licence_required` column (yes / no / empty), not from reading the licence text. Yes: Cisco Networking Subscription, Cisco DNA, Meraki and industrial models; no: Cisco Business (basic use); empty: C9124 (the datasheet does not say) and the End-of-Sale Catalyst 9100 models, which carry no licence note. The site shows "Lisans gerekir" only on yes.
+- **"Birleşik" (unified)** means one orderable PID that can be managed both ways (the Wi-Fi 7 PIDs). CW9162/9164/9166/9163E need the -MR PID for cloud, so they are not unified; they still match the "Şirket içi" and "Bulut" filters.
+- **CW9172H** `poe_full = at` rests on the datasheet saying all three radios run 2x2 on 802.3at. Its PoE-out port needs 802.3bt; the note says so. The datasheet does not say whether USB needs bt, so nothing is claimed.
+- **IW9165DH** lists `bt` in `poe_supported` because the datasheet shows "PoE+ and UPOE in" on its multigig port; full function is at.
+- **Still your call**: CW9177 and IW9165 are `current` on the evidence above (datasheet 2026, series page "Available" or the current industrial lineup, no End-of-Sale notice). CW9172H is also named as the replacement for MR36H and C9105AXW in EOL15855, which supports it being current. If your Cisco contact says otherwise, set the row back to draft and the selector drops it.

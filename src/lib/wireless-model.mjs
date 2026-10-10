@@ -67,7 +67,9 @@ export function groupCards(models) {
       rugged: first.rugged === true,
       features: first.features ?? [],
       management,
-      unified: management.includes('on_prem') && management.includes('cloud'),
+      // Unified = one orderable PID that can run both ways. Where cloud needs another PID (CW916x -MR) it is not unified.
+      unified: rows.some((r) => (r.management ?? []).includes('on_prem') && (r.management ?? []).includes('cloud')),
+      licence_required: first.licence_required ?? null,
       recommended: Boolean(rec),
       text: {
         tr: {

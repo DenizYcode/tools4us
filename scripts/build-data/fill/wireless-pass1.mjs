@@ -312,6 +312,7 @@ for (const g of GROUPS) {
     Object.assign(row, {
       summary_tr: st, summary_en: se, good_for_tr: gt, good_for_en: ge,
       licence_note_tr: g.lic?.[0] ?? null, licence_note_en: g.lic?.[1] ?? null,
+      licence_required: g.lic ? (g.lic === L.cbw ? false : g.lic === L.c9124 ? null : true) : null,
       poe_note_tr: g.poe?.[0] ?? null, poe_note_en: g.poe?.[1] ?? null,
       variant_note_tr: g.variant?.[0] ?? null, variant_note_en: g.variant?.[1] ?? null,
       ...g.set, ...(g.patch ?? {}),

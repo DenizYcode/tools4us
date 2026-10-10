@@ -21,6 +21,8 @@ export const ROWS = [
   ['features', (c) => [...c.features].sort()],
   ['rugged', (c) => c.rugged],
   // The page passes a ready-made `licence` in the reader's language; full cards fall back to the Turkish text.
+  ['last_order', (c) => c.last_order ?? null],
+  ['replaced_by', (c) => c.replaced_by ?? []],
   ['licence', (c) => (c.licence !== undefined ? c.licence : c.text.tr.licence)],
 ];
 

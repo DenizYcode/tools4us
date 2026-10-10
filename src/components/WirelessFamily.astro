@@ -434,7 +434,7 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'chip';
-        const text = labelOf(input);
+        const text = input.name === 'poeMax' ? fill(s['filters.poeChip'] ?? '', { poe: labelOf(input) }) : labelOf(input);
         b.textContent = `${text} ×`;
         b.setAttribute('aria-label', fill(s['filters.remove'] ?? '', { label: text }));
         b.addEventListener('click', () => {
@@ -485,17 +485,35 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
     const desktop = window.matchMedia('(min-width: 64em)');
     // A closed sheet must not be reachable by keyboard or screen reader, whatever the CSS transition is doing.
     const syncInert = () => sheet.toggleAttribute('inert', !desktop.matches && !sheet.classList.contains('open'));
+    // While the sheet is open everything outside it is inert, so Tab and screen readers stay inside the dialog.
+    let inerted: HTMLElement[] = [];
+    function setOutsideInert(on: boolean): void {
+      for (const node of inerted) node.removeAttribute('inert');
+      inerted = [];
+      if (!on) return;
+      for (let node: HTMLElement | null = sheet; node && node !== document.documentElement; node = node.parentElement) {
+        for (const sibling of [...(node.parentElement?.children ?? [])] as HTMLElement[]) {
+          if (sibling === node || sibling.tagName === 'SCRIPT') continue;
+          sibling.setAttribute('inert', '');
+          inerted.push(sibling);
+        }
+      }
+    }
     function setSheet(open: boolean): void {
       sheet.classList.toggle('open', open);
       syncInert();
       openButton.setAttribute('aria-expanded', String(open));
-      document.getElementById('results-region')?.toggleAttribute('inert', open);
+      setOutsideInert(open);
+      document.body.style.overflow = open ? 'hidden' : '';
       if (open) {
         sheet.setAttribute('role', 'dialog');
         sheet.setAttribute('aria-modal', 'true');
         scrim = document.createElement('div');
         scrim.className = 'scrim';
-        scrim.addEventListener('click', () => setSheet(false));
+        scrim.addEventListener('click', () => {
+          setSheet(false);
+          openButton.focus();
+        });
         document.body.append(scrim);
         (sheet.querySelector('input, button') as HTMLElement | null)?.focus();
       } else {

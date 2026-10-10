@@ -242,5 +242,9 @@
   "shortcuts.recommend.go": "Start with wireless",
   "compare.add": "Add a model",
   "compare.addPlaceholder": "Pick a model…",
-  "filters.skip": "Skip to results"
+  "filters.skip": "Skip to results",
+  "filters.poeChip": "Switch power: {poe}",
+  "selector.nojs": "The suggestion form needs JavaScript. You can browse the models one by one on the wireless page.",
+  "spec.last_order": "Last order date",
+  "spec.replaced_by": "Replaced by"
 }

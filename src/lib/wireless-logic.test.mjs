@@ -34,7 +34,9 @@ test('variants with the same name become one card; the card lists every PID and 
   assert.equal(a.text.tr.recommended_why, 'neden');
   const mr = cards([row('X', { name_tr: 'X', management: ['on_prem'] }), row('X-MR', { name_tr: 'X', management: ['cloud'] })])[0];
   assert.deepEqual(mr.management, ['on_prem', 'cloud']);
-  assert.equal(mr.unified, true);
+  assert.equal(mr.unified, false, 'cloud needs another PID (-MR), so it is not unified');
+  const one = cards([row('U-CFG', { name_tr: 'U', management: ['on_prem', 'cloud'] }), row('U-RTG', { name_tr: 'U', management: ['on_prem', 'cloud'] })])[0];
+  assert.equal(one.unified, true, 'one PID that runs both ways is unified');
 });
 
 test('variants that disagree on lifecycle, environment, generation or PoE are refused', () => {
@@ -100,7 +102,7 @@ test('filters: an indoor+outdoor model matches both choices; the PoE filter is "
   assert.equal(applyFilters(all, f({ poeMax: 'bt' })).length, 4);
 });
 
-test('filters: unified means a model that can be managed both ways; features are all required; 6 GHz and mGig', () => {
+test('filters: unified means one PID that can be managed both ways; features are all required; 6 GHz and mGig', () => {
   assert.deepEqual(names(applyFilters(all, f({ mgmt: ['unified'] }))), ['IN7']);
   assert.deepEqual(names(applyFilters(all, f({ features: ['cleanair'] }))), ['IN7']);
   assert.deepEqual(names(applyFilters(all, f({ features: ['cleanair', 'gnss_gps'] }))), [], 'every selected feature must be present');

@@ -38,6 +38,8 @@ export function formatValue(key, value, s, lang) {
       return value.map((p) => label(s, `val.poe.${p}`)).join(', ');
     case 'features':
       return value.map((f) => label(s, `val.feature.${f}`)).join(', ');
+    case 'replaced_by':
+      return value.join(', ');
     case 'rugged':
       return value ? s['val.yes'] : s['val.no'];
     default:

@@ -242,5 +242,9 @@
   "shortcuts.recommend.go": "Kablosuz için başla",
   "compare.add": "Model ekle",
   "compare.addPlaceholder": "Model seçin…",
-  "filters.skip": "Sonuçlara geç"
+  "filters.skip": "Sonuçlara geç",
+  "filters.poeChip": "Anahtar gücü: {poe}",
+  "selector.nojs": "Öneri formu için JavaScript gerekir. Modelleri kablosuz sayfasından tek tek inceleyebilirsiniz.",
+  "spec.last_order": "Son sipariş tarihi",
+  "spec.replaced_by": "Yerine geçen model"
 }

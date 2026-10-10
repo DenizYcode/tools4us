@@ -5,7 +5,7 @@ import Base from '../layouts/Base.astro';
 import Section from './Section.astro';
 import { t, tp, type Lang } from '../i18n';
 import { compareSwitchPath, familyPath, modelPath } from '../i18n/routes';
-import { wirelessCards, textOf } from '../lib/catalog';
+import { wirelessCards, textOf, replacementCards, wirelessLookup } from '../lib/catalog';
 
 interface Props {
   lang: Lang;
@@ -30,6 +30,8 @@ const cards = wirelessCards.map((c) => ({
   features: c.features,
   rugged: c.rugged,
   licence: textOf(c, lang, 'licence'),
+  last_order: c.lifecycle === 'current' ? null : c.last_order,
+  replaced_by: c.lifecycle === 'current' ? [] : replacementCards(c, wirelessLookup).map((r) => r.name),
 }));
 const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spec.'), ...tp(lang, 'note.'), ...tp(lang, 'detail.') };
 ---
@@ -269,6 +271,9 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
       if (selection.length) url.searchParams.set('m', selection.join(','));
       else url.searchParams.delete('m');
       history.replaceState(null, '', url);
+      // The language toggle keeps the selection, so a shared comparison opens in either language.
+      const toggle = document.querySelector<HTMLAnchorElement>('.lang-toggle');
+      if (toggle) toggle.href = `${toggle.href.split('?')[0]}${url.search}`;
     }
 
     function removeButton(c: Record<string, any>): HTMLButtonElement {

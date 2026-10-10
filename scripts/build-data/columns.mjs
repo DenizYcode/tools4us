@@ -47,6 +47,8 @@ export const COMMON_MODEL_COLUMNS = [
   s('good_for_en'),
   ...LIFECYCLE,
   enlist('management', 'management', true),
+  // yes = a licence is mandatory, no = none needed, empty = the source does not say (never guessed)
+  bool('licence_required'),
   s('licence_note_tr'),
   s('licence_note_en'),
   s('variant_note_tr'),
