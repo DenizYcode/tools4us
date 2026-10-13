@@ -192,9 +192,9 @@ All content lives in files, separate from code: one spreadsheet per product fami
 
 **Family-specific key specs:**
 
-- **Switching:** ports and speeds, uplinks, PoE budget (W), PoE standard, stacking, L2/L3, mGig.
+- **Switching:** ports and speeds, uplinks, PoE budget (W), PoE standard, stacking, L2/L3, mGig. A `ready` switching row must carry `switch_form`, `port_count`, `downlink_gbps`, `uplink_gbps`, `poe` (yes or no), `stacking` and `layer3`; when `poe` is yes, also `poe_type` and `poe_budget_w`.
 - **Wireless:** Wi-Fi generation, streams, bands (6 GHz), uplink speed, PoE needed for full function and what degrades below it, indoor/outdoor, antenna type. A `ready` wireless row must carry `wifi_generation`, `environment`, `bands_ghz`, `poe_supported`, `poe_full` and `uplink_max_gbps`.
-- **Routing:** throughput, IPsec throughput and the licence it depends on, WAN ports, LTE/5G, SD-WAN support, module slots.
+- **Routing:** throughput, IPsec throughput and the licence it depends on, WAN ports, LTE/5G, SD-WAN support, module slots. A `ready` routing row must carry `form_factor`, `deployment`, `throughput_mbps`, `wan_port_count`, `sd_wan` and `cellular` (`none`, `embedded` or `pluggable`); `security_throughput_mbps` requires `licence_note_tr`.
 - **Data Center (not in the first launch):** port speeds, role (leaf / spine), NX-OS or ACI, licence tier.
 - **Collaboration (not in the first launch):** device type, room size, camera, display, platform (Webex / Microsoft Teams), peripherals.
 - **Security (not in the first launch; MX throughput is covered under Routing):** firewall and threat throughput, VPN throughput, ports, HA, management (FMC / Security Cloud Control).
@@ -371,6 +371,7 @@ The biggest risk is stale data, not code: six families plus stories was a lot to
 - [x] Graphics (10 Oct 2026): original vector drawings that represent each family and are generated from model data; no product photos.
 - [x] Repo and URL: repo renamed to `tools4us`, live at denizycode.github.io/tools4us/ (done 10 Oct 2026).
 - [x] Phase 3 (10 Oct 2026): Wireless is verified model by model against Cisco datasheets and End-of-Sale bulletins; a row without a verifiable source stays draft. Turkish copy is drafted from the verified specs and awaits native review. Variants share one card. The configuration builder (antennas, SKU string) moves to Phase 4 because the Phase 3 build-plan entry does not list it. The glossary is an xlsx with definitions (tooltips need a meaning, not just a TR/EN pair); the glossary page stays Phase 6.
+- [x] Phase 4 (13 Oct 2026): Switching and Routing publish a core SMB set, verified model by model like Wireless (Switching: Catalyst 1200/1300/1300X, 9200L/9200/9200CX, 9300/9300L/9300X and their Meraki-mode `-M` models, Meraki MS130/MS150, CBS220, and the End-of-Sale MS210, MS450, C9500-16X rows; Routing: Catalyst 8000 gen 1 and G2, ISR1000/ISR1100 and C900 End-of-Sale rows, Meraki MX, vMX and Z-Series). Industrial IE/IR, Catalyst 9400/9500/9600, 9350/9550/9610 and CBS110 stay draft. The guided selector is needs-based per family. The configuration builder is built last and offers only accessory pairs verified against a datasheet; a model without verified pairs shows no builder. Compare stays inside one family: the URL gains an optional `f` family parameter (default wireless, so existing links keep working). Ready switching rows need `poe_type` and `poe_budget_w` when `poe` is yes; ready routing rows that carry a security/IPsec throughput must name the licence (content rule 4); `cellular` gains the value `none`.
 - [x] Old site code and CSVs received; dataset audit done (docs/Phase1_Dataset_Audit.xlsx).
 - [x] Old internal discussion: decisions re-added under Old site review.
 - [x] ciscosizing.com: separate project, reviewed from its page HTML; patterns only, no reuse.
@@ -407,7 +408,7 @@ Eight phases, each ending with a working site you can open. Build one family end
 2. **Phase 1 — Data pipeline.** Spreadsheet format, conversion script, schema and build checks. Import the old SelectorTool CSVs, normalize them to the new schema, and run the dataset audit: End-of-Sale status, controlled vocabularies, missing Turkish text, series explainers and recommended picks.
 3. **Phase 2 — Shell.** Tools4Us brand, design tokens, layout, TR/EN routing, drawn family graphics, hub page with the three family buttons, a "Yakında" row and placeholder story cards.
 4. **Phase 3 — Wireless end to end.** Family page, filters, guided selector, model detail, comparison, lifecycle badges, PoE warnings.
-5. **Phase 4 — Switching and Routing.** Switching, and Routing including the Meraki MX appliances and Z-Series gateways, reusing Phase 3 components. Data Center, Collaboration, Security, Cameras and Cellular are a backlog, to be decided after launch.
+5. **Phase 4 — Switching and Routing.** Switching, and Routing including the Meraki MX appliances and Z-Series gateways, reusing Phase 3 components. Data Center, Collaboration, Security, Cameras and Cellular are a backlog, to be decided after launch. The configuration builder (modules, line cards, supervisors, antennas, live SKU string) is part of this phase, built last (see Decisions, 13 Oct 2026).
 6. **Phase 5 — Stories.** Story pages, featured strip, video embeds, freshness rules, the five seed stories.
 7. **Phase 6 — Search, shortlist, forms.** Global search, shortlist export, migration finder, request form, analytics.
 8. **Phase 7 — QA and launch.** Technical checks, native Turkish review, usability test, disclaimer and KVKK text check, go live.

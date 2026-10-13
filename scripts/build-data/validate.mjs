@@ -180,6 +180,8 @@ export function validateCatalog(catalog, { now = today() } = {}) {
         }
         if (sheet === 'series') continue;
         if (family === 'wireless' && sheet === 'models') checkWirelessPoe({ row, loc, error });
+        if (family === 'switching' && sheet === 'models') checkSwitchPoe({ row, loc, error });
+        if (family === 'routing' && sheet === 'models') checkRoutingThroughput({ row, loc, error });
         checkReadyLifecycle({ family, sheet, row, loc, byPid, error });
       }
     }
@@ -221,5 +223,25 @@ function checkWirelessPoe({ row, loc, error }) {
   const weaker = supported.some((p) => POE_RANK[p] < POE_RANK[row.poe_full]);
   if (weaker && !hasValue(row.poe_note_tr)) {
     error('POE_NOTE_MISSING', `${loc}: runs on a weaker PoE standard than the ${row.poe_full} it needs for full function, so poe_note_tr must say what degrades`);
+  }
+}
+
+// SPEC content rule 2 for switches: a PoE switch states which PoE it gives and how many watts in total, so the
+// selector can warn when the budget is too small.
+function checkSwitchPoe({ row, loc, error }) {
+  if (row.poe === true) {
+    if (!hasValue(row.poe_type)) error('POE_TYPE_MISSING', `${loc}: poe is yes, so poe_type is required`);
+    if (!hasValue(row.poe_budget_w)) error('POE_BUDGET_MISSING', `${loc}: poe is yes, so poe_budget_w (total watts) is required`);
+    else if (!(row.poe_budget_w > 0)) error('POE_BUDGET_INVALID', `${loc}: poe_budget_w must be above 0`);
+  } else if (row.poe === false && (hasValue(row.poe_type) || hasValue(row.poe_budget_w))) {
+    error('POE_CONTRADICTION', `${loc}: poe is no but poe_type or poe_budget_w is set`);
+  }
+}
+
+// SPEC content rule 4: where throughput depends on a licence, show both numbers and name the licence.
+function checkRoutingThroughput({ row, loc, error }) {
+  if (!hasValue(row.security_throughput_mbps)) return;
+  if (!hasValue(row.licence_note_tr)) {
+    error('THROUGHPUT_LICENCE_MISSING', `${loc}: security_throughput_mbps is set, so licence_note_tr must name the licence it depends on`);
   }
 }

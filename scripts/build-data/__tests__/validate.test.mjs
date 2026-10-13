@@ -292,3 +292,67 @@ test('wireless: poe_full must be one of the supported standards, and the spec fi
     assert.ok(codes(run(catalog({ models: [model({ [key]: null })] }))).includes('READY_MISSING_FIELD'), key);
   }
 });
+
+// ---- Phase 4: switching and routing ----
+
+function switchModel(over = {}) {
+  return {
+    ...model({ pid: 'C9300-24P-E', family: 'switching', series: 'C9300' }),
+    wifi_generation: null, environment: null, bands_ghz: null, uplink_max_gbps: null, poe_supported: null, poe_full: null,
+    switch_form: 'rack', port_count: 24, downlink_gbps: [1], uplink_gbps: [10], poe: true, poe_type: 'poe_plus',
+    poe_budget_w: 437, stacking: true, layer3: 'full_l3',
+    ...over,
+  };
+}
+const switchCatalog = (models) => ({
+  families: { switching: { models, accessories: [], compat: [], series: [series({ family: 'switching', series: 'C9300' })] } },
+});
+
+function routerModel(over = {}) {
+  return {
+    ...model({ pid: 'C8200-1N-4T', family: 'routing', series: 'C8200' }),
+    wifi_generation: null, environment: null, bands_ghz: null, uplink_max_gbps: null, poe_supported: null, poe_full: null,
+    form_factor: ['rack'], deployment: 'medium', sd_wan: true, wan_port_count: 4, cellular: 'none', throughput_mbps: 2000,
+    ...over,
+  };
+}
+const routerCatalog = (models) => ({
+  families: { routing: { models, accessories: [], compat: [], series: [series({ family: 'routing', series: 'C8200' })] } },
+});
+
+test('switching: a complete ready switch passes, and the spec fields are required', () => {
+  assert.deepEqual(run(switchCatalog([switchModel()])).errors, []);
+  for (const key of ['switch_form', 'port_count', 'downlink_gbps', 'uplink_gbps', 'poe', 'stacking', 'layer3']) {
+    assert.ok(codes(run(switchCatalog([switchModel({ [key]: null })]))).includes('READY_MISSING_FIELD'), key);
+  }
+});
+
+test('switching: poe=no is a stated value, not a gap', () => {
+  const plain = switchModel({ poe: false, poe_type: null, poe_budget_w: null });
+  assert.deepEqual(run(switchCatalog([plain])).errors, []);
+});
+
+test('switching: a PoE switch must state the PoE type and the total watts', () => {
+  assert.ok(codes(run(switchCatalog([switchModel({ poe_budget_w: null })]))).includes('POE_BUDGET_MISSING'));
+  assert.ok(codes(run(switchCatalog([switchModel({ poe_type: null })]))).includes('POE_TYPE_MISSING'));
+  assert.ok(codes(run(switchCatalog([switchModel({ poe_budget_w: 0 })]))).includes('POE_BUDGET_INVALID'));
+  assert.ok(codes(run(switchCatalog([switchModel({ poe: false })]))).includes('POE_CONTRADICTION'));
+});
+
+test('switching: draft rows are not held to the PoE rule', () => {
+  assert.deepEqual(run(switchCatalog([switchModel({ status: 'draft', poe_budget_w: null })])).errors, []);
+});
+
+test('routing: a complete ready router passes, and the spec fields are required', () => {
+  assert.deepEqual(run(routerCatalog([routerModel()])).errors, []);
+  for (const key of ['form_factor', 'deployment', 'sd_wan', 'wan_port_count', 'cellular', 'throughput_mbps']) {
+    assert.ok(codes(run(routerCatalog([routerModel({ [key]: null })]))).includes('READY_MISSING_FIELD'), key);
+  }
+});
+
+test('routing: licence-dependent throughput must name the licence', () => {
+  const bare = routerModel({ security_throughput_mbps: 1000 });
+  assert.ok(codes(run(routerCatalog([bare]))).includes('THROUGHPUT_LICENCE_MISSING'));
+  const named = routerModel({ security_throughput_mbps: 1000, licence_note_tr: 'IPsec için Network Advantage lisansı gerekir.' });
+  assert.deepEqual(run(routerCatalog([named])).errors, []);
+});

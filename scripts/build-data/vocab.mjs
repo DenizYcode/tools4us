@@ -43,7 +43,7 @@ export const VOCAB = {
   // routing
   router_form: ['rack', 'desktop', 'chassis', 'rugged', 'virtual'],
   router_deployment: ['small', 'medium', 'large', 'aggregation', 'dc', 'virtual'],
-  cellular: ['embedded', 'pluggable'],
+  cellular: ['none', 'embedded', 'pluggable'],
   // data center
   dc_device_type: ['fixed', 'modular_chassis'],
   dc_role: ['leaf', 'spine', 'super_spine', 'access', 'tor', 'aggregation', 'services', 'multiservice', 'san_fabric', 'san_director', 'san_extension'],
