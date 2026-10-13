@@ -15,7 +15,6 @@ review_by: "2027-01-11"
 featured: false
 order: null
 related_pids: []
-cta_family: routing
 sources:
   - title: "Security Cloud Control FAQ (Cisco, updated 9 Oct 2026)"
     url: "https://www.cisco.com/c/en/us/products/collateral/security/security-cloud-control/security-cloud-control-faq.html"

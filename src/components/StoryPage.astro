@@ -75,8 +75,10 @@ const first = models[0];
           {
             first ? (
               <a class="button" href={modelPath(lang, first.card.slug, first.family)}>{t(lang, 'stories.ctaModel')}</a>
-            ) : (
+            ) : story.cta_family ? (
               <a class="button" href={familyPath(lang, story.cta_family)}>{tf(lang, 'stories.ctaFamily', { family: td(lang, `family.${story.cta_family}.name`) })}</a>
+            ) : (
+              <a class="button" href={story.sources[0].url} target="_blank" rel="noopener noreferrer">{t(lang, 'stories.ctaSource')}<span class="sr">{t(lang, 'note.external')}</span></a>
             )
           }
         </p>
@@ -173,6 +175,7 @@ const first = models[0];
     vertical-align: -1px;
   }
 
+  .button .sr,
   .prose :global(.sr) {
     position: absolute;
     width: 1px;

@@ -27,3 +27,16 @@ Checked on 13 Oct 2026 against Cisco and Meraki pages (fetched and read on that 
 - **Cisco 8000 Series Secure Routers vs Catalyst 8000.** The PQC story says the secure routers are "not on Tools4Us yet" and does not equate them with the Catalyst 8000 models in the catalog. Confirm the two families are separate.
 - **Related models.** Only the licensing story links models (CW9172I-RTG, CW9176I-RTG). The Smart Switches (C9350/C9550/C9610), Nexus, Secure Router and security products are draft or outside the catalog, so those stories link to a family page (decision of 13 Oct 2026).
 - **Turkish copy** of all five stories (and the English) needs native review. Featured order and picks are mine: licensing, Smart Switches, Live Protect, PQC; Security Cloud Control is published but not featured.
+
+## Review follow-ups (13 Oct 2026)
+
+Claims the first version of this doc did not list, with their source:
+
+- **Live Protect:** "within hours" for exploitation and "weeks or months" for patching are from the Cisco solution overview (updated 10 Feb 2026).
+- **Smart Switches:** the C9550 1RU/2RU split, the Catalyst 6500/6800 path, the management list (Catalyst Center, Meraki dashboard with cloud or device configuration source, Smart Software Manager, CLI) and "Switching Essentials or Advantage" are from the Cisco C9000 Smart Switching FAQ (21 Sep 2026).
+- **PQC:** "most of its core portfolio by December 2026" and the adoption advice (assess exposure, sensitive data first, phased move) are on the Cisco Trust Center page; "key entered locally or from a QKD system" is in the 13 Jan 2026 WAN blog.
+- **Licensing:** the 12-month and 36-month minimums and the cloud / mixed / on-premises choice apply only to the products the Meraki page names. The title and teaser now say Wi-Fi 7 and the new switches.
+
+Changed after the independent review: a featured story whose `review_by` is more than 90 days after `last_verified` now fails the build; the call to action of a story with no related model and no matching family page is the first Cisco source ("Cisco kaynağını incele"), so Live Protect (Nexus), Security Cloud Control and PQC no longer send readers to a family page that does not hold the product; the Live Protect teaser says "only on Nexus 9000 today"; the PQC "why" box says the dates are a commitment and a roadmap to confirm per product.
+
+Left open: the video player has not run with a real Cisco video ID (it was proven only with a placeholder ID and no sandbox attribute; test with the real ID before the first video).

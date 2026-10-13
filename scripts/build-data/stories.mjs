@@ -133,7 +133,6 @@ export function validateStories(stories, catalog, { today = todayIso() } = {}) {
     // Rules for published stories.
     for (const f of TEXT_FIELDS) if (blank(m[f])) err(s, 'STORY_REQUIRED', `required field ${f} is empty`);
     for (const lang of ['tr', 'en']) if (blank(s.body[lang])) err(s, 'STORY_BODY', `the <!-- ${lang} --> body section is empty`);
-    if (blank(m.cta_family)) err(s, 'STORY_REQUIRED', 'required field cta_family is empty');
     for (const f of ['published_date', 'last_verified', 'review_by']) {
       if (blank(m[f])) err(s, 'STORY_REQUIRED', `required field ${f} is empty`);
       else if (!isDate(m[f])) err(s, 'STORY_DATE', `${f} "${m[f]}" is not a date (YYYY-MM-DD)`);
@@ -142,7 +141,9 @@ export function validateStories(stories, catalog, { today = todayIso() } = {}) {
     if (isDate(m.published_date) && m.published_date > today) err(s, 'STORY_DATE', `published_date ${m.published_date} is in the future`);
     if (isDate(m.last_verified) && isDate(m.review_by)) {
       if (m.review_by <= m.last_verified) err(s, 'STORY_DATE', `review_by ${m.review_by} must be after last_verified ${m.last_verified}`);
-      else if (m.review_by > addDays(m.last_verified, REVIEW_DAYS)) warn(s, 'STORY_REVIEW_LONG', `review_by is more than ${REVIEW_DAYS} days after last_verified`);
+      else if (m.review_by > addDays(m.last_verified, REVIEW_DAYS)) {
+        (m.featured === true ? err : warn)(s, 'STORY_REVIEW_LONG', `review_by is more than ${REVIEW_DAYS} days after last_verified${m.featured === true ? ' (a featured story must be re-verified within 90 days)' : ''}`);
+      }
     }
     if (!sources.length || !sources.some((x) => isAllowedLink(x?.url))) err(s, 'STORY_SOURCES', 'a ready story needs at least one Cisco or Meraki source link');
     if (!blank(m.title_tr) && m.title_tr.length > 60) {
@@ -191,7 +192,7 @@ export function storiesJson(stories) {
         featured: m.featured === true,
         order: Number.isInteger(m.order) ? m.order : null,
         related_pids: m.related_pids ?? [],
-        cta_family: m.cta_family,
+        cta_family: m.cta_family || null,
         video_youtube_id: m.video_youtube_id || null,
         sources: m.sources,
       };

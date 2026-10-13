@@ -42,6 +42,7 @@ const label = tf(lang, 'video.title', { title });
       frame.src = box.dataset.embed ?? '';
       frame.title = box.dataset.title ?? '';
       frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      frame.allowFullscreen = true;
       frame.referrerPolicy = 'strict-origin-when-cross-origin';
       button.replaceWith(frame);
       frame.focus();

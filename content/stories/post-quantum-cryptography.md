@@ -5,8 +5,8 @@ title_tr: "Kuantum sonrası şifreleme: şimdiden hazırlanmak"
 title_en: "Post-quantum cryptography: preparing now"
 teaser_tr: "Bugün kaydedilen şifreli trafik yarın çözülebilir. Cisco ne yapıyor, WAN'da bugün ne var, müşteriye ne söylemeli?"
 teaser_en: "Encrypted traffic recorded today could be decrypted tomorrow. What Cisco is doing, what the WAN has today, and what to tell customers."
-why_tr: "Müşteriler 'kuantum' sorusunu sormaya başlıyor. Doğru cevap korkutmak değil, planlamak: hangi veri uzun süre gizli kalmalı, hangi bağlantılar bu veriyi taşıyor? Cisco'nun tarihleri yol haritasıdır, söz değildir."
-why_en: "Customers are starting to ask about quantum. The right answer is to plan, not to scare: which data must stay secret for years, and which links carry it? Cisco's dates are a roadmap, not a promise."
+why_tr: "Müşteriler 'kuantum' sorusunu sormaya başlıyor. Doğru cevap korkutmak değil, planlamak: hangi veri uzun süre gizli kalmalı, hangi bağlantılar bu veriyi taşıyor? Cisco'nun tarihleri bir taahhüt ve yol haritasıdır; ürün ve sürüm bazında Cisco'dan doğrulayın."
+why_en: "Customers are starting to ask about quantum. The right answer is to plan, not to scare: which data must stay secret for years, and which links carry it? Cisco's dates are a commitment and a roadmap; confirm them per product and release with Cisco."
 category: new
 status: ready
 published_date: "2026-10-13"
@@ -15,7 +15,6 @@ review_by: "2027-01-11"
 featured: true
 order: 4
 related_pids: []
-cta_family: routing
 sources:
   - title: "Post-Quantum Cryptography (Cisco Trust Center)"
     url: "https://www.cisco.com/site/us/en/about/trust-center/post-quantum-cryptography.html"
@@ -42,7 +41,7 @@ Bu yönlendiriciler Tools4Us'ta henüz yer almıyor.
 
 ## Müşteriye ne önerilir?
 
-Cisco'nun önerisi sade: önce hangi verinin ve hangi bağlantının riskli olduğunu çıkarın, hassas veriye öncelik verin ve geçişi aşamalı planlayın.
+Cisco'nun önerisi (güven merkezi sayfası) sade: önce hangi verinin ve hangi bağlantının riskli olduğunu çıkarın, hassas veriye öncelik verin ve geçişi aşamalı planlayın.
 
 <!-- en -->
 
@@ -63,4 +62,4 @@ These routers are not on Tools4Us yet.
 
 ## What to suggest to a customer
 
-Cisco's advice is simple: first list which data and which links are at risk, put sensitive data first and plan the move in phases.
+Cisco's advice (Trust Center page) is simple: first list which data and which links are at risk, put sensitive data first and plan the move in phases.

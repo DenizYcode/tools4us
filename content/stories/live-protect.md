@@ -3,8 +3,8 @@ slug_tr: live-protect
 slug_en: live-protect
 title_tr: "Live Protect: yama gelene kadar canlı koruma"
 title_en: "Live Protect: protection while you wait for the patch"
-teaser_tr: "Cisco, güvenlik açığı duyurulunca cihazı yeniden başlatmadan geçici bir koruma kalkanı uyguluyor. Bugün hangi ürünlerde, yarın hangilerinde?"
-teaser_en: "When a vulnerability is announced, Cisco applies a temporary shield without rebooting the device. Which products today, which later?"
+teaser_tr: "Cisco, güvenlik açığı duyurulunca cihazı yeniden başlatmadan geçici bir kalkan uygulayabiliyor. Bugün yalnızca Nexus 9000 anahtarlarında."
+teaser_en: "When a vulnerability is announced, Cisco can apply a temporary shield without rebooting the device. Today only on Nexus 9000 switches."
 why_tr: "Müşteriler yama için bakım penceresi beklemek zorunda kalıyor. Live Protect bu boşluğu kapatmayı hedefliyor, ama bugün yalnızca Nexus 9000'de çalışıyor. Kampüs ve şube ürünleri için Cisco tarih vermedi; müşteriye söz vermeyin."
 why_en: "Customers must wait for a maintenance window to patch. Live Protect aims to close that gap, but today it runs only on Nexus 9000. Cisco gave no dates for campus and branch products, so promise nothing."
 category: security
@@ -15,7 +15,6 @@ review_by: "2027-01-11"
 featured: true
 order: 3
 related_pids: []
-cta_family: switching
 sources:
   - title: "Shields Up: Cisco Live Protect (Cisco Blogs, 2 Jun 2026)"
     url: "https://blogs.cisco.com/news/shields-up-cisco-live-protect-closes-vulnerability-gap-with-compensating-controls"

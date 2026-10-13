@@ -41,7 +41,7 @@ test('parseStoryFile splits frontmatter and the two language sections', () => {
 });
 
 test('a required field, a body section or a date missing fails a ready story but not a draft', () => {
-  for (const [over, code] of [[{ why_tr: '' }, 'STORY_REQUIRED'], [{ last_verified: '' }, 'STORY_REQUIRED'], [{ review_by: 'yarın' }, 'STORY_DATE'], [{ cta_family: '' }, 'STORY_REQUIRED']]) {
+  for (const [over, code] of [[{ why_tr: '' }, 'STORY_REQUIRED'], [{ last_verified: '' }, 'STORY_REQUIRED'], [{ review_by: 'yarın' }, 'STORY_DATE']]) {
     assert.ok(codes(validateStories([story(over)], catalog, { today: TODAY })).includes(code), JSON.stringify(over));
     assert.deepEqual(validateStories([story({ ...over, status: 'draft' })], catalog, { today: TODAY }).errors, []);
   }
@@ -71,6 +71,19 @@ test('a featured story past review_by fails the build; other stories only warn',
   const plain = validateStories([story({ ...expired, featured: false })], catalog, { today: TODAY });
   assert.deepEqual(plain.errors, []);
   assert.ok(plain.warnings.some((w) => w.code === 'STORY_REVIEW_OVERDUE'));
+});
+
+test('a featured story must have been verified within 90 days of review_by; others only warn', () => {
+  const long = { last_verified: '2026-01-01', review_by: '2027-06-01' };
+  assert.ok(codes(validateStories([story({ ...long, featured: true, order: 1 })], catalog, { today: TODAY })).includes('STORY_REVIEW_LONG'));
+  const plain = validateStories([story(long)], catalog, { today: TODAY });
+  assert.deepEqual(plain.errors, []);
+  assert.ok(plain.warnings.some((w) => w.code === 'STORY_REVIEW_LONG'));
+});
+
+test('cta_family is optional (the call to action is then the first Cisco source) but must be a launch family when given', () => {
+  assert.deepEqual(validateStories([story({ cta_family: '' })], catalog, { today: TODAY }).errors, []);
+  assert.ok(codes(validateStories([story({ cta_family: 'datacenter' })], catalog, { today: TODAY })).includes('STORY_CTA'));
 });
 
 test('featured stories: integer unique order, at most four', () => {

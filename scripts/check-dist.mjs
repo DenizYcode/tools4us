@@ -24,7 +24,7 @@ const DIST = process.env.DIST_DIR ? resolve(process.env.DIST_DIR) : join(ROOT, '
 const BASE = config.base ?? '/';
 const SITE_HOST = new URL(config.site).host;
 const ALLOWED_EXTERNAL = /(^|\.)(cisco|meraki)\.com$/i;
-// The only other external link: the "watch on YouTube" fallback under a story video.
+// The only other external link: the "watch on YouTube" fallback under a story video (story pages only).
 const ALLOWED_VIDEO_LINK = /^(www\.)?youtube\.com$/i;
 
 function walk(dir) {
@@ -89,7 +89,7 @@ for (const page of pages) {
     const host = new URL(url).host;
     if (host === SITE_HOST) continue;
     if (element !== 'a') fail(`${name}: third-party request ${url} (<${element}>)`);
-    else if (!ALLOWED_EXTERNAL.test(host) && !ALLOWED_VIDEO_LINK.test(host)) fail(`${name}: external link to ${host}`);
+    else if (!ALLOWED_EXTERNAL.test(host) && !(ALLOWED_VIDEO_LINK.test(host) && /^(tr\/yenilikler|en\/stories)\/[^/]+\/index\.html$/.test(name))) fail(`${name}: external link to ${host}`);
     else if (!/target="_blank"/.test(whole) || !/rel="[^"]*noopener/.test(whole)) fail(`${name}: external link ${url} must open in a new tab with rel="noopener"`);
   }
   if (/<iframe\b/i.test(html)) fail(`${name}: an <iframe> is in the built HTML (video players must be created on click)`);

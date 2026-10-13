@@ -1,12 +1,12 @@
 ---
 slug_tr: birlesik-lisans
 slug_en: unified-licensing
-title_tr: "Birleşik lisans: tek abonelikle bulut ya da yerinde yönetim"
-title_en: "Unified licensing: one subscription, cloud or on-premises"
+title_tr: "Birleşik lisans: Wi-Fi 7 ve yeni anahtarlarda tek abonelik"
+title_en: "Unified licensing: one subscription for Wi-Fi 7 and new switches"
 teaser_tr: "Wi-Fi 7 ve yeni anahtarlarda lisans, cihaza değil ağa bağlanıyor. Neyi bildiğimizi, neyi Cisco'ya sormanız gerektiğini yazdık."
 teaser_en: "On Wi-Fi 7 and the new switches the licence follows the network, not the device. What is documented, and what to ask Cisco."
-why_tr: "Lisans türü ve yönetim biçimi satın alma sırasında belirlenir. Müşteriyle bunu konuşmadan teklif hazırlarsanız, sonradan lisans taşıma sorusuyla karşılaşırsınız; Cisco bu konuda herkese açık bir kural yayımlamıyor."
-why_en: "The licence type and management mode are decided when you buy. If you quote without discussing them, you will meet the licence-transfer question later, and Cisco publishes no public rule for it."
+why_tr: "Lisans türü ve yönetim biçimi aboneliğe bağlıdır. Müşteriyle bunu konuşmadan teklif hazırlarsanız, sonradan lisans taşıma sorusuyla karşılaşırsınız; Cisco bu konuda herkese açık bir kural yayımlamıyor."
+why_en: "The licence type and management mode belong to the subscription. If you quote without discussing them, you will meet the licence-transfer question later, and Cisco publishes no public rule for it."
 category: licence
 status: ready
 published_date: "2026-10-13"

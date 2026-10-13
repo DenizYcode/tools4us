@@ -21,7 +21,7 @@ export interface Story {
   featured: boolean;
   order: number | null;
   related_pids: string[];
-  cta_family: Family;
+  cta_family: Family | null;
   video_youtube_id: string | null;
   sources: { title: string; url: string }[];
 }
