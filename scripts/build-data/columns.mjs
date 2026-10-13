@@ -76,6 +76,9 @@ export const FAMILY_MODEL_COLUMNS = {
     en('poe_type', 'poe_type'),
     en('poe_coverage', 'poe_coverage'),
     num('poe_budget_w'),
+    // poe_budget_w is the budget with the default power supply; this note says what changes with another one
+    s('poe_note_tr'),
+    s('poe_note_en'),
     bool('stacking', true),
     en('layer3', 'layer3', true),
     bool('mgig'),

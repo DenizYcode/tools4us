@@ -29,10 +29,10 @@ test('only ready, in-scope rows reach the site data, and none is left unverified
   }
 });
 
-test('only wireless models are ready so far (Phase 3); every other family and every accessory is still draft', () => {
+test('only wireless and switching models are ready so far (Phases 3-4); every accessory and the other families are still draft', () => {
   for (const [family, sheets] of Object.entries(catalog.families)) {
     const ready = [...sheets.models, ...sheets.accessories].filter((r) => r.status === 'ready');
-    if (family === 'wireless') assert.ok(ready.every((r) => sheets.models.includes(r)), 'wireless accessories are still draft');
+    if (family === 'wireless' || family === 'switching') assert.ok(ready.every((r) => sheets.models.includes(r)), `${family} accessories are still draft`);
     else assert.equal(ready.length, 0, `${family}: rows were marked ready, update this test and the lifecycle expectations below`);
   }
 });
@@ -146,8 +146,10 @@ test('lifecycle: audited end-of-sale models carry status, last order, bulletin a
 
 test('lifecycle: replacements that exist in the catalog become PID links, others stay notes', () => {
   assert.deepEqual(life('datacenter', 'N9K-C9364C').replacement_pid, ['N9K-C9364C-GX']);
-  assert.deepEqual(life('switching', 'MS450-12-HW').replacement_pid, ['C9500-32QC']);
-  assert.match(life('switching', 'MS210-24-HW').replacement_note, /MS130/);
+  // C9500-32QC is not published yet, so the MS450 bulletin's replacement stays a note until it is.
+  assert.equal(life('switching', 'MS450-12-HW').replacement_pid, null);
+  assert.match(life('switching', 'MS450-12-HW').replacement_note, /C9500-32QC/);
+  assert.deepEqual(life('switching', 'MS210-24-HW').replacement_pid, ['MS150-24T-4G']);
   assert.deepEqual(life('routing', 'C8200-1N-4T').replacement_pid, ['C8235-E-G2']);
   assert.deepEqual(life('routing', 'MX84').replacement_pid, ['MX85']);
   // A mixed answer keeps the part that is a PID as a link and the rest as a note.
@@ -158,7 +160,7 @@ test('lifecycle: replacements that exist in the catalog become PID links, others
 });
 
 test('lifecycle: unverified groups stay empty rather than being guessed', () => {
-  for (const [f, pid] of [['switching', 'C9200L-24T-4G'], ['datacenter', 'DS-C9148T']]) {
+  for (const [f, pid] of [['switching', 'IE-3300-8T2S'], ['datacenter', 'DS-C9148T']]) {
     const m = model(f, pid);
     if (m) assert.equal(m.lifecycle, null, pid);
   }
@@ -185,7 +187,8 @@ test('current rows carry no end-of-sale bulletin, and unconfirmed lifecycles are
 test('inferred values are left empty, not false (ac_powered, poe, uplink_mgig)', () => {
   assert.equal(catalog.families.wireless.models.filter((m) => m.ac_powered === false).length, 0);
   assert.equal(catalog.families.wireless.models.filter((m) => m.uplink_mgig === false).length, 0);
-  assert.equal(catalog.families.switching.models.filter((m) => m.poe === false).length, 0);
+  // A draft switching row never gets poe=no from the migration; only verified (ready) rows state it.
+  assert.equal(catalog.families.switching.models.filter((m) => m.poe === false && m.status !== 'ready').length, 0);
   assert.equal(catalog.families.routing.models.filter((m) => m.poe === false).length, 0);
 });
 
