@@ -29,10 +29,10 @@ test('only ready, in-scope rows reach the site data, and none is left unverified
   }
 });
 
-test('only wireless and switching models are ready so far (Phases 3-4); every accessory and the other families are still draft', () => {
+test('only wireless, switching and routing models are ready so far (Phases 3-4); every accessory and the data centre family are still draft', () => {
   for (const [family, sheets] of Object.entries(catalog.families)) {
     const ready = [...sheets.models, ...sheets.accessories].filter((r) => r.status === 'ready');
-    if (family === 'wireless' || family === 'switching') assert.ok(ready.every((r) => sheets.models.includes(r)), `${family} accessories are still draft`);
+    if (family === 'wireless' || family === 'switching' || family === 'routing') assert.ok(ready.every((r) => sheets.models.includes(r)), `${family} accessories are still draft`);
     else assert.equal(ready.length, 0, `${family}: rows were marked ready, update this test and the lifecycle expectations below`);
   }
 });
@@ -152,10 +152,11 @@ test('lifecycle: replacements that exist in the catalog become PID links, others
   assert.deepEqual(life('switching', 'MS210-24-HW').replacement_pid, ['MS150-24T-4G']);
   assert.deepEqual(life('routing', 'C8200-1N-4T').replacement_pid, ['C8235-E-G2']);
   assert.deepEqual(life('routing', 'MX84').replacement_pid, ['MX85']);
-  // A mixed answer keeps the part that is a PID as a link and the rest as a note.
-  assert.deepEqual(life('routing', 'MX67C').replacement_pid, ['C8121-CW-G2-MX']);
-  assert.equal(life('routing', 'MX67C').replacement_note, 'C8111-C-G2-MX');
-  assert.match(life('routing', 'C8500-12X').replacement_note, /8500-G2/);
+  // The Meraki-managed Catalyst replacements of the MX67C/MX68CW are not published yet, so they stay notes.
+  assert.equal(life('routing', 'MX67C').replacement_pid, null);
+  assert.match(life('routing', 'MX67C').replacement_note, /C8111-C-G2-MX/);
+  assert.match(life('routing', 'MX68CW').replacement_note, /C8121-CW-G2-MX/);
+  assert.deepEqual(life('routing', 'C8500-12X').replacement_pid, ['C8550-G2']);
   assert.equal(life('routing', 'C8300-2N2S-4T2X').replacement_none, true);
 });
 
