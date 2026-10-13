@@ -142,7 +142,7 @@ test('switching selector: only current models, on every answer combination', opt
         assert.ok(r.card.poe_budget_w >= Number(a.poeCount) * Number(a.poeWatts), `${r.card.name} budget is below the need for ${JSON.stringify(a)}`);
         assert.ok(!r.warnings.some((w) => w.startsWith('poe-short')));
       }
-      if (relaxed.includes('poe') && Number(a.poeCount) > 0) assert.ok(r.warnings.some((w) => w.startsWith('poe-short')), 'a PoE shortfall is always warned');
+      if (relaxed.includes('poe') && Number(a.poeCount) > 0) assert.ok(r.warnings.some((w) => w.startsWith('poe-short') || w.startsWith('poe-class')), 'a PoE shortfall is always warned');
     }
   }
   assert.equal(runs, 4 * 5 * 3 * 4 * 4 * 3);
@@ -155,7 +155,7 @@ test('switching selector: the recommended model leads when it fits, a larger bud
   assert.ok(results.length > 0);
   for (const r of results) assert.ok(r.card.poe_budget_w >= 720, `${r.card.name} must give 24 x 30 W`);
   const cloud = SELECTORS.switching.recommend(cards, { ...a, poeCount: '0', mgmt: 'cloud' }).results;
-  assert.ok(cloud.every((r) => r.card.management.includes('cloud')));
+  assert.ok(cloud.every((r) => r.card.management.includes('cloud') && !r.card.management.includes('on_prem')), 'cloud means a PID that is Meraki-managed from the start (-M), not an IOS XE model that can be migrated');
   const recommended = cloud.find((r) => r.card.recommended);
   if (recommended) assert.equal(cloud[0].card.recommended, true);
 });
@@ -245,4 +245,38 @@ test('published accessories: every one is current with a source, and every publi
   for (const a of sw.accessories) assert.ok(a.lifecycle === 'current' && a.source_url && a.last_verified, a.pid);
   for (const c of sw.compat) assert.ok(models.has(c.model_pid) && accessories.has(c.accessory_pid), `${c.accessory_pid} + ${c.model_pid}`);
   assert.equal(sw.compat.length, 121);
+});
+
+test('switching selector: cloud and size answers, PoE class and module warnings', opts, () => {
+  const cards = groupSwitchCards(sw.models);
+  const base = { ports: '48', poeCount: '24', poeWatts: '30', mgmt: 'cloud', uplink: 'any', extra: 'any' };
+  const cloud = SELECTORS.switching.recommend(cards, base).results;
+  assert.ok(cloud.length > 0 && cloud.every((r) => r.card.name.endsWith('-M') || r.card.name.startsWith('MS')), cloud.map((r) => r.card.name).join(', '));
+  // An 8-port ask is not sent to a core switch just because it is the recommended model of its series.
+  const small = SELECTORS.switching.recommend(cards, { ports: '8', poeCount: '0', poeWatts: '30', mgmt: 'any', uplink: 'any', extra: 'any' }).results;
+  assert.ok(small.every((r) => r.card.port_count <= 16), small.map((r) => `${r.card.name}:${r.card.port_count}`).join(', '));
+  // 60 W devices on 30 W ports: the warning names the class, not the budget.
+  const class60 = SELECTORS.switching.recommend(cards, { ports: '8', poeCount: '8', poeWatts: '60', mgmt: 'cisco_business', uplink: 'any', extra: 'any' });
+  assert.ok(class60.results.length > 0);
+  assert.ok(class60.results.every((r) => r.warnings.some((w) => w.startsWith('poe-class'))));
+  assert.ok(class60.results.every((r) => !r.warnings.some((w) => w.startsWith('poe-short')) || r.card.poe_budget_w < 480));
+  // A fast uplink on a modular switch needs a module that is ordered separately.
+  const fast = SELECTORS.switching.recommend(cards, { ports: '24', poeCount: '0', poeWatts: '30', mgmt: 'any', uplink: '25', extra: 'any' }).results;
+  assert.ok(fast.filter((r) => r.card.modular_uplinks).every((r) => r.warnings.includes('uplink-module')));
+});
+
+test('router cards: an End-of-Sale row whose speed was not re-verified shows no speed', opts, () => {
+  const cards = groupRouterCards(rt.models);
+  const byName = (n) => cards.find((c) => c.name === n);
+  assert.equal(byName('ISR1100-4G').perf_verified, false);
+  assert.equal(byName('ISR1100-4G').throughput_mbps, null);
+  assert.equal(byName('MX84').throughput_mbps, null);
+  assert.equal(byName('MX68CW').perf_verified, true, 'verified in the MX67/MX68 datasheet');
+  assert.equal(byName('C8231-G2').perf_verified, true);
+});
+
+test('router selector: cloud means Meraki-managed from the start', opts, () => {
+  const cards = groupRouterCards(rt.models);
+  const cloud = SELECTORS.routing.recommend(cards, { size: '1000', wan: '1', mgmt: 'cloud', cellular: 'no', sdwan: 'any', where: 'device' }).results;
+  assert.ok(cloud.length > 0 && cloud.every((r) => !r.card.management.includes('on_prem')));
 });

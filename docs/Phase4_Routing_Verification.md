@@ -7,7 +7,7 @@
 - `throughput_mbps`: Cisco = forwarding throughput (512-byte packets, "up to"); Meraki MX = stateful firewall throughput.
 - `security_throughput_mbps`: Cisco = IPsec throughput (512-byte packets); Meraki MX = next-generation firewall (NGFW, detection) throughput; Z-Series = "security throughput".
 - The legacy file mixed several metrics in the second number (IPsec, SD-WAN, threat protection). It is replaced by the datasheet value on every current row.
-- **End-of-Sale rows keep the legacy `throughput_mbps` and have no security number.** They were not re-verified (the audit flagged inconsistencies in the ISR 1100 numbers, #216-#238), and the site never recommends them.
+- **End-of-Sale rows keep the legacy `throughput_mbps` in the workbook (it is a required field) and have no security number.** They were not re-verified (the audit flagged inconsistencies in the ISR 1100 numbers, #216-#238), so the site shows no speed for them: the row summary leaves it out, the model page says "not verified", and the cards, filters and compare table treat it as empty. The exceptions are MX67C and MX68CW, whose speeds are in the datasheet that was read.
 
 ## How "current" was decided
 

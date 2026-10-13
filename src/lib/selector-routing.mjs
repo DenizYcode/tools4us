@@ -32,7 +32,8 @@ function fits(card, a) {
   const virtual = card.form_factor.includes('virtual');
   if (a.where === 'virtual' ? !virtual : virtual) return false;
   if ((card.wan_port_count ?? 0) < Number(a.wan)) return false;
-  if (a.mgmt !== 'any' && !card.management.includes(a.mgmt)) return false;
+  // "Cloud" = managed from the Meraki dashboard from the start; a router that only can be moved there is another PID.
+  if (a.mgmt === 'cloud' ? !card.management.includes('cloud') || card.management.includes('on_prem') : a.mgmt !== 'any' && !card.management.includes(a.mgmt)) return false;
   if (a.cellular === 'yes' && card.cellular === 'none') return false;
   if (a.sdwan === 'yes' && !card.sd_wan) return false;
   return true;

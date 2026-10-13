@@ -55,7 +55,7 @@ const terms = selector.terms as Record<string, string>;
         {
           questions.map(([name, options, def]) => (
             <fieldset>
-              <legend>{td(lang, `${prefix}.q.${name}`)}{terms[name] && <> <Term lang={lang} term={terms[name]} label="" /></>}</legend>
+              <legend>{td(lang, `${prefix}.q.${name}`)}{terms[name] && <> <Term lang={lang} term={terms[name]} label="" idSuffix={`-${name}`} /></>}</legend>
               {options.map((value) => (
                 <label class="opt">
                   <input type="radio" name={name} value={value} checked={value === def} />

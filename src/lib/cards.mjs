@@ -78,7 +78,7 @@ export function buildCards(models, spec) {
           licence: pick('licence_note_en') ?? null,
           poe_note: pick('poe_note_en') ?? null,
           variant_note: pick('variant_note_en') ?? null,
-          replacement_note: null,
+          replacement_note: pick('replacement_note_en') ?? null,
           recommended_why: rec?.recommended_why_en ?? null,
         },
       },

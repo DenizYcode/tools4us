@@ -321,7 +321,7 @@ const SERIES = {
     },
     intro: ['Catalyst 9500: kampüs omurgası ve toplama anahtarı. Burada C9500-24Y4C ile satışı sona eren C9500-16X modelleri listelenir; diğer 9500 modelleri henüz eklenmedi.', 'Catalyst 9500: campus core and aggregation switch. Listed here are the C9500-24Y4C and the C9500-16X models, which are end of sale; the other 9500 models are not added yet.'],
     aud: ['Mevcut kurulumlar; yeni projede C9500-24Y4C kullanın.', 'Existing installations; use the C9500-24Y4C for new projects.'],
-    rec: ['C9500-24Y4C', '24 x 25G erişim ve 100G yukarı bağlantı; satışı sona eren C9500-16X için Cisco\'nun önerdiği yedek.', '24 x 25G access ports and 100G uplinks; the replacement Cisco names for the end-of-sale C9500-16X.'],
+    rec: null,
   },
   CBS220: {
     src: DS.cbs220, lic: LIC.silent,
@@ -442,12 +442,13 @@ for (const [seriesName, s] of Object.entries(SERIES)) {
       const repl = s.eos.repl?.[row.pid] ?? null;
       Object.assign(row, {
         eos_announced: s.eos.announced, last_order: last, ldos: s.eos.ldos, eol_bulletin_url: s.eos.bulletin,
-        replacement_pid: repl, replacement_note: repl ? null : s.eos.note[0], replacement_none: null,
+        replacement_pid: repl, replacement_note: repl ? null : s.eos.note[0], replacement_note_en: repl ? null : s.eos.note[1], replacement_none: null,
       });
     } else {
       row.lifecycle = 'current';
-      Object.assign(row, { eos_announced: null, last_order: null, ldos: null, replacement_pid: null, replacement_note: null, replacement_none: null, eol_bulletin_url: null });
+      Object.assign(row, { eos_announced: null, last_order: null, ldos: null, replacement_pid: null, replacement_note: null, replacement_note_en: null, replacement_none: null, eol_bulletin_url: null });
     }
+    row.unified = row.management.includes('on_prem') && row.management.includes('cloud');
     row.recommended = null; row.recommended_why_tr = null; row.recommended_why_en = null;
     if (s.rec && s.rec[0] === row.pid) {
       row.recommended = true; row.recommended_why_tr = s.rec[1]; row.recommended_why_en = s.rec[2];

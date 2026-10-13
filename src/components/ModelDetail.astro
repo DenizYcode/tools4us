@@ -28,7 +28,7 @@ const replacements = current ? [] : replacementCards(card, FAMILY_DATA[family].l
 const poeNote = textOf(card, lang, 'poe_note');
 const licence = textOf(card, lang, 'licence');
 const variantNote = textOf(card, lang, 'variant_note');
-const replacementNote = card.replacement_note;
+const replacementNote = textOf(card, lang, 'replacement_note');
 const why = card.recommended ? textOf(card, lang, 'recommended_why') : null;
 const dates = { date: card.last_order ?? '', ldos: card.ldos ?? '–' };
 const specs: [string, unknown][] = DETAIL_SPECS[family].map((key) => [key, card[key]]);
@@ -150,12 +150,18 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
           family === 'routing' && (
             <>
               <h2>{t(lang, 'detail.perf')} <Term lang={lang} term="throughput" label="" /></h2>
-              <p><strong>{tf(lang, 'detail.perfFwd', { n: fmt('throughput_mbps', card.throughput_mbps) })}</strong></p>
-              <p>
-                {card.security_throughput_mbps ? tf(lang, 'detail.perfSec', { n: fmt('security_throughput_mbps', card.security_throughput_mbps) }) : t(lang, 'detail.perfNoSec')}
-                {card.security_throughput_mbps && <> <Term lang={lang} term="security_throughput" label="" /></>}
-              </p>
-              <p class="muted">{t(lang, 'detail.perfNote')}</p>
+              {card.perf_verified ? (
+                <>
+                  <p><strong>{tf(lang, 'detail.perfFwd', { n: fmt('throughput_mbps', card.throughput_mbps) })}</strong></p>
+                  <p>
+                    {card.security_throughput_mbps ? tf(lang, 'detail.perfSec', { n: fmt('security_throughput_mbps', card.security_throughput_mbps) }) : t(lang, 'detail.perfNoSec')}
+                    {card.security_throughput_mbps && <> <Term lang={lang} term="security_throughput" label="" /></>}
+                  </p>
+                  <p class="muted">{t(lang, 'detail.perfNote')}</p>
+                </>
+              ) : (
+                <p>{t(lang, 'detail.perfLegacy')}</p>
+              )}
             </>
           )
         }

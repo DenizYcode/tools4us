@@ -257,7 +257,7 @@ const SERIES = {
     rec: null, eosAll: true,
   },
   MX67: mxs('MX67', 'Meraki MX67', DS.mx67, ['küçük şube ve ev ofisi', 'small branches and home offices'], ['MX67', 'Küçük şubeler için kablolu, 700 Mbps güvenlik duvarı ve Meraki bulut yönetimi.', 'A wired 700 Mbps firewall with Meraki cloud management for small branches.']),
-  MX68: mxs('MX68', 'Meraki MX68', DS.mx67, ['küçük şube; PoE+ portlu', 'small branches that need PoE+ ports'], ['MX68', 'Çift WAN ve iki PoE+ portlu; küçük şubeler için dengeli seçim.', 'Dual WAN and two PoE+ ports; a balanced choice for small branches.']),
+  MX68: mxs('MX68', 'Meraki MX68', DS.mx67, ['PoE+ portlu küçük şubeler', 'small branches that need PoE+ ports'], ['MX68', 'Çift WAN ve iki PoE+ portlu; küçük şubeler için dengeli seçim.', 'Dual WAN and two PoE+ ports; a balanced choice for small branches.']),
   MX75: mxs('MX75', 'Meraki MX75', DS.mx75, ['orta ölçekli şube', 'medium branches'], null),
   MX84: mxs('MX84', 'Meraki MX84', DS.mx75, ['mevcut kurulumlar', 'existing installations'], null, true),
   MX85: mxs('MX85', 'Meraki MX85', DS.mx85, ['orta ölçekli şube', 'medium branches'], null),
@@ -309,7 +309,7 @@ const rate = (mbps) => (mbps >= 1000 ? `${trNum(mbps / 1000)} Gbps` : `${mbps} M
 const enRate = (mbps) => (mbps >= 1000 ? `${mbps / 1000} Gbps` : `${mbps} Mbps`);
 const gT = (n) => `${trNum(n)}G`;
 
-function copy(row, s, eos) {
+function copy(row, s, eos, showPerf) {
   if (eos && !s.eosAll) {
     s = { ...s, kind: [`${s.kind[0]} (satışı sona ${eos.last_order <= VERIFIED ? 'erdi' : 'eriyor'})`, `${s.kind[1]} (end of sale${eos.last_order <= VERIFIED ? '' : ' announced'})`], aud: ['Mevcut kurulumlar; yeni projede bülteninin önerdiği yedeği kullanın.', 'Existing installations; use the replacement named in the bulletin for new projects.'] };
   }
@@ -326,8 +326,9 @@ function copy(row, s, eos) {
   const poeT = row.poe ? ' PoE verebilen portları var.' : '';
   const poeE = row.poe ? ' Has ports that can supply PoE.' : '';
   return {
-    summary_tr: `${s.kind[0]}: ${wanT}; ${perfT}.${cellT}${sdT}${poeT}`,
-    summary_en: `${s.kind[1]}: ${wanE}; ${perfE}.${cellE}${sdE}${poeE}`,
+    // An End-of-Sale row whose speed was not re-verified shows no speed in its summary.
+    summary_tr: `${s.kind[0]}: ${wanT}${showPerf ? `; ${perfT}` : ''}.${cellT}${sdT}${poeT}`,
+    summary_en: `${s.kind[1]}: ${wanE}${showPerf ? `; ${perfE}` : ''}.${cellE}${sdE}${poeE}`,
     good_for_tr: s.aud[0],
     good_for_en: s.aud[1],
   };
@@ -362,7 +363,7 @@ for (const [seriesName, s] of Object.entries(SERIES)) {
     if (!row.cellular) row.cellular = 'none';
     for (const key of Object.keys(before)) note(row.pid, key, before[key], row[key]);
 
-    const text = copy(row, s, eos);
+    const text = copy(row, s, eos, Boolean(PERF[row.pid]));
     const parts = [];
     if (/^C8130-VA[IP]-G2$/.test(row.pid)) parts.push(VARIANT.vai);
     if (/^C8151-CVA[IP]-G2$|^C8151H-C-G2$/.test(row.pid)) parts.push(VARIANT.c8151c);
@@ -382,12 +383,13 @@ for (const [seriesName, s] of Object.entries(SERIES)) {
       row.lifecycle = eos.last_order <= VERIFIED ? 'eos' : 'eos_announced';
       Object.assign(row, {
         eos_announced: eos.announced, last_order: eos.last_order, ldos: eos.ldos, eol_bulletin_url: eos.url,
-        replacement_pid: eos.repl ?? null, replacement_note: eos.note ? eos.note[0] : null, replacement_none: eos.none ? true : null,
+        replacement_pid: eos.repl ?? null, replacement_note: eos.note ? eos.note[0] : null, replacement_note_en: eos.note ? eos.note[1] : null, replacement_none: eos.none ? true : null,
       });
     } else {
       row.lifecycle = 'current';
-      Object.assign(row, { eos_announced: null, last_order: null, ldos: null, replacement_pid: null, replacement_note: null, replacement_none: null, eol_bulletin_url: null });
+      Object.assign(row, { eos_announced: null, last_order: null, ldos: null, replacement_pid: null, replacement_note: null, replacement_note_en: null, replacement_none: null, eol_bulletin_url: null });
     }
+    row.unified = row.management.includes('on_prem') && row.management.includes('cloud');
     row.recommended = null; row.recommended_why_tr = null; row.recommended_why_en = null;
     if (s.rec && s.rec[0] === row.pid) {
       row.recommended = true; row.recommended_why_tr = s.rec[1]; row.recommended_why_en = s.rec[2];

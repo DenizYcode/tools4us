@@ -179,6 +179,9 @@ export function validateCatalog(catalog, { now = today() } = {}) {
           error('SERIES_NOT_READY', `${loc}: series "${row.series}" must be ready too (its explainer is shown above its models)`);
         }
         if (sheet === 'series') continue;
+        if (sheet === 'models' && row.unified === true && !((row.management ?? []).includes('on_prem') && (row.management ?? []).includes('cloud'))) {
+          error('UNIFIED_MISMATCH', `${loc}: unified is yes, but management is not both on_prem and cloud`);
+        }
         if (family === 'wireless' && sheet === 'models') checkWirelessPoe({ row, loc, error });
         if (family === 'switching' && sheet === 'models') checkSwitchPoe({ row, loc, error });
         if (family === 'routing' && sheet === 'models') checkRoutingThroughput({ row, loc, error });

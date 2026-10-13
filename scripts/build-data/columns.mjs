@@ -24,6 +24,7 @@ const LIFECYCLE = [
   date('ldos'),
   list('replacement_pid'),
   s('replacement_note'),
+  s('replacement_note_en'),
   bool('replacement_none'),
   url('eol_bulletin_url'),
 ];

@@ -26,7 +26,7 @@ const strings = tp(lang, 'config.');
   items.length > 0 && limit > 0 && (
     <Section tone="soft" labelledby="config-title">
       <div id="config-root" data-model={card.pids[0]} data-limit={limit} data-strings={JSON.stringify(strings)}>
-        <h2 id="config-title">{t(lang, 'config.title')} <Term lang={lang} term="uplink" label="" /></h2>
+        <h2 id="config-title">{t(lang, 'config.title')} <Term lang={lang} term="uplink" label="" idSuffix="-config" /></h2>
         <p>{tf(lang, 'config.lead', { n: limit })}</p>
         <form id="config-form">
           <fieldset>

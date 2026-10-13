@@ -12,21 +12,27 @@ const SAME = ['series', 'lifecycle', 'last_order'];
 export function groupRouterCards(models) {
   return buildCards(models, {
     same: SAME,
-    extract: (first) => ({
-      form_factor: first.form_factor ?? [],
-      deployment: first.deployment ?? null,
-      sd_wan: first.sd_wan === true,
-      wan_port_count: first.wan_port_count ?? null,
-      wan_port_max_gbps: first.wan_port_max_gbps ?? null,
-      lan_port_count: first.lan_port_count ?? null,
-      cellular: first.cellular ?? 'none',
-      throughput_mbps: first.throughput_mbps ?? null,
-      security_throughput_mbps: first.security_throughput_mbps ?? null,
-      max_vpn_tunnels: first.max_vpn_tunnels ?? null,
-      poe: first.poe === true,
-      // Any module slot: a NIM, SM or pluggable cellular (PIM) slot.
-      modules: (first.nim_slots ?? 0) + (first.sm_slots ?? 0) + (first.pim_slots ?? 0) > 0,
-    }),
+    extract: (first) => {
+      // End-of-Sale rows keep a legacy forwarding number that was not re-verified (docs/Phase4_Routing_Verification.md):
+      // a row is verified when it is current or carries a verified security throughput. Unverified numbers are not shown.
+      const perfVerified = first.lifecycle === 'current' || (first.security_throughput_mbps ?? null) !== null;
+      return {
+        perf_verified: perfVerified,
+        form_factor: first.form_factor ?? [],
+        deployment: first.deployment ?? null,
+        sd_wan: first.sd_wan === true,
+        wan_port_count: first.wan_port_count ?? null,
+        wan_port_max_gbps: first.wan_port_max_gbps ?? null,
+        lan_port_count: first.lan_port_count ?? null,
+        cellular: first.cellular ?? 'none',
+        throughput_mbps: perfVerified ? first.throughput_mbps ?? null : null,
+        security_throughput_mbps: first.security_throughput_mbps ?? null,
+        max_vpn_tunnels: first.max_vpn_tunnels ?? null,
+        poe: first.poe === true,
+        // Any module slot: a NIM, SM or pluggable cellular (PIM) slot.
+        modules: (first.nim_slots ?? 0) + (first.sm_slots ?? 0) + (first.pim_slots ?? 0) > 0,
+      };
+    },
   });
 }
 

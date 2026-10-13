@@ -32,7 +32,7 @@ const strings = { ...tp(lang, 'list.'), ...filterStrings, ...tp(lang, 'tray.') }
       <div>
         <h1 id="family-title">{td(lang, `${family}.heading`)}</h1>
         <p class="lead">{td(lang, `${family}.lead`)}</p>
-        <p class="verified">{tf(lang, 'wireless.verified', { date: verified })}</p>
+        <p class="verified">{tf(lang, 'family.verified', { date: verified })}</p>
         <p class="cta-row"><a class="button" href={selectorPath(lang, family)}>{td(lang, `${family}.selectorCta`)}</a><span class="hint">{td(lang, `${family}.selectorHint`)}</span></p>
       </div>
       <div class="art"><FamilyGraphic family={family} /></div>
