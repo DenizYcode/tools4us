@@ -47,3 +47,10 @@ export const modelPath = (lang: Lang, slug: string, family: Family): string => l
 export const compareSwitchPath = (lang: Lang): string => `${COMPARE_SLUG[otherLang(lang)]}/`;
 export const selectorSwitchPath = (lang: Lang, family: Family): string => `${SLUGS[otherLang(lang)][family]}/${SELECTOR_SLUG[otherLang(lang)]}/`;
 export const modelSwitchPath = (lang: Lang, slug: string, family: Family): string => `${SLUGS[otherLang(lang)][family]}/${slug}/`;
+
+// Stories: an index and one page per story. A story's slug differs per language (frontmatter slug_tr, slug_en).
+export const STORIES_SLUG: Record<Lang, string> = { tr: 'yenilikler', en: 'stories' };
+export const storiesPath = (lang: Lang): string => localePath(lang, `${STORIES_SLUG[lang]}/`);
+export const storyPath = (lang: Lang, slug: string): string => localePath(lang, `${STORIES_SLUG[lang]}/${slug}/`);
+export const storiesSwitchPath = (lang: Lang): string => `${STORIES_SLUG[otherLang(lang)]}/`;
+export const storySwitchPath = (lang: Lang, slugInOtherLang: string): string => `${STORIES_SLUG[otherLang(lang)]}/${slugInOtherLang}/`;

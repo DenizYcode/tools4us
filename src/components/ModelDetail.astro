@@ -9,9 +9,10 @@ import ExtLink from './ExtLink.astro';
 import Term from './Term.astro';
 import ConfigBuilder from './ConfigBuilder.astro';
 import { t, tf, td, tp, type Lang } from '../i18n';
-import { familyPath, modelSwitchPath, comparePath, selectorPath, modelPath, type Family } from '../i18n/routes';
+import { familyPath, modelSwitchPath, comparePath, selectorPath, modelPath, storyPath, type Family } from '../i18n/routes';
 import { textOf, hasSixGhz, replacementCards, FAMILY_DATA, type Card } from '../lib/catalog';
 import { formatValue } from '../lib/format.mjs';
+import { storiesAboutCard } from '../lib/stories';
 import { DETAIL_SPECS, SPEC_TERMS } from '../lib/family-ui.mjs';
 
 interface Props {
@@ -33,6 +34,7 @@ const why = card.recommended ? textOf(card, lang, 'recommended_why') : null;
 const dates = { date: card.last_order ?? '', ldos: card.ldos ?? '–' };
 const specs: [string, unknown][] = DETAIL_SPECS[family].map((key) => [key, card[key]]);
 const termFor: Record<string, string> = Object.fromEntries(Object.entries(SPEC_TERMS[family] as Record<string, (c: Card) => string>).map(([key, fn]) => [key, fn(card)]));
+const stories = storiesAboutCard(card);
 const artLabel = family === 'wireless' ? `${card.name}, ${td(lang, `val.env.${card.environment}`)}` : card.name;
 const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?.includes('desktop') ? 'desktop' : 'rack';
 ---
@@ -204,6 +206,21 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
     </ul>
     {variantNote && <p class="muted">{variantNote}</p>}
   </Section>
+
+  {
+    stories.length > 0 && (
+      <Section labelledby="stories-title">
+        <h2 id="stories-title">{t(lang, 'stories.aboutModel')}</h2>
+        <ul class="plain">
+          {stories.map((story) => (
+            <li>
+              <a href={storyPath(lang, story.slug[lang])}>{story.title[lang]}</a>
+            </li>
+          ))}
+        </ul>
+      </Section>
+    )
+  }
 
   <Section labelledby="sources-title">
     <h2 id="sources-title">{t(lang, 'detail.sources')}</h2>

@@ -1,0 +1,135 @@
+---
+// An official Cisco video, loaded only when the reader presses play (SPEC "Video"). Before the click the page makes
+// no request to YouTube: the poster is a drawn illustration, and the iframe (youtube-nocookie.com) is created by the
+// script below. A "YouTube'da izle" link stays under it for networks that block YouTube.
+import StoryGraphic from './graphics/StoryGraphic.astro';
+import ExtLink from './ExtLink.astro';
+import { t, tf, type Lang } from '../i18n';
+import { youtubeEmbedUrl, youtubeWatchUrl } from '../lib/stories-logic.mjs';
+
+interface Props {
+  lang: Lang;
+  id: string;
+  title: string;
+  category: 'new' | 'licence' | 'security' | 'family' | 'event';
+}
+
+const { lang, id, title, category } = Astro.props;
+const label = tf(lang, 'video.title', { title });
+---
+
+<figure class="video" data-video data-embed={youtubeEmbedUrl(id)} data-title={label}>
+  <div class="frame">
+    <button type="button" class="play">
+      <StoryGraphic category={category} />
+      <span class="icon" aria-hidden="true"
+        ><svg viewBox="0 0 24 24" width="28" height="28" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor" /></svg></span
+      >
+      <span class="sr">{t(lang, 'video.play')}: {title}</span>
+    </button>
+  </div>
+  <figcaption>
+    <ExtLink lang={lang} href={youtubeWatchUrl(id)}>{t(lang, 'video.watch')}</ExtLink>
+    <span class="note">{t(lang, 'video.note')}</span>
+  </figcaption>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-video]').forEach((box) => {
+    const button = box.querySelector<HTMLButtonElement>('button.play');
+    button?.addEventListener('click', () => {
+      const frame = document.createElement('iframe');
+      frame.src = box.dataset.embed ?? '';
+      frame.title = box.dataset.title ?? '';
+      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
+      button.replaceWith(frame);
+      frame.focus();
+    });
+  });
+</script>
+
+<style>
+  .video {
+    margin: 0 0 var(--space-5);
+  }
+
+  .frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    background: var(--bg-tint);
+  }
+
+  .play {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .play :global(svg.story-graphic) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .icon {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .play:hover .icon {
+    background: var(--accent-strong);
+  }
+
+  .play:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: -3px;
+  }
+
+  .frame :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-4);
+    margin-top: var(--space-2);
+  }
+
+  .note {
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+</style>

@@ -3,19 +3,20 @@ import Base from '../../layouts/Base.astro';
 import Section from '../../components/Section.astro';
 import FamilyCard from '../../components/FamilyCard.astro';
 import ComingSoonTile from '../../components/ComingSoonTile.astro';
-import StoryCardPlaceholder from '../../components/StoryCardPlaceholder.astro';
+import StoryCard from '../../components/StoryCard.astro';
 import ShortcutLink from '../../components/ShortcutLink.astro';
 import SelectorShortcut from '../../components/SelectorShortcut.astro';
 import HeroGraphic from '../../components/graphics/HeroGraphic.astro';
 import { locales, t, type Lang } from '../../i18n';
-import { LAUNCH_FAMILIES, LATER_FAMILIES, comparePath } from '../../i18n/routes';
+import { LAUNCH_FAMILIES, LATER_FAMILIES, comparePath, storiesPath } from '../../i18n/routes';
+import { hubStories } from '../../lib/stories';
 
 export function getStaticPaths() {
   return locales.map((lang) => ({ params: { lang } }));
 }
 
 const lang = Astro.params.lang as Lang;
-const stories = ['new', 'licence', 'security'] as const;
+const stories = hubStories();
 const shortcuts = ['recommend', 'legacy', 'compare'] as const;
 const shortcutHref = { compare: comparePath(lang) } as const;
 ---
@@ -58,18 +59,23 @@ const shortcutHref = { compare: comparePath(lang) } as const;
     </ul>
   </Section>
 
-  <Section tone="soft" labelledby="stories-title">
-    <h2 id="stories-title">{t(lang, 'stories.title')}</h2>
-    <ul class="grid three">
-      {
-        stories.map((story) => (
-          <li>
-            <StoryCardPlaceholder category={t(lang, `stories.cat.${story}`)} text={t(lang, 'stories.soon.body')} badge={t(lang, 'soon.badge')} />
-          </li>
-        ))
-      }
-    </ul>
-  </Section>
+  {
+    stories.length > 0 && (
+      <Section tone="soft" labelledby="stories-title">
+        <h2 id="stories-title">{t(lang, 'stories.title')}</h2>
+        <ul class="grid stories">
+          {stories.map((story) => (
+            <li>
+              <StoryCard lang={lang} story={story} />
+            </li>
+          ))}
+        </ul>
+        <p class="all-stories">
+          <a href={storiesPath(lang)}>{t(lang, 'stories.allLink')} →</a>
+        </p>
+      </Section>
+    )
+  }
 
   <Section labelledby="shortcuts-title">
     <h2 id="shortcuts-title">{t(lang, 'shortcuts.title')}</h2>
@@ -165,9 +171,30 @@ const shortcutHref = { compare: comparePath(lang) } as const;
     gap: var(--space-4);
   }
 
+  .all-stories {
+    margin: var(--space-5) 0 0;
+  }
+
+  .all-stories a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-weight: 650;
+  }
+
   @media (min-width: 40em) {
+    .grid.stories {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .grid.three {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64em) {
+    .grid.stories {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 

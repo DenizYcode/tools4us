@@ -1,0 +1,156 @@
+---
+// Original vector illustration per story category, same frame, stroke weight and palette as the family graphics.
+// Decorative: the card text carries the meaning, so it is hidden from assistive technology.
+interface Props {
+  category: 'new' | 'licence' | 'security' | 'family' | 'event';
+}
+
+const { category } = Astro.props;
+---
+
+<svg class="story-graphic" viewBox="0 0 320 200" aria-hidden="true" focusable="false">
+  <rect class="frame" x="0" y="0" width="320" height="200" rx="14"></rect>
+
+  {
+    category === 'new' && (
+      <g>
+        <rect class="body" x="78" y="44" width="164" height="112" rx="10" />
+        <path class="stroke-only" d="M98 74 H170 M98 94 H206 M98 114 H186" />
+        <path class="spark" d="M222 46 L228 60 L242 66 L228 72 L222 86 L216 72 L202 66 L216 60 Z" />
+        <circle class="led" cx="98" cy="136" r="4" />
+      </g>
+    )
+  }
+
+  {
+    category === 'licence' && (
+      <g>
+        <rect class="body" x="62" y="52" width="196" height="96" rx="10" />
+        <circle class="cage" cx="112" cy="100" r="22" />
+        <path class="check" d="M101 100 L109 108 L124 91" />
+        <path class="stroke-only" d="M152 84 H234 M152 104 H214 M152 124 H226" />
+      </g>
+    )
+  }
+
+  {
+    category === 'security' && (
+      <g>
+        <path class="body" d="M160 34 L228 58 V100 C228 132 200 156 160 170 C120 156 92 132 92 100 V58 Z" />
+        <path class="cable" d="M160 52 L210 69 V100 C210 124 190 142 160 154" />
+        <path class="check dark" d="M135 100 L152 117 L186 80" />
+      </g>
+    )
+  }
+
+  {
+    category === 'family' && (
+      <g>
+        <rect class="body" x="48" y="96" width="112" height="34" rx="5" />
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <rect class="port" x={58 + i * 15} y="106" width="9" height="9" rx="1.5" />
+        ))}
+        <rect class="body" x="176" y="52" width="100" height="26" rx="13" />
+        <circle class="led" cx="226" cy="65" r="4" />
+        <rect class="body" x="176" y="112" width="100" height="38" rx="7" />
+        <rect class="cage" x="188" y="124" width="18" height="12" rx="2" />
+        <rect class="port" x="212" y="125" width="10" height="10" rx="1.5" />
+        <rect class="port" x="228" y="125" width="10" height="10" rx="1.5" />
+        <path class="link" d="M104 96 V60 H176 M160 113 H176" />
+      </g>
+    )
+  }
+
+  {
+    category === 'event' && (
+      <g>
+        <rect class="body" x="66" y="46" width="188" height="112" rx="10" />
+        <rect class="ear" x="66" y="46" width="188" height="26" rx="10" />
+        <path class="stroke-only" d="M104 36 V56 M216 36 V56" />
+        {[0, 1, 2, 3, 4].flatMap((c) => [0, 1].map((r) => <rect class="port" x={90 + c * 31} y={88 + r * 28} width="16" height="16" rx="2" />))}
+        <rect class="cage" x="183" y="116" width="16" height="16" rx="2" />
+      </g>
+    )
+  }
+</svg>
+
+<style>
+  .story-graphic {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .frame {
+    fill: var(--bg-tint);
+  }
+
+  .body,
+  .ear {
+    stroke: var(--navy-900);
+    stroke-width: 2;
+  }
+
+  .body {
+    fill: var(--white);
+  }
+
+  .ear {
+    fill: var(--navy-700);
+  }
+
+  .port {
+    fill: var(--bg-tint);
+    stroke: var(--navy-900);
+    stroke-width: 1.2;
+  }
+
+  .cage {
+    fill: var(--accent);
+    stroke: var(--navy-900);
+    stroke-width: 1.2;
+  }
+
+  .led,
+  .spark {
+    fill: var(--accent);
+  }
+
+  .spark {
+    stroke: var(--navy-900);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+
+  .cable,
+  .link {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  .link {
+    stroke-dasharray: 2 7;
+  }
+
+  .stroke-only {
+    fill: none;
+    stroke: var(--navy-900);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .check {
+    fill: none;
+    stroke: var(--white);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .check.dark {
+    stroke: var(--accent);
+    stroke-width: 7;
+  }
+</style>

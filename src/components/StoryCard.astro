@@ -1,0 +1,99 @@
+---
+// Story card: drawn image, category tag, headline, teaser and "Devamını oku". The whole card is one link.
+import StoryGraphic from './graphics/StoryGraphic.astro';
+import { t, td, type Lang } from '../i18n';
+import { storyPath } from '../i18n/routes';
+import type { Story } from '../lib/stories';
+
+interface Props {
+  lang: Lang;
+  story: Story;
+  level?: 2 | 3;
+}
+
+const { lang, story, level = 3 } = Astro.props;
+const Heading = `h${level}` as 'h2' | 'h3';
+---
+
+<article class="card" data-category={story.category}>
+  <StoryGraphic category={story.category} />
+  <div class="body">
+    <p class="category">{td(lang, `stories.cat.${story.category}`)}</p>
+    <Heading><a href={storyPath(lang, story.slug[lang])}>{story.title[lang]}</a></Heading>
+    <p class="teaser">{story.teaser[lang]}</p>
+    <span class="cta" aria-hidden="true">{t(lang, 'stories.read')} →</span>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgb(10 31 68 / 0.08), 0 12px 28px rgb(10 31 68 / 0.12);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: var(--space-5);
+  }
+
+  .category {
+    margin: 0 0 var(--space-2);
+    color: var(--accent-strong);
+    font-size: var(--text-small);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .body :global(h2),
+  .body :global(h3) {
+    margin-bottom: var(--space-2);
+  }
+
+  .body :global(a) {
+    color: var(--navy-900);
+    text-decoration: none;
+  }
+
+  /* One tab stop: the link stretches over the whole card. */
+  .body :global(a)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .body :global(a):focus-visible {
+    outline: none;
+  }
+
+  .card:has(a:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  .teaser {
+    margin: 0 0 var(--space-4);
+    color: var(--muted);
+  }
+
+  .cta {
+    margin-top: auto;
+    color: var(--accent-strong);
+    font-weight: 650;
+  }
+</style>

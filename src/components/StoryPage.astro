@@ -1,0 +1,235 @@
+---
+// Story page: headline, dates, drawn image or video, body, the "Neden önemli?" box, related models, a call to action
+// and the Cisco sources (SPEC "Story page"). The body is Markdown from content/stories/, rendered with a small
+// subset that escapes HTML and links only to cisco.com and meraki.com.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import StoryGraphic from './graphics/StoryGraphic.astro';
+import VideoEmbed from './VideoEmbed.astro';
+import ExtLink from './ExtLink.astro';
+import { t, tf, td, otherLang, type Lang } from '../i18n';
+import { storiesPath, storySwitchPath, familyPath, modelPath } from '../i18n/routes';
+import { relatedModels, today, type Story } from '../lib/stories';
+import { textOf } from '../lib/catalog';
+import { renderMarkdown } from '../lib/markdown.mjs';
+
+interface Props {
+  lang: Lang;
+  story: Story;
+}
+
+const { lang, story } = Astro.props;
+const html = renderMarkdown(story.body[lang], { externalNote: t(lang, 'note.external') });
+const models = relatedModels(story);
+const overdue = story.review_by < today();
+const first = models[0];
+---
+
+<Base lang={lang} title={`${story.title[lang]} · ${t(lang, 'site.name')}`} switchPath={storySwitchPath(lang, story.slug[otherLang(lang)])} current="stories">
+  <Section tone="soft" labelledby="story-title">
+    <p class="back"><a href={storiesPath(lang)}>← {t(lang, 'stories.back')}</a></p>
+    <p class="category">{td(lang, `stories.cat.${story.category}`)}</p>
+    <h1 id="story-title">{story.title[lang]}</h1>
+    <p class="lead">{story.teaser[lang]}</p>
+    <p class="dates">
+      <span>{tf(lang, 'stories.published', { date: story.published_date })}</span>
+      <span>{tf(lang, 'stories.verified', { date: story.last_verified })}</span>
+    </p>
+  </Section>
+
+  <Section labelledby="story-title">
+    <article class="story">
+      {overdue && <p class="note overdue" role="note">{tf(lang, 'stories.overdue', { date: story.review_by })}</p>}
+
+      {
+        story.video_youtube_id ? (
+          <VideoEmbed lang={lang} id={story.video_youtube_id} title={story.title[lang]} category={story.category} />
+        ) : (
+          <div class="art"><StoryGraphic category={story.category} /></div>
+        )
+      }
+
+      <div class="prose" set:html={html} />
+
+      <aside class="why" aria-labelledby="why-title">
+        <h2 id="why-title">{t(lang, 'stories.why')}</h2>
+        <p>{story.why[lang]}</p>
+      </aside>
+
+      <section class="related" aria-labelledby="related-title">
+        <h2 id="related-title">{t(lang, 'stories.related')}</h2>
+        {
+          models.length > 0 ? (
+            <ul class="plain">
+              {models.map(({ family, card }) => (
+                <li>
+                  <a href={modelPath(lang, card.slug, family)}>{card.name}</a>: {textOf(card, lang, 'summary')}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>{t(lang, 'stories.relatedNone')}</p>
+          )
+        }
+        <p>
+          {
+            first ? (
+              <a class="button" href={modelPath(lang, first.card.slug, first.family)}>{t(lang, 'stories.ctaModel')}</a>
+            ) : (
+              <a class="button" href={familyPath(lang, story.cta_family)}>{tf(lang, 'stories.ctaFamily', { family: td(lang, `family.${story.cta_family}.name`) })}</a>
+            )
+          }
+        </p>
+      </section>
+
+      <section class="sources" aria-labelledby="sources-title">
+        <h2 id="sources-title">{t(lang, 'stories.sources')}</h2>
+        <ul class="plain">
+          {story.sources.map((s) => <li><ExtLink lang={lang} href={s.url}>{s.title}</ExtLink></li>)}
+        </ul>
+        <p class="verify">{t(lang, 'stories.verify')}</p>
+      </section>
+    </article>
+  </Section>
+</Base>
+
+<style>
+  .back {
+    margin: 0 0 var(--space-3);
+  }
+
+  .back a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  .category {
+    margin: 0 0 var(--space-2);
+    color: var(--accent-strong);
+    font-size: var(--text-small);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .lead {
+    max-width: 42rem;
+    margin-bottom: var(--space-3);
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-5);
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  .story {
+    max-width: 44rem;
+  }
+
+  .art {
+    max-width: 24rem;
+    margin-bottom: var(--space-5);
+  }
+
+  .prose :global(h2) {
+    margin-top: var(--space-6);
+  }
+
+  .prose :global(ul),
+  .plain {
+    padding-left: var(--space-5);
+  }
+
+  .plain {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .plain li {
+    margin-bottom: var(--space-2);
+  }
+
+  .prose :global(a.ext) {
+    display: inline;
+    min-height: 0;
+  }
+
+  .prose :global(a.ext svg) {
+    margin-left: var(--space-1);
+    vertical-align: -1px;
+  }
+
+  .prose :global(.sr) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .why {
+    margin-block: var(--space-6);
+    padding: var(--space-5);
+    background: var(--bg-tint);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius-s);
+  }
+
+  .why h2 {
+    font-size: var(--text-h3);
+  }
+
+  .why p {
+    margin: 0;
+  }
+
+  .related,
+  .sources {
+    margin-top: var(--space-6);
+  }
+
+  .related h2,
+  .sources h2 {
+    font-size: var(--text-h3);
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-5);
+    background: var(--accent);
+    color: var(--white);
+    font-weight: 650;
+    text-decoration: none;
+    border-radius: var(--radius-s);
+    border: 2px solid var(--accent-strong);
+  }
+
+  .button:hover {
+    background: var(--accent-strong);
+    color: var(--white);
+  }
+
+  .note {
+    margin: 0 0 var(--space-5);
+    padding: var(--space-4);
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+    border: 1px solid var(--warn-edge);
+    border-radius: var(--radius-s);
+  }
+
+  .verify {
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+</style>

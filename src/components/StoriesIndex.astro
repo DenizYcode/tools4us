@@ -1,0 +1,128 @@
+---
+// Stories index: every published story, newest first, with category chips and a live count (SPEC "filterable
+// stories index"). Without script all stories show and the chips do nothing, so the page works either way.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import StoryCard from './StoryCard.astro';
+import { t, tf, td, type Lang } from '../i18n';
+import { storiesSwitchPath } from '../i18n/routes';
+import { STORIES } from '../lib/stories';
+import { categoryCounts } from '../lib/stories-logic.mjs';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const categories = categoryCounts(STORIES);
+---
+
+<Base lang={lang} title={`${t(lang, 'stories.title')} · ${t(lang, 'site.name')}`} switchPath={storiesSwitchPath(lang)} current="stories">
+  <Section tone="soft" labelledby="stories-index-title">
+    <h1 id="stories-index-title">{t(lang, 'stories.title')}</h1>
+    <p class="lead">{t(lang, 'stories.lead')}</p>
+  </Section>
+
+  <Section labelledby="stories-list-title">
+    <h2 id="stories-list-title" class="sr">{t(lang, 'stories.title')}</h2>
+    <div class="filter" role="group" aria-label={t(lang, 'stories.filter')} data-story-filter>
+      <button type="button" class="chip" aria-pressed="true" data-category="all">{t(lang, 'stories.all')} ({STORIES.length})</button>
+      {categories.map(({ category, count }) => <button type="button" class="chip" aria-pressed="false" data-category={category}>{td(lang, `stories.cat.${category}`)} ({count})</button>)}
+    </div>
+    <p class="count" aria-live="polite" data-story-count data-template={t(lang, 'stories.count')}>{tf(lang, 'stories.count', { n: STORIES.length })}</p>
+    <ul class="grid">
+      {STORIES.map((story) => <li data-category={story.category}><StoryCard lang={lang} story={story} level={3} /></li>)}
+    </ul>
+  </Section>
+</Base>
+
+<script>
+  const box = document.querySelector<HTMLElement>('[data-story-filter]');
+  const count = document.querySelector<HTMLElement>('[data-story-count]');
+  const items = [...document.querySelectorAll<HTMLElement>('ul.grid > li[data-category]')];
+  box?.addEventListener('click', (event) => {
+    const chip = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-category]');
+    if (!chip) return;
+    const wanted = chip.dataset.category;
+    box.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === chip)));
+    let shown = 0;
+    for (const item of items) {
+      const show = wanted === 'all' || item.dataset.category === wanted;
+      item.hidden = !show;
+      if (show) shown += 1;
+    }
+    if (count) count.textContent = (count.dataset.template ?? '{n}').replace('{n}', String(shown));
+  });
+</script>
+
+<style>
+  .lead {
+    max-width: 42rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .chip {
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--navy-900);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .chip[aria-pressed='true'] {
+    background: var(--navy-900);
+    border-color: var(--navy-900);
+    color: var(--white);
+  }
+
+  .count {
+    margin: 0 0 var(--space-5);
+    color: var(--muted);
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .grid > li[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 40em) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64em) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,23 +1,27 @@
 ---
-// Sub-pages of the three families: one detail page per model card, and the guided selector.
+// Sub-pages: one detail page per model card and the guided selector of each family, and one page per story.
 import ModelDetail from '../../../components/ModelDetail.astro';
 import SelectorPage from '../../../components/SelectorPage.astro';
+import StoryPage from '../../../components/StoryPage.astro';
 import { locales, type Lang } from '../../../i18n';
-import { LAUNCH_FAMILIES, SLUGS, SELECTOR_SLUG, type Family } from '../../../i18n/routes';
+import { LAUNCH_FAMILIES, SLUGS, SELECTOR_SLUG, STORIES_SLUG, type Family } from '../../../i18n/routes';
 import { FAMILY_DATA, type Card } from '../../../lib/catalog';
+import { STORIES, type Story } from '../../../lib/stories';
 
 export function getStaticPaths() {
-  return locales.flatMap((lang) =>
-    LAUNCH_FAMILIES.flatMap((family) => [
-      ...FAMILY_DATA[family].cards.map((card) => ({ params: { lang, slug: SLUGS[lang][family], page: card.slug }, props: { kind: 'model' as const, family, card } })),
-      { params: { lang, slug: SLUGS[lang][family], page: SELECTOR_SLUG[lang] }, props: { kind: 'selector' as const, family, card: null } },
+  return locales.flatMap((lang) => [
+    ...LAUNCH_FAMILIES.flatMap((family) => [
+      ...FAMILY_DATA[family].cards.map((card) => ({ params: { lang, slug: SLUGS[lang][family], page: card.slug }, props: { kind: 'model' as const, family, card, story: null } })),
+      { params: { lang, slug: SLUGS[lang][family], page: SELECTOR_SLUG[lang] }, props: { kind: 'selector' as const, family, card: null, story: null } },
     ]),
-  );
+    ...STORIES.map((story) => ({ params: { lang, slug: STORIES_SLUG[lang], page: story.slug[lang] }, props: { kind: 'story' as const, family: null, card: null, story } })),
+  ]);
 }
 
 const lang = Astro.params.lang as Lang;
-const { kind, family, card } = Astro.props as { kind: 'model' | 'selector'; family: Family; card: Card | null };
+const { kind, family, card, story } = Astro.props as { kind: 'model' | 'selector' | 'story'; family: Family | null; card: Card | null; story: Story | null };
 ---
 
-{kind === 'selector' && <SelectorPage lang={lang} family={family} />}
-{kind === 'model' && card && <ModelDetail lang={lang} family={family} card={card} />}
+{kind === 'selector' && family && <SelectorPage lang={lang} family={family} />}
+{kind === 'model' && family && card && <ModelDetail lang={lang} family={family} card={card} />}
+{kind === 'story' && story && <StoryPage lang={lang} story={story} />}
