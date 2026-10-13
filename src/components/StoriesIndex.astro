@@ -23,15 +23,14 @@ const categories = categoryCounts(STORIES);
     <p class="lead">{t(lang, 'stories.lead')}</p>
   </Section>
 
-  <Section labelledby="stories-list-title">
-    <h2 id="stories-list-title" class="sr">{t(lang, 'stories.title')}</h2>
+  <Section>
     <div class="filter" role="group" aria-label={t(lang, 'stories.filter')} data-story-filter>
       <button type="button" class="chip" aria-pressed="true" data-category="all">{t(lang, 'stories.all')} ({STORIES.length})</button>
       {categories.map(({ category, count }) => <button type="button" class="chip" aria-pressed="false" data-category={category}>{td(lang, `stories.cat.${category}`)} ({count})</button>)}
     </div>
     <p class="count" aria-live="polite" data-story-count data-template={t(lang, 'stories.count')}>{tf(lang, 'stories.count', { n: STORIES.length })}</p>
     <ul class="grid">
-      {STORIES.map((story) => <li data-category={story.category}><StoryCard lang={lang} story={story} level={3} /></li>)}
+      {STORIES.map((story) => <li data-category={story.category}><StoryCard lang={lang} story={story} level={2} /></li>)}
     </ul>
   </Section>
 </Base>
@@ -61,15 +60,6 @@ const categories = categoryCounts(STORIES);
     margin: 0;
     color: var(--muted);
     font-size: var(--text-lead);
-  }
-
-  .sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
   }
 
   .filter {

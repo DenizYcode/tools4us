@@ -60,9 +60,11 @@ const Heading = `h${level}` as 'h2' | 'h3';
     text-transform: uppercase;
   }
 
+  /* Card headings look the same at either outline level. */
   .body :global(h2),
   .body :global(h3) {
     margin-bottom: var(--space-2);
+    font-size: var(--text-h3);
   }
 
   .body :global(a) {

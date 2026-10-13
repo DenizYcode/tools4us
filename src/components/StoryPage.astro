@@ -37,7 +37,7 @@ const first = models[0];
     </p>
   </Section>
 
-  <Section labelledby="story-title">
+  <Section>
     <article class="story">
       {overdue && <p class="note overdue" role="note">{tf(lang, 'stories.overdue', { date: story.review_by })}</p>}
 
@@ -154,6 +154,13 @@ const first = models[0];
 
   .plain li {
     margin-bottom: var(--space-2);
+  }
+
+  /* Model links are tap targets: 44 px high, with the summary wrapping next to them. */
+  .related .plain a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
   }
 
   .prose :global(a.ext) {
