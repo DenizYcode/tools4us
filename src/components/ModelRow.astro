@@ -3,45 +3,75 @@
 // carries the few fields the filter script needs, so the filter logic is the same tested code as in src/lib.
 import DeviceGraphic from './graphics/DeviceGraphic.astro';
 import LifecycleBadge from './LifecycleBadge.astro';
-import { t, tf, td, type Lang } from '../i18n';
-import { modelPath } from '../i18n/routes';
-import { textOf, hasSixGhz, wirelessLookup, replacementCards, type Card } from '../lib/catalog';
+import { t, tf, td, tp, type Lang } from '../i18n';
+import { modelPath, type Family } from '../i18n/routes';
+import { textOf, hasSixGhz, FAMILY_DATA, replacementCards, type Card } from '../lib/catalog';
+import { FILTER_FIELDS } from '../lib/filters.mjs';
+import { formatValue } from '../lib/format.mjs';
 
 interface Props {
   lang: Lang;
+  family: Family;
   card: Card;
 }
 
-const { lang, card } = Astro.props;
-const filterData = {
-  lifecycle: card.lifecycle,
-  management: card.management,
-  unified: card.unified,
-  wifi_generation: card.wifi_generation,
-  environment: card.environment,
-  poe_full: card.poe_full,
-  bands_ghz: card.bands_ghz,
-  uplink_max_gbps: card.uplink_max_gbps,
-  features: card.features,
-};
+const { lang, family, card } = Astro.props;
+const filterData = Object.fromEntries(FILTER_FIELDS[family].map((field) => [field, card[field]]));
 const current = card.lifecycle === 'current';
-const replacements = current ? [] : replacementCards(card, wirelessLookup);
+const replacements = current ? [] : replacementCards(card, FAMILY_DATA[family].lookup);
 const why = card.recommended ? textOf(card, lang, 'recommended_why') : null;
+const vals = tp(lang, 'val.');
+const rate = (mbps: number) => formatValue('throughput_mbps', mbps, vals, lang);
+// Graphic props are read from the card, so the drawing never disagrees with the specs.
+const deviceKind = family === 'wireless' ? 'ap' : family === 'switching' ? 'switch' : 'router';
+const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?.includes('desktop') ? 'desktop' : 'rack';
 ---
 
 <li class:list={['row', { old: !current }]} data-card={JSON.stringify(filterData)} data-slug={card.slug}>
   <div class="art">
-    <DeviceGraphic kind="ap" environment={card.environment} wallPlate={card.wall_plate} externalAntennas={card.antenna_type === 'external' ? 2 : 0} ports={card.port_count ?? 1} />
+    {family === 'wireless' && <DeviceGraphic kind="ap" environment={card.environment} wallPlate={card.wall_plate} externalAntennas={card.antenna_type === 'external' ? 2 : 0} ports={card.port_count ?? 1} />}
+    {family === 'switching' && <DeviceGraphic kind="switch" form={deviceForm} ports={card.port_count ?? 8} uplinks={card.uplink_count ?? (card.modular_uplinks ? 2 : 4)} />}
+    {family === 'routing' && <DeviceGraphic kind="router" form={deviceForm} ports={(card.lan_port_count ?? 0) + (card.wan_port_count ?? 0) || 4} uplinks={0} cellular={card.cellular !== 'none'} />}
   </div>
   <div class="main">
-    <h3><a href={modelPath(lang, card.slug)}>{card.name}</a></h3>
+    <h3><a href={modelPath(lang, card.slug, family)}>{card.name}</a></h3>
     <p class="badges">
       <LifecycleBadge lang={lang} lifecycle={card.lifecycle} />
       {card.recommended && <span class="badge rec">{t(lang, 'badge.recommended')}</span>}
-      <span class="badge">{td(lang, `val.gen.${card.wifi_generation}`)}</span>
-      <span class="badge">{td(lang, `val.env.${card.environment}`)}</span>
-      {hasSixGhz(card) && <span class="badge">{t(lang, 'badge.sixghz')}</span>}
-      {card.uplink_max_gbps !== null && card.uplink_max_gbps >= 2.5 && <span class="badge">{t(lang, 'badge.mgig')}</span>}
+      {
+        family === 'wireless' && (
+          <>
+            <span class="badge">{td(lang, `val.gen.${card.wifi_generation}`)}</span>
+            <span class="badge">{td(lang, `val.env.${card.environment}`)}</span>
+            {hasSixGhz(card) && <span class="badge">{t(lang, 'badge.sixghz')}</span>}
+            {card.uplink_max_gbps !== null && card.uplink_max_gbps >= 2.5 && <span class="badge">{t(lang, 'badge.mgig')}</span>}
+          </>
+        )
+      }
+      {
+        family === 'switching' && (
+          <>
+            <span class="badge">{tf(lang, 'badge.ports', { n: card.port_count ?? 0 })}</span>
+            {card.poe && <span class="badge">{tf(lang, 'badge.poeW', { n: card.poe_budget_w })}</span>}
+            {card.uplink_max_gbps && <span class="badge">{tf(lang, 'badge.uplink', { n: card.uplink_max_gbps })}</span>}
+            {card.stacking && <span class="badge">{t(lang, 'badge.stack')}</span>}
+            {card.mgig && <span class="badge">{t(lang, 'badge.mgig')}</span>}
+            {card.layer3 !== 'l2' && <span class="badge">{t(lang, 'badge.l3')}</span>}
+          </>
+        )
+      }
+      {
+        family === 'routing' && (
+          <>
+            {card.throughput_mbps && <span class="badge">{tf(lang, 'badge.rate', { n: rate(card.throughput_mbps) })}</span>}
+            <span class="badge">{tf(lang, 'badge.wan', { n: card.wan_port_count ?? 0 })}</span>
+            {card.sd_wan && <span class="badge">{t(lang, 'badge.sdwan')}</span>}
+            {card.cellular !== 'none' && <span class="badge">{t(lang, 'badge.cellular')}</span>}
+            {card.form_factor?.includes('virtual') && <span class="badge">{t(lang, 'badge.virtual')}</span>}
+            {card.poe && <span class="badge">{t(lang, 'badge.poe')}</span>}
+          </>
+        )
+      }
       {card.licence_required === true && <span class="badge">{t(lang, 'badge.licence')}</span>}
     </p>
     <p class="summary">{textOf(card, lang, 'summary')}</p>
@@ -57,7 +87,7 @@ const why = card.recommended ? textOf(card, lang, 'recommended_why') : null;
               {replacements.map((r, i) => (
                 <>
                   {i > 0 && ', '}
-                  <a href={modelPath(lang, r.slug)}>{r.name}</a>
+                  <a href={modelPath(lang, r.slug, family)}>{r.name}</a>
                 </>
               ))}
             </>

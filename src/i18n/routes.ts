@@ -28,18 +28,22 @@ export function familySwitchPath(lang: Lang, family: Family): string {
 export const LATER_FAMILIES = ['datacenter', 'collaboration', 'security'] as const;
 export type LaterFamily = (typeof LATER_FAMILIES)[number];
 
-// Tool pages and sub-pages of the wireless family. Slugs are readable in each language.
+// Tool pages and sub-pages of the families. Slugs are readable in each language.
 export const COMPARE_SLUG: Record<Lang, string> = { tr: 'karsilastir', en: 'compare' };
 export const SELECTOR_SLUG: Record<Lang, string> = { tr: 'bana-model-oner', en: 'find-my-model' };
 
-export const comparePath = (lang: Lang, selection: string[] = []): string =>
-  localePath(lang, `${COMPARE_SLUG[lang]}/`) + (selection.length ? `?m=${selection.join(',')}` : '');
+// The compare page serves every family: ?f=<family> picks it (wireless when absent, so older links keep working)
+// and ?m=<slug>,<slug> the models.
+export const comparePath = (lang: Lang, selection: string[] = [], family: Family = 'wireless'): string => {
+  const query = [family === 'wireless' ? '' : `f=${family}`, selection.length ? `m=${selection.join(',')}` : ''].filter(Boolean).join('&');
+  return localePath(lang, `${COMPARE_SLUG[lang]}/`) + (query ? `?${query}` : '');
+};
 
-export const selectorPath = (lang: Lang, family: Family = 'wireless'): string => localePath(lang, `${SLUGS[lang][family]}/${SELECTOR_SLUG[lang]}/`);
+export const selectorPath = (lang: Lang, family: Family): string => localePath(lang, `${SLUGS[lang][family]}/${SELECTOR_SLUG[lang]}/`);
 
-export const modelPath = (lang: Lang, slug: string, family: Family = 'wireless'): string => localePath(lang, `${SLUGS[lang][family]}/${slug}/`);
+export const modelPath = (lang: Lang, slug: string, family: Family): string => localePath(lang, `${SLUGS[lang][family]}/${slug}/`);
 
 // Paths (after /<lang>/) of the same page in the other language, for the language toggle.
 export const compareSwitchPath = (lang: Lang): string => `${COMPARE_SLUG[otherLang(lang)]}/`;
-export const selectorSwitchPath = (lang: Lang, family: Family = 'wireless'): string => `${SLUGS[otherLang(lang)][family]}/${SELECTOR_SLUG[otherLang(lang)]}/`;
-export const modelSwitchPath = (lang: Lang, slug: string, family: Family = 'wireless'): string => `${SLUGS[otherLang(lang)][family]}/${slug}/`;
+export const selectorSwitchPath = (lang: Lang, family: Family): string => `${SLUGS[otherLang(lang)][family]}/${SELECTOR_SLUG[otherLang(lang)]}/`;
+export const modelSwitchPath = (lang: Lang, slug: string, family: Family): string => `${SLUGS[otherLang(lang)][family]}/${slug}/`;

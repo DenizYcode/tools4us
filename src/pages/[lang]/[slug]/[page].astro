@@ -1,21 +1,23 @@
 ---
-// Sub-pages of the Wireless family: one detail page per model card, and the guided selector.
+// Sub-pages of the three families: one detail page per model card, and the guided selector.
 import ModelDetail from '../../../components/ModelDetail.astro';
 import SelectorPage from '../../../components/SelectorPage.astro';
 import { locales, type Lang } from '../../../i18n';
-import { SLUGS, SELECTOR_SLUG } from '../../../i18n/routes';
-import { wirelessCards, type Card } from '../../../lib/catalog';
+import { LAUNCH_FAMILIES, SLUGS, SELECTOR_SLUG, type Family } from '../../../i18n/routes';
+import { FAMILY_DATA, type Card } from '../../../lib/catalog';
 
 export function getStaticPaths() {
-  return locales.flatMap((lang) => [
-    ...wirelessCards.map((card) => ({ params: { lang, slug: SLUGS[lang].wireless, page: card.slug }, props: { kind: 'model' as const, card } })),
-    { params: { lang, slug: SLUGS[lang].wireless, page: SELECTOR_SLUG[lang] }, props: { kind: 'selector' as const, card: null } },
-  ]);
+  return locales.flatMap((lang) =>
+    LAUNCH_FAMILIES.flatMap((family) => [
+      ...FAMILY_DATA[family].cards.map((card) => ({ params: { lang, slug: SLUGS[lang][family], page: card.slug }, props: { kind: 'model' as const, family, card } })),
+      { params: { lang, slug: SLUGS[lang][family], page: SELECTOR_SLUG[lang] }, props: { kind: 'selector' as const, family, card: null } },
+    ]),
+  );
 }
 
 const lang = Astro.params.lang as Lang;
-const { kind, card } = Astro.props as { kind: 'model' | 'selector'; card: Card | null };
+const { kind, family, card } = Astro.props as { kind: 'model' | 'selector'; family: Family; card: Card | null };
 ---
 
-{kind === 'selector' && <SelectorPage lang={lang} />}
-{kind === 'model' && card && <ModelDetail lang={lang} card={card} />}
+{kind === 'selector' && <SelectorPage lang={lang} family={family} />}
+{kind === 'model' && card && <ModelDetail lang={lang} family={family} card={card} />}

@@ -87,11 +87,11 @@ const EOS = {
   'C927-4PM': ['isr900', { repl: ['C1127-8PLTEP'], note: ['Bülten C1117-4PM\'yi de öneriyor (o da satıştan kalkıyor).', 'The bulletin also names C1117-4PM (itself end of sale).'] }],
   'C927-4PLTEGB': ['isr900', { repl: ['C1127-8PLTEP'] }], 'C931-4P': ['isr900', { repl: ['C1121-4P'] }],
   // Meraki
-  MX67C: ['mx67c', { note: ['Cisco\'nun önerdiği yedek: C8111-C-G2-MX (Meraki yönetimli Catalyst 8111-G2).', 'The replacement Cisco names: C8111-C-G2-MX (the Meraki-managed Catalyst 8111-G2).'] }],
-  MX68CW: ['mx67c', { note: ['Cisco\'nun önerdiği yedek: C8121-CW-G2-MX (Meraki yönetimli Catalyst 8121-G2).', 'The replacement Cisco names: C8121-CW-G2-MX (the Meraki-managed Catalyst 8121-G2).'] }],
+  MX67C: ['mx67c', { note: ['Cisco\'nun önerdiği yedek: Meraki yönetimli Catalyst 8111 G2 yönlendirici (henüz kataloğa eklenmedi).', 'The replacement Cisco names: the Meraki-managed Catalyst 8111 G2 router (not in the catalogue yet).'] }],
+  MX68CW: ['mx67c', { note: ['Cisco\'nun önerdiği yedek: Meraki yönetimli Catalyst 8121 G2 yönlendirici (henüz kataloğa eklenmedi).', 'The replacement Cisco names: the Meraki-managed Catalyst 8121 G2 router (not in the catalogue yet).'] }],
   MX84: ['mx84', { repl: ['MX85'] }],
-  Z3: ['z3', { note: ['Yedek olarak Z4 / Z4C öneriliyor; ikisi de henüz yayınlanmadı (veri eksik).', 'Z4 / Z4C are the suggested replacements; neither is published yet (data missing).'] }],
-  Z3C: ['z3c', { note: ['Yedek olarak Z4C öneriliyor; henüz yayınlanmadı (veri eksik). Z3C-HW-WW için son sipariş 11 Şubat 2024\'tü.', 'Z4C is the suggested replacement; it is not published yet (data missing). The last order for Z3C-HW-WW was 11 February 2024.'] }],
+  Z3: ['z3', { note: ['Yedek olarak yeni nesil Z-Series geçidi öneriliyor (henüz kataloğa eklenmedi).', 'A new-generation Z-Series gateway is the suggested replacement (not in the catalogue yet).'] }],
+  Z3C: ['z3c', { repl: ['Z4C'], note: ['Z3C-HW-WW için son sipariş 11 Şubat 2024\'tü.', 'The last order for Z3C-HW-WW was 11 February 2024.'] }],
 };
 
 // Rows that stay draft, with the reason (copied into needs_data and docs/Phase4_Routing_Needs.md).
@@ -276,7 +276,7 @@ const SERIES = {
     src: 'https://documentation.meraki.com/SASE_and_SD-WAN/Z-Series_Teleworker_Gateways/Product_Information/Z4C_Datasheet', lic: LIC.z,
     perf: P('durum izlemeli güvenlik duvarı', 'güvenlik', 'stateful firewall', 'security'),
     kind: ['Meraki Z-Series uzaktan çalışan geçidi', 'Meraki Z-Series teleworker gateway'],
-    intro: ['Meraki Z-Series: uzaktan çalışanlar için küçük, bulut yönetimli güvenlik geçidi; evden şirket ağına VPN kurar. Burada Z4C ile satışı sona eren Z3 modelleri listelenir; Z4 henüz eklenmedi.', 'Meraki Z-Series: small cloud-managed security gateways for teleworkers that build a VPN from home to the company network. Listed here are the Z4C and the Z3 models, which are end of sale; the Z4 is not added yet.'],
+    intro: ['Meraki Z-Series: uzaktan çalışanlar için küçük, bulut yönetimli güvenlik geçidi; evden şirket ağına VPN kurar. Burada Z4C ile satışı sona eren Z3 modelleri listelenir; diğer Z-Series modelleri henüz eklenmedi.', 'Meraki Z-Series: small cloud-managed security gateways for teleworkers that build a VPN from home to the company network. Listed here are the Z4C and the Z3 models, which are end of sale; the other Z-Series models are not added yet.'],
     aud: ['Evden veya uzaktan çalışanlar; tek hat, dahili LTE yedek ve bir PoE+ portu.', 'Teleworkers who need a single link, a built-in LTE backup and one PoE+ port.'],
     rec: null,
   },

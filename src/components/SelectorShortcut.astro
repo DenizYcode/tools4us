@@ -1,0 +1,63 @@
+---
+// The "Bana model öner" tile on the hub: one guided selector per family, so the tile offers a link for each.
+import { td, type Lang } from '../i18n';
+import { LAUNCH_FAMILIES, selectorPath } from '../i18n/routes';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  text: string;
+}
+
+const { lang, title, text } = Astro.props;
+---
+
+<article class="tile">
+  <h3>{title}</h3>
+  <p>{text}</p>
+  <ul class="picks">
+    {LAUNCH_FAMILIES.map((family) => <li><a href={selectorPath(lang, family)}>{td(lang, `family.${family}.name`)} →</a></li>)}
+  </ul>
+</article>
+
+<style>
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-5);
+    background: var(--white);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-card);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.0625rem;
+    color: var(--navy-900);
+  }
+
+  p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: auto 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .picks a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--accent-strong);
+    font-weight: 650;
+  }
+</style>

@@ -5,63 +5,61 @@ import Base from '../layouts/Base.astro';
 import Section from './Section.astro';
 import Term from './Term.astro';
 import { t, tp, td, type Lang } from '../i18n';
-import { familyPath, selectorSwitchPath, modelPath } from '../i18n/routes';
-import { wirelessCards, textOf } from '../lib/catalog';
-import { ANSWER_OPTIONS } from '../lib/selector.mjs';
+import { familyPath, selectorSwitchPath, modelPath, type Family } from '../i18n/routes';
+import { FAMILY_DATA, textOf } from '../lib/catalog';
+import { SELECTORS, SELECTOR_FIELDS } from '../lib/selectors.mjs';
 
 interface Props {
   lang: Lang;
+  family: Family;
 }
 
-const { lang } = Astro.props;
+const { lang, family } = Astro.props;
+const selector = SELECTORS[family];
+const prefix = selector.prefix;
 // Only the fields the script needs. End-of-Sale models are never sent to the page.
-const slim = wirelessCards
+const slim = FAMILY_DATA[family].cards
   .filter((c) => c.lifecycle === 'current')
   .map((c) => ({
+    ...Object.fromEntries(SELECTOR_FIELDS[family].map((field) => [field, c[field]])),
     slug: c.slug,
     name: c.name,
     lifecycle: c.lifecycle,
-    environment: c.environment,
-    management: c.management,
-    unified: c.unified,
-    wifi_generation: c.wifi_generation,
-    bands_ghz: c.bands_ghz,
-    spatial_streams: c.spatial_streams,
-    poe_full: c.poe_full,
     recommended: c.recommended,
     summary: textOf(c, lang, 'summary'),
+    // The switching selector only needs to know whether a power-supply note exists.
+    text: { tr: { poe_note: c.text.tr.poe_note ? 'yes' : null } },
   }));
-const strings = { ...tp(lang, 'selector.'), ...tp(lang, 'val.'), ...tp(lang, 'note.') };
-const questions = [
-  ['env', ANSWER_OPTIONS.env, 'indoor'],
-  ['mgmt', ANSWER_OPTIONS.mgmt, 'any'],
-  ['poe', ANSWER_OPTIONS.poe, 'unknown'],
-  ['density', ANSWER_OPTIONS.density, 'low'],
-  ['future', ANSWER_OPTIONS.future, 'any'],
-] as const;
-const poeTerm = 'poe';
+// Only this family's selector texts (selector.sw.* and selector.rt.* belong to switching and routing).
+const ownPrefix = family === 'wireless' ? '' : `${prefix}.`;
+const selectorStrings = Object.fromEntries(
+  Object.entries(tp(lang, 'selector.')).filter(([key]) => (ownPrefix ? key.startsWith(ownPrefix) || !/^selector\.(sw|rt)\./.test(key) : !/^selector\.(sw|rt)\./.test(key))),
+);
+const strings = { ...selectorStrings, ...tp(lang, 'val.'), ...tp(lang, 'note.') };
+const questions = selector.questions;
+const terms = selector.terms as Record<string, string>;
 ---
 
-<Base lang={lang} title={`${t(lang, 'selector.title')} · ${t(lang, 'site.name')}`} switchPath={selectorSwitchPath(lang)} current="wireless">
+<Base lang={lang} title={`${td(lang, `${prefix}.title`)} · ${t(lang, 'site.name')}`} switchPath={selectorSwitchPath(lang, family)} current={family}>
   <Section tone="soft" labelledby="selector-title">
-    <p class="back"><a href={familyPath(lang, 'wireless')}>← {t(lang, 'detail.back')}</a></p>
-    <h1 id="selector-title">{t(lang, 'selector.title')}</h1>
-    <p class="lead">{t(lang, 'selector.lead')}</p>
+    <p class="back"><a href={familyPath(lang, family)}>← {td(lang, `detail.back.${family}`)}</a></p>
+    <h1 id="selector-title">{td(lang, `${prefix}.title`)}</h1>
+    <p class="lead">{td(lang, `${prefix}.lead`)}</p>
   </Section>
 
   <Section labelledby="questions-title">
-    <div class="wrap" id="selector-root" data-strings={JSON.stringify(strings)} data-lang={lang} data-model-base={modelPath(lang, '')}>
-      <h2 id="questions-title" class="sr">{t(lang, 'selector.title')}</h2>
-      <noscript><p>{t(lang, 'selector.nojs')}</p></noscript>
+    <div class="wrap" id="selector-root" data-strings={JSON.stringify(strings)} data-lang={lang} data-family={family} data-model-base={modelPath(lang, '', family)}>
+      <h2 id="questions-title" class="sr">{td(lang, `${prefix}.title`)}</h2>
+      <noscript><p>{td(lang, `${prefix}.nojs`)}</p></noscript>
       <form id="selector-form" novalidate>
         {
           questions.map(([name, options, def]) => (
             <fieldset>
-              <legend>{t(lang, `selector.q.${name}`)}{name === 'poe' && <> <Term lang={lang} term={poeTerm} label="" /></>}</legend>
+              <legend>{td(lang, `${prefix}.q.${name}`)}{terms[name] && <> <Term lang={lang} term={terms[name]} label="" /></>}</legend>
               {options.map((value) => (
                 <label class="opt">
                   <input type="radio" name={name} value={value} checked={value === def} />
-                  <span>{td(lang, `selector.o.${name}.${value}`)}</span>
+                  <span>{td(lang, `${prefix}.o.${name}.${value}`)}</span>
                 </label>
               ))}
             </fieldset>
@@ -81,7 +79,7 @@ const poeTerm = 'poe';
         <div class="assume">
           <h3>{t(lang, 'selector.assumptionsTitle')}</h3>
           <ul>
-            {[1, 2, 3, 4].map((n) => <li>{td(lang, `selector.assumption.${n}`)}</li>)}
+            {Array.from({ length: selector.assumptions }, (_, i) => i + 1).map((n) => <li>{td(lang, `${prefix}.assumption.${n}`)}</li>)}
           </ul>
           <p><strong>{t(lang, 'note.verify')}</strong></p>
         </div>
@@ -238,12 +236,13 @@ const poeTerm = 'poe';
 </style>
 
 <script>
-  import { recommend } from '../lib/selector.mjs';
+  import { SELECTORS } from '../lib/selectors.mjs';
 
   const root = document.getElementById('selector-root');
   if (root) {
     const s = JSON.parse(root.dataset.strings ?? '{}') as Record<string, string>;
     const lang = root.dataset.lang;
+    const { prefix, recommend } = SELECTORS[(root.dataset.family ?? 'wireless') as keyof typeof SELECTORS];
     const base = root.dataset.modelBase ?? '';
     const cards = JSON.parse(document.getElementById('selector-cards')?.textContent ?? '[]');
     const form = document.getElementById('selector-form') as HTMLFormElement;
@@ -257,10 +256,15 @@ const poeTerm = 'poe';
       return node;
     };
 
+    // Reason codes are "kind" or "kind.param.param" (poe.445.300). A full code with its own text wins
+    // (wireless: env.indoor); otherwise the kind's text is filled with the parameters.
     function warning(code: string): string {
-      const [kind, level] = code.split('.');
-      if (kind === 'six-ghz-turkey') return s['selector.warn.six-ghz-turkey'];
-      return fill(s[`selector.warn.${kind}`], { need: s[`val.poe.${level}`] });
+      const [kind, p1, p2] = code.split('.');
+      return fill(s[`${prefix}.warn.${kind}`], { need: s[`val.poe.${p1}`] ?? p1 ?? '', p1: p1 ?? '', p2: p2 ?? '' });
+    }
+    function reason(code: string): string {
+      const [kind, p1, p2] = code.split('.');
+      return s[`${prefix}.why.${code}`] ?? fill(s[`${prefix}.why.${kind}`] ?? '', { p1: p1 ?? '', p2: p2 ?? '' });
     }
 
     form.addEventListener('submit', (event) => {
@@ -273,7 +277,7 @@ const poeTerm = 'poe';
         heading.focus();
         return;
       }
-      for (const note of relaxed) out.append(el('p', 'relaxed', s[`selector.relaxed.${note}`]));
+      for (const note of relaxed) out.append(el('p', 'relaxed', s[`${prefix}.relaxed.${note}`]));
       for (const r of results) {
         const article = el('article', 'pick');
         const h = el('h3');
@@ -282,7 +286,7 @@ const poeTerm = 'poe';
         h.append(a);
         article.append(h, el('p', '', r.card.summary));
         article.querySelector('p')?.after(el('h4', '', s['selector.whyTitle']));
-        const parts = r.why.map((code: string) => s[`selector.why.${code}`]);
+        const parts = r.why.map(reason);
         article.append(el('p', 'why', parts.join(', ')));
         for (const w of r.warnings) article.append(el('p', 'warn', warning(w)));
         const go = el('a', 'go', `${s['selector.see']} →`) as HTMLAnchorElement;

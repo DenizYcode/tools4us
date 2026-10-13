@@ -8,56 +8,57 @@ import LifecycleBadge from './LifecycleBadge.astro';
 import ExtLink from './ExtLink.astro';
 import Term from './Term.astro';
 import { t, tf, td, tp, type Lang } from '../i18n';
-import { familyPath, modelSwitchPath, comparePath, selectorPath, modelPath } from '../i18n/routes';
-import { textOf, hasSixGhz, replacementCards, wirelessLookup, type Card } from '../lib/catalog';
+import { familyPath, modelSwitchPath, comparePath, selectorPath, modelPath, type Family } from '../i18n/routes';
+import { textOf, hasSixGhz, replacementCards, FAMILY_DATA, type Card } from '../lib/catalog';
 import { formatValue } from '../lib/format.mjs';
+import { DETAIL_SPECS, SPEC_TERMS } from '../lib/family-ui.mjs';
 
 interface Props {
   lang: Lang;
+  family: Family;
   card: Card;
 }
 
-const { lang, card } = Astro.props;
+const { lang, family, card } = Astro.props;
 const s = tp(lang, 'val.');
 const fmt = (key: string, value: unknown) => formatValue(key, value, s, lang);
 const current = card.lifecycle === 'current';
-const replacements = current ? [] : replacementCards(card, wirelessLookup);
+const replacements = current ? [] : replacementCards(card, FAMILY_DATA[family].lookup);
 const poeNote = textOf(card, lang, 'poe_note');
 const licence = textOf(card, lang, 'licence');
 const variantNote = textOf(card, lang, 'variant_note');
+const replacementNote = card.replacement_note;
 const why = card.recommended ? textOf(card, lang, 'recommended_why') : null;
 const dates = { date: card.last_order ?? '', ldos: card.ldos ?? '–' };
-const specs: [string, unknown][] = [
-  ['wifi_generation', card.wifi_generation],
-  ['environment', card.environment],
-  ['management', card.management],
-  ['bands_ghz', card.bands_ghz],
-  ['spatial_streams', card.spatial_streams],
-  ['radio_config', card.radio_config],
-  ['antenna_type', card.antenna_type],
-  ['uplink_max_gbps', card.uplink_max_gbps],
-  ['port_count', card.port_count],
-  ['features', card.features],
-  ['rugged', card.rugged],
-];
-const termFor: Record<string, string> = { wifi_generation: card.wifi_generation === '7' ? 'wifi_7' : card.wifi_generation === '6e' ? 'wifi_6e' : 'wifi_6' };
+const specs: [string, unknown][] = DETAIL_SPECS[family].map((key) => [key, card[key]]);
+const termFor: Record<string, string> = Object.fromEntries(Object.entries(SPEC_TERMS[family] as Record<string, (c: Card) => string>).map(([key, fn]) => [key, fn(card)]));
+const artLabel = family === 'wireless' ? `${card.name}, ${td(lang, `val.env.${card.environment}`)}` : card.name;
+const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?.includes('desktop') ? 'desktop' : 'rack';
 ---
 
-<Base lang={lang} title={`${card.name} · ${t(lang, 'family.wireless.name')} · ${t(lang, 'site.name')}`} switchPath={modelSwitchPath(lang, card.slug)} current="wireless">
+<Base lang={lang} title={`${card.name} · ${td(lang, `family.${family}.name`)} · ${t(lang, 'site.name')}`} switchPath={modelSwitchPath(lang, card.slug, family)} current={family}>
   <Section tone="soft" labelledby="model-title">
-    <p class="back"><a href={familyPath(lang, 'wireless')}>← {t(lang, 'detail.back')}</a></p>
+    <p class="back"><a href={familyPath(lang, family)}>← {td(lang, `detail.back.${family}`)}</a></p>
     <div class="intro">
       <div>
         <h1 id="model-title">{card.name}</h1>
         <p class="badges">
           <LifecycleBadge lang={lang} lifecycle={card.lifecycle} />
           {card.recommended && <span class="badge rec">{t(lang, 'badge.recommended')}</span>}
-          <span class="badge">{td(lang, `val.gen.${card.wifi_generation}`)}</span>
-          <span class="badge">{td(lang, `val.env.${card.environment}`)}</span>
+          {family === 'wireless' && <span class="badge">{td(lang, `val.gen.${card.wifi_generation}`)}</span>}
+          {family === 'wireless' && <span class="badge">{td(lang, `val.env.${card.environment}`)}</span>}
+          {family === 'switching' && <span class="badge">{tf(lang, 'badge.ports', { n: card.port_count ?? 0 })}</span>}
+          {family === 'switching' && card.poe && <span class="badge">{tf(lang, 'badge.poeW', { n: card.poe_budget_w })}</span>}
+          {family === 'routing' && card.deployment && <span class="badge">{td(lang, `val.deploy.${card.deployment}`)}</span>}
+          {family === 'routing' && card.sd_wan && <span class="badge">{t(lang, 'badge.sdwan')}</span>}
         </p>
         <p class="lead">{textOf(card, lang, 'summary')}</p>
       </div>
-      <div class="art"><DeviceGraphic kind="ap" environment={card.environment} wallPlate={card.wall_plate} externalAntennas={card.antenna_type === 'external' ? 2 : 0} ports={card.port_count ?? 1} label={`${card.name}, ${td(lang, `val.env.${card.environment}`)}`} /></div>
+      <div class="art">
+        {family === 'wireless' && <DeviceGraphic kind="ap" environment={card.environment} wallPlate={card.wall_plate} externalAntennas={card.antenna_type === 'external' ? 2 : 0} ports={card.port_count ?? 1} label={artLabel} />}
+        {family === 'switching' && <DeviceGraphic kind="switch" form={deviceForm} ports={card.port_count ?? 8} uplinks={card.uplink_count ?? (card.modular_uplinks ? 2 : 4)} label={artLabel} />}
+        {family === 'routing' && <DeviceGraphic kind="router" form={deviceForm} ports={(card.lan_port_count ?? 0) + (card.wan_port_count ?? 0) || 4} uplinks={0} cellular={card.cellular !== 'none'} label={artLabel} />}
+      </div>
     </div>
   </Section>
 
@@ -73,12 +74,14 @@ const termFor: Record<string, string> = { wifi_generation: card.wifi_generation 
               <ul class="plain">
                 {replacements.map((r) => (
                   <li>
-                    <a href={modelPath(lang, r.slug)}>{r.name}</a>: {textOf(r, lang, 'summary')}
+                    <a href={modelPath(lang, r.slug, family)}>{r.name}</a>: {textOf(r, lang, 'summary')}
                   </li>
                 ))}
               </ul>
             </>
           )}
+          {replacementNote && <p>{tf(lang, 'detail.replacementNote', { note: replacementNote })}</p>}
+          {card.replacement_none && <p>{t(lang, 'detail.replacementNone')}</p>}
           {card.eol_bulletin_url && (
             <p>
               <ExtLink lang={lang} href={card.eol_bulletin_url}>{t(lang, 'detail.bulletin')}</ExtLink>
@@ -101,20 +104,60 @@ const termFor: Record<string, string> = { wifi_generation: card.wifi_generation 
           </>
         )}
 
-        <h2>{t(lang, 'detail.power')} <Term lang={lang} term="poe" label="" /></h2>
-        <p><strong>{tf(lang, 'detail.powerFull', { poe: fmt('poe_full', card.poe_full) })}</strong> <Term lang={lang} term="poe_full" label="" /></p>
-        <p class="muted">{t(lang, 'spec.poe_supported')}: {fmt('poe_supported', card.poe_supported)}</p>
-        {poeNote && (
-          <div class="banner warn" role="note">
-            <h3>{t(lang, 'detail.powerBelow')}</h3>
-            <p>{poeNote}</p>
-          </div>
-        )}
-        {hasSixGhz(card) && (
-          <div class="banner warn" role="note">
-            <p>{t(lang, 'note.sixghz')} <Term lang={lang} term="six_ghz" label="" /></p>
-          </div>
-        )}
+        {
+          family === 'wireless' && (
+            <>
+              <h2>{t(lang, 'detail.power')} <Term lang={lang} term="poe" label="" /></h2>
+              <p><strong>{tf(lang, 'detail.powerFull', { poe: fmt('poe_full', card.poe_full) })}</strong> <Term lang={lang} term="poe_full" label="" /></p>
+              <p class="muted">{t(lang, 'spec.poe_supported')}: {fmt('poe_supported', card.poe_supported)}</p>
+              {poeNote && (
+                <div class="banner warn" role="note">
+                  <h3>{t(lang, 'detail.powerBelow')}</h3>
+                  <p>{poeNote}</p>
+                </div>
+              )}
+              {hasSixGhz(card) && (
+                <div class="banner warn" role="note">
+                  <p>{t(lang, 'note.sixghz')} <Term lang={lang} term="six_ghz" label="" /></p>
+                </div>
+              )}
+            </>
+          )
+        }
+        {
+          family === 'switching' && (
+            <>
+              <h2>{t(lang, 'detail.power')} <Term lang={lang} term="poe" label="" /></h2>
+              {card.poe ? (
+                <>
+                  <p><strong>{tf(lang, 'detail.poeBudget', { w: fmt('poe_budget_w', card.poe_budget_w) })}</strong> <Term lang={lang} term="poe_budget" label="" /></p>
+                  <p class="muted">{t(lang, 'spec.poe_type')}: {fmt('poe_type', card.poe_type)}</p>
+                  <p class="muted">{t(lang, 'detail.poeLead')}</p>
+                  {poeNote && (
+                    <div class="banner warn" role="note">
+                      <p>{poeNote}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p>{t(lang, 'detail.poeNone')}</p>
+              )}
+            </>
+          )
+        }
+        {
+          family === 'routing' && (
+            <>
+              <h2>{t(lang, 'detail.perf')} <Term lang={lang} term="throughput" label="" /></h2>
+              <p><strong>{tf(lang, 'detail.perfFwd', { n: fmt('throughput_mbps', card.throughput_mbps) })}</strong></p>
+              <p>
+                {card.security_throughput_mbps ? tf(lang, 'detail.perfSec', { n: fmt('security_throughput_mbps', card.security_throughput_mbps) }) : t(lang, 'detail.perfNoSec')}
+                {card.security_throughput_mbps && <> <Term lang={lang} term="security_throughput" label="" /></>}
+              </p>
+              <p class="muted">{t(lang, 'detail.perfNote')}</p>
+            </>
+          )
+        }
 
         <h2>{t(lang, 'detail.licence')} <Term lang={lang} term="licence_subscription" label="" /></h2>
         <p>{licence ?? td(lang, 'val.none')}</p>
@@ -161,8 +204,8 @@ const termFor: Record<string, string> = { wifi_generation: card.wifi_generation 
     </ul>
     <p class="verify"><strong>{t(lang, 'note.verify')}</strong></p>
     <p class="actions">
-      {current && <a class="button" href={comparePath(lang, [card.slug])}>{t(lang, 'detail.addCompare')}</a>}
-      <a class="button ghost" href={selectorPath(lang)}>{t(lang, 'wireless.selectorCta')}</a>
+      {current && <a class="button" href={comparePath(lang, [card.slug], family)}>{t(lang, 'detail.addCompare')}</a>}
+      <a class="button ghost" href={selectorPath(lang, family)}>{td(lang, `${family}.selectorCta`)}</a>
     </p>
   </Section>
 </Base>

@@ -4,36 +4,33 @@
 import Base from '../layouts/Base.astro';
 import Section from './Section.astro';
 import { t, tp, type Lang } from '../i18n';
-import { compareSwitchPath, familyPath, modelPath } from '../i18n/routes';
-import { wirelessCards, textOf, replacementCards, wirelessLookup } from '../lib/catalog';
+import { compareSwitchPath, familyPath, modelPath, LAUNCH_FAMILIES } from '../i18n/routes';
+import { FAMILY_DATA, textOf, replacementCards } from '../lib/catalog';
+import { COMPARE_FIELDS } from '../lib/compare.mjs';
 
 interface Props {
   lang: Lang;
 }
 
 const { lang } = Astro.props;
-const cards = wirelessCards.map((c) => ({
-  slug: c.slug,
-  name: c.name,
-  lifecycle: c.lifecycle,
-  wifi_generation: c.wifi_generation,
-  environment: c.environment,
-  management: c.management,
-  bands_ghz: c.bands_ghz,
-  spatial_streams: c.spatial_streams,
-  radio_config: c.radio_config,
-  antenna_type: c.antenna_type,
-  uplink_max_gbps: c.uplink_max_gbps,
-  port_count: c.port_count,
-  poe_full: c.poe_full,
-  poe_supported: c.poe_supported,
-  features: c.features,
-  rugged: c.rugged,
-  licence: textOf(c, lang, 'licence'),
-  last_order: c.lifecycle === 'current' ? null : c.last_order,
-  replaced_by: c.lifecycle === 'current' ? [] : replacementCards(c, wirelessLookup).map((r) => r.name),
-}));
-const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spec.'), ...tp(lang, 'note.'), ...tp(lang, 'detail.') };
+// Every published card of every family, with only the fields its rows read. The page script picks the family
+// from the address (?f=), so one static page serves all three.
+const cards = Object.fromEntries(
+  LAUNCH_FAMILIES.map((family) => [
+    family,
+    FAMILY_DATA[family].cards.map((c) => ({
+      ...Object.fromEntries(COMPARE_FIELDS[family].map((field) => [field, c[field]])),
+      slug: c.slug,
+      name: c.name,
+      licence: textOf(c, lang, 'licence'),
+      last_order: c.lifecycle === 'current' ? null : c.last_order,
+      replaced_by: c.lifecycle === 'current' ? [] : replacementCards(c, FAMILY_DATA[family].lookup).map((r) => r.name),
+    })),
+  ]),
+);
+const familyUrls = Object.fromEntries(LAUNCH_FAMILIES.map((family) => [family, familyPath(lang, family)]));
+const modelBases = Object.fromEntries(LAUNCH_FAMILIES.map((family) => [family, modelPath(lang, '', family)]));
+const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spec.'), ...tp(lang, 'note.'), ...tp(lang, 'detail.'), ...tp(lang, 'family.') };
 ---
 
 <Base lang={lang} title={`${t(lang, 'compare.title')} · ${t(lang, 'site.name')}`} switchPath={compareSwitchPath(lang)} current="compare">
@@ -43,10 +40,16 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
   </Section>
 
   <Section labelledby="table-title">
-    <div id="compare-root" data-lang={lang} data-strings={JSON.stringify(strings)} data-model-base={modelPath(lang, '')} data-family-url={familyPath(lang, 'wireless')}>
+    <div id="compare-root" data-lang={lang} data-strings={JSON.stringify(strings)} data-model-bases={JSON.stringify(modelBases)} data-family-urls={JSON.stringify(familyUrls)}>
       <h2 id="table-title" class="sr">{t(lang, 'compare.table')}</h2>
       <noscript><p>{t(lang, 'compare.nojs')}</p></noscript>
       <div class="controls" id="controls" hidden>
+        <label class="add">
+          <span>{t(lang, 'compare.family')}</span>
+          <select id="family-select">
+            {LAUNCH_FAMILIES.map((family) => <option value={family}>{tp(lang, 'family.')[`family.${family}.name`]}</option>)}
+          </select>
+        </label>
         <label class="check"><input type="checkbox" id="only-diff" /><span>{t(lang, 'compare.onlyDiff')}</span></label>
         <label class="add">
           <span>{t(lang, 'compare.add')}</span>
@@ -246,10 +249,15 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
   if (root) {
     const lang = root.dataset.lang === 'en' ? 'en' : 'tr';
     const s = JSON.parse(root.dataset.strings ?? '{}') as Record<string, string>;
-    const base = root.dataset.modelBase ?? '';
-    const familyUrl = root.dataset.familyUrl ?? '#';
-    const all = JSON.parse(document.getElementById('compare-cards')?.textContent ?? '[]') as Array<Record<string, any>>;
-    const bySlug = new Map(all.map((c) => [c.slug as string, c]));
+    const bases = JSON.parse(root.dataset.modelBases ?? '{}') as Record<string, string>;
+    const familyUrls = JSON.parse(root.dataset.familyUrls ?? '{}') as Record<string, string>;
+    const cardsByFamily = JSON.parse(document.getElementById('compare-cards')?.textContent ?? '{}') as Record<string, Array<Record<string, any>>>;
+    // The family comes from the address (?f=); wireless when it is absent or unknown, so older links keep working.
+    const wanted = new URLSearchParams(location.search).get('f') ?? 'wireless';
+    let family = wanted in cardsByFamily ? wanted : 'wireless';
+    let all = cardsByFamily[family];
+    let bySlug = new Map(all.map((c) => [c.slug as string, c]));
+    const familySelect = document.getElementById('family-select') as HTMLSelectElement;
     const controls = document.getElementById('controls') as HTMLElement;
     const scroller = document.getElementById('scroller') as HTMLElement;
     const message = document.getElementById('message') as HTMLElement;
@@ -268,6 +276,8 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
 
     function syncUrl(): void {
       const url = new URL(location.href);
+      if (family !== 'wireless') url.searchParams.set('f', family);
+      else url.searchParams.delete('f');
       if (selection.length) url.searchParams.set('m', selection.join(','));
       else url.searchParams.delete('m');
       history.replaceState(null, '', url);
@@ -291,7 +301,9 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
     function render(): void {
       syncUrl();
       controls.hidden = false;
+      familySelect.value = family;
       const chosen = selection.map((slug) => bySlug.get(slug)!);
+      const base = bases[family] ?? '';
 
       addSelect.replaceChildren(new Option(s['compare.addPlaceholder'], ''));
       for (const c of all) {
@@ -305,8 +317,8 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
       message.replaceChildren();
       if (chosen.length < MIN_COMPARE) {
         scroller.hidden = true;
-        const link = el('a', '', s['compare.goWireless']);
-        link.href = familyUrl;
+        const link = el('a', '', s[`compare.go.${family}`]);
+        link.href = familyUrls[family] ?? '#';
         message.append(el('p', '', chosen.length === 0 ? s['compare.empty'] : s['compare.one']), link);
         if (chosen.length === 1) {
           const ul = el('ul');
@@ -318,7 +330,7 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
         return;
       }
 
-      const rows = buildRows(chosen);
+      const rows = buildRows(chosen, family);
       const table = el('table', 'cmp-table');
       table.setAttribute('aria-label', s['compare.table']);
       const thead = el('thead');
@@ -355,6 +367,14 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
       if (shown === 0) message.append(el('p', '', s['compare.noDiff']));
     }
 
+    // Comparing across families makes no sense, so changing the family starts a new selection.
+    familySelect.addEventListener('change', () => {
+      family = familySelect.value in cardsByFamily ? familySelect.value : 'wireless';
+      all = cardsByFamily[family];
+      bySlug = new Map(all.map((c) => [c.slug as string, c]));
+      selection = [];
+      render();
+    });
     onlyDiff.addEventListener('change', render);
     addSelect.addEventListener('change', () => {
       if (addSelect.value && selection.length < MAX_COMPARE) {

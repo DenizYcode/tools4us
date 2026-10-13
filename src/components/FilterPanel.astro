@@ -1,22 +1,28 @@
 ---
-// The filter form for the wireless family page. Plain checkboxes and radios: it works with the keyboard and
-// the page script only reads it. Labels are plain Turkish, with the technical term beside the option.
+// The filter form of a family page, rendered from the panel definition in src/lib/filters.mjs. Plain checkboxes
+// and radios: it works with the keyboard and the page script only reads it. Labels are plain Turkish, with the
+// technical term beside the option.
 import Term from './Term.astro';
 import { t, td, type Lang } from '../i18n';
+import { PANELS } from '../lib/filters.mjs';
+import type { Family } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
+  family: Family;
   // Which feature values exist in the published catalog (so the form never offers a dead option).
   features: string[];
 }
 
-const { lang, features } = Astro.props;
-const MGMT = ['on_prem', 'cloud', 'unified', 'cisco_business'] as const;
-const GEN = ['7', '6e', '6'] as const;
-const ENV = ['indoor', 'outdoor'] as const;
-const POE = ['af', 'at', 'bt'] as const;
-// Glossary key for the terms that need an explanation, by filter value.
-const TERM_FOR: Record<string, string> = { unified: 'unified', on_prem: 'on_prem', cloud: 'cloud', cisco_business: 'cisco_business', '7': 'wifi_7', '6e': 'wifi_6e', '6': 'wifi_6', af: 'poe_af', at: 'poe_at', bt: 'poe_bt', cleanair: 'cleanair', security_radio: 'security_radio', air_marshal: 'air_marshal', gnss_gps: 'gnss_gps', uwb: 'uwb', urwb: 'urwb' };
+const { lang, family, features } = Astro.props;
+// Glossary key for the feature values that need an explanation.
+const FEATURE_TERMS = new Set(['cleanair', 'security_radio', 'air_marshal', 'gnss_gps', 'uwb', 'urwb']);
+const sections = PANELS[family]
+  .map((section) => ({
+    ...section,
+    options: section.dynamic === 'features' ? features.map((value) => ({ value, label: `val.feature.${value}`, term: FEATURE_TERMS.has(value) ? value : undefined })) : section.options,
+  }))
+  .filter((section) => section.options.length > 0);
 ---
 
 <form class="filters" id="filter-form" aria-labelledby="filters-title" novalidate>
@@ -26,106 +32,25 @@ const TERM_FOR: Record<string, string> = { unified: 'unified', on_prem: 'on_prem
     <button type="button" class="close" id="filters-close">{t(lang, 'filters.close')}</button>
   </div>
 
-  <fieldset>
-    <legend>{t(lang, 'filters.mgmt')}</legend>
-    {
-      MGMT.map((value) => (
-        <div class="opt">
-          <label>
-            <input type="checkbox" name="mgmt" value={value} />
-            <span>{td(lang, `val.mgmt.${value}`)}</span>
-          </label>
-          {TERM_FOR[value] && <Term lang={lang} term={TERM_FOR[value]} label="" idSuffix="-f" />}
-        </div>
-      ))
-    }
-  </fieldset>
-
-  <fieldset>
-    <legend>{t(lang, 'filters.gen')}</legend>
-    {
-      GEN.map((value) => (
-        <div class="opt">
-          <label>
-            <input type="checkbox" name="gen" value={value} />
-            <span>{td(lang, `val.gen.${value}`)}</span>
-          </label>
-          <Term lang={lang} term={TERM_FOR[value]} label="" idSuffix="-f" />
-        </div>
-      ))
-    }
-  </fieldset>
-
-  <fieldset>
-    <legend>{t(lang, 'filters.env')}</legend>
-    {
-      ENV.map((value) => (
-        <div class="opt">
-          <label>
-            <input type="checkbox" name="env" value={value} />
-            <span>{td(lang, `val.env.${value}`)}</span>
-          </label>
-        </div>
-      ))
-    }
-  </fieldset>
-
-  <fieldset>
-    <legend>{t(lang, 'filters.poe')} <Term lang={lang} term="poe" label="" idSuffix="-f" /></legend>
-    <p class="hint">{t(lang, 'filters.poeHint')}</p>
-    <div class="opt">
-      <label>
-        <input type="radio" name="poeMax" value="" checked />
-        <span>{t(lang, 'filters.poeAny')}</span>
-      </label>
-    </div>
-    {
-      POE.map((value) => (
-        <div class="opt">
-          <label>
-            <input type="radio" name="poeMax" value={value} />
-            <span>{td(lang, `val.poe.${value}`)}</span>
-          </label>
-          <Term lang={lang} term={TERM_FOR[value]} label="" idSuffix="-f" />
-        </div>
-      ))
-    }
-  </fieldset>
-
-  <fieldset>
-    <legend>{t(lang, 'filters.extras')}</legend>
-    <div class="opt">
-      <label>
-        <input type="checkbox" name="sixGhz" value="1" />
-        <span>{t(lang, 'filters.sixghz')}</span>
-      </label>
-      <Term lang={lang} term="six_ghz" label="" idSuffix="-f" />
-    </div>
-    <div class="opt">
-      <label>
-        <input type="checkbox" name="mgig" value="1" />
-        <span>{t(lang, 'filters.mgig')}</span>
-      </label>
-      <Term lang={lang} term="mgig" label="" idSuffix="-f" />
-    </div>
-  </fieldset>
-
   {
-    features.length > 0 && (
+    sections.map((section) => (
       <fieldset>
-        <legend>{t(lang, 'filters.features')}</legend>
-        <p class="hint">{t(lang, 'filters.featuresHint')}</p>
-        {features.map((value) => (
+        <legend>
+          {td(lang, section.legend)}
+          {section.legendTerm && <> <Term lang={lang} term={section.legendTerm} label="" idSuffix="-f" /></>}
+        </legend>
+        {section.hint && <p class="hint">{td(lang, section.hint)}</p>}
+        {section.options.map((option, i) => (
           <div class="opt">
             <label>
-              <input type="checkbox" name="features" value={value} />
-              <span>{td(lang, `val.feature.${value}`)}</span>
+              <input type={section.input} name={option.name ?? section.name} value={option.value} checked={section.input === 'radio' && i === 0} />
+              <span>{td(lang, option.label)}</span>
             </label>
-            {TERM_FOR[value] && <Term lang={lang} term={TERM_FOR[value]} label="" idSuffix="-f" />}
+            {option.term && <Term lang={lang} term={option.term} label="" idSuffix="-f" />}
           </div>
         ))}
       </fieldset>
-    )
+    ))
   }
 
   <fieldset>

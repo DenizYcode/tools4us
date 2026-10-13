@@ -302,10 +302,10 @@ const SERIES = {
   },
   MS450: {
     src: DS.ms450, lic: LIC.ms150, eos: {
-      last_order: '2026-10-29', announced: '2026-04-30', ldos: '2031-10-31', bulletin: BULLETIN.ms450, note: ['Cisco\'nun önerdiği yedek: Catalyst 9500 (C9500-32QC).', 'The replacement Cisco names: Catalyst 9500 (C9500-32QC).'],
+      last_order: '2026-10-29', announced: '2026-04-30', ldos: '2031-10-31', bulletin: BULLETIN.ms450, note: ['Cisco\'nun önerdiği yedek: Catalyst 9500 serisi (henüz kataloğa eklenmedi).', 'The replacement Cisco names: the Catalyst 9500 series (not in the catalogue yet).'],
     },
     kind: ['Meraki MS450 bulut yönetimli toplama anahtarı (satışı sona eriyor)', 'Meraki MS450 cloud-managed aggregation switch (end of sale announced)'],
-    intro: ['MS450: 12 x 40G toplama anahtarı. Satışı sona eriyor (son sipariş 29 Ekim 2026); yerine Catalyst 9500 (C9500-32QC) önerilir.', 'MS450: a 12 x 40G aggregation switch. End of sale is announced (last order 29 October 2026); the Catalyst 9500 (C9500-32QC) is the suggested replacement.'],
+    intro: ['MS450: 12 x 40G toplama anahtarı. Satışı sona eriyor (son sipariş 29 Ekim 2026); yerine Catalyst 9500 serisi önerilir.', 'MS450: a 12 x 40G aggregation switch. End of sale is announced (last order 29 October 2026); the Catalyst 9500 series is the suggested replacement.'],
     aud: ['Mevcut kurulumlar; yeni projede Catalyst 9500 kullanın.', 'Existing installations; use the Catalyst 9500 for new projects.'],
     rec: null,
   },

@@ -146,16 +146,16 @@ test('lifecycle: audited end-of-sale models carry status, last order, bulletin a
 
 test('lifecycle: replacements that exist in the catalog become PID links, others stay notes', () => {
   assert.deepEqual(life('datacenter', 'N9K-C9364C').replacement_pid, ['N9K-C9364C-GX']);
-  // C9500-32QC is not published yet, so the MS450 bulletin's replacement stays a note until it is.
+  // The MS450 bulletin names a Catalyst 9500 model that is not published yet, so the note speaks of the series.
   assert.equal(life('switching', 'MS450-12-HW').replacement_pid, null);
-  assert.match(life('switching', 'MS450-12-HW').replacement_note, /C9500-32QC/);
+  assert.match(life('switching', 'MS450-12-HW').replacement_note, /Catalyst 9500/);
   assert.deepEqual(life('switching', 'MS210-24-HW').replacement_pid, ['MS150-24T-4G']);
   assert.deepEqual(life('routing', 'C8200-1N-4T').replacement_pid, ['C8235-E-G2']);
   assert.deepEqual(life('routing', 'MX84').replacement_pid, ['MX85']);
   // The Meraki-managed Catalyst replacements of the MX67C/MX68CW are not published yet, so they stay notes.
   assert.equal(life('routing', 'MX67C').replacement_pid, null);
-  assert.match(life('routing', 'MX67C').replacement_note, /C8111-C-G2-MX/);
-  assert.match(life('routing', 'MX68CW').replacement_note, /C8121-CW-G2-MX/);
+  assert.match(life('routing', 'MX67C').replacement_note, /8111/);
+  assert.match(life('routing', 'MX68CW').replacement_note, /8121/);
   assert.deepEqual(life('routing', 'C8500-12X').replacement_pid, ['C8550-G2']);
   assert.equal(life('routing', 'C8300-2N2S-4T2X').replacement_none, true);
 });

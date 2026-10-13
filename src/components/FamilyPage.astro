@@ -1,42 +1,48 @@
 ---
-// The Wireless family page: series explainers, management first, filters, results grouped by series, compare tray.
-// Every model is in the static HTML; the script only shows and hides rows, so the page works without JavaScript.
+// A family page (wireless, switching, routing): series explainers, management first, filters, results grouped
+// by series, compare tray. Every model is in the static HTML; the script only shows and hides rows, so the page
+// works without JavaScript.
 import Base from '../layouts/Base.astro';
 import Section from './Section.astro';
 import FamilyGraphic from './graphics/FamilyGraphic.astro';
 import FilterPanel from './FilterPanel.astro';
 import ModelRow from './ModelRow.astro';
-import { t, tf, tp, type Lang } from '../i18n';
-import { familySwitchPath, comparePath, selectorPath } from '../i18n/routes';
-import { wirelessSeries, wirelessCards, wirelessVerified, seriesIntro } from '../lib/catalog';
+import { t, tf, td, tp, type Lang } from '../i18n';
+import { familySwitchPath, comparePath, selectorPath, type Family } from '../i18n/routes';
+import { FAMILY_DATA, seriesIntro } from '../lib/catalog';
 
 interface Props {
   lang: Lang;
+  family: Family;
 }
 
-const { lang } = Astro.props;
-const featureValues = [...new Set(wirelessCards.filter((c) => c.lifecycle === 'current').flatMap((c) => c.features))].filter((f) => ['cleanair', 'security_radio', 'air_marshal', 'gnss_gps', 'uwb', 'urwb'].includes(f));
-const strings = { ...tp(lang, 'list.'), ...tp(lang, 'filters.'), ...tp(lang, 'tray.') };
-const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').length;
+const { lang, family } = Astro.props;
+const { series, cards, verified, currentCount } = FAMILY_DATA[family];
+// Wireless offers a "must have" list of the special features that exist in the published catalog.
+const featureValues = [...new Set(cards.filter((c) => c.lifecycle === 'current').flatMap((c) => c.features))].filter((f) => ['cleanair', 'security_radio', 'air_marshal', 'gnss_gps', 'uwb', 'urwb'].includes(f));
+// The script needs the texts of its own family's filters only (filters.sw.* for switching, filters.rt.* for routing).
+const others = ['filters.sw.', 'filters.rt.'].filter((p) => p !== (family === 'switching' ? 'filters.sw.' : family === 'routing' ? 'filters.rt.' : ''));
+const filterStrings = Object.fromEntries(Object.entries(tp(lang, 'filters.')).filter(([key]) => !others.some((p) => key.startsWith(p))));
+const strings = { ...tp(lang, 'list.'), ...filterStrings, ...tp(lang, 'tray.') };
 ---
 
-<Base lang={lang} title={`${t(lang, 'family.wireless.name')} · ${t(lang, 'site.name')}`} switchPath={familySwitchPath(lang, 'wireless')} current="wireless">
+<Base lang={lang} title={`${td(lang, `family.${family}.name`)} · ${t(lang, 'site.name')}`} switchPath={familySwitchPath(lang, family)} current={family}>
   <Section tone="soft" labelledby="family-title">
     <div class="intro">
       <div>
-        <h1 id="family-title">{t(lang, 'wireless.heading')}</h1>
-        <p class="lead">{t(lang, 'wireless.lead')}</p>
-        <p class="verified">{tf(lang, 'wireless.verified', { date: wirelessVerified })}</p>
-        <p class="cta-row"><a class="button" href={selectorPath(lang)}>{t(lang, 'wireless.selectorCta')}</a><span class="hint">{t(lang, 'wireless.selectorHint')}</span></p>
+        <h1 id="family-title">{td(lang, `${family}.heading`)}</h1>
+        <p class="lead">{td(lang, `${family}.lead`)}</p>
+        <p class="verified">{tf(lang, 'wireless.verified', { date: verified })}</p>
+        <p class="cta-row"><a class="button" href={selectorPath(lang, family)}>{td(lang, `${family}.selectorCta`)}</a><span class="hint">{td(lang, `${family}.selectorHint`)}</span></p>
       </div>
-      <div class="art"><FamilyGraphic family="wireless" /></div>
+      <div class="art"><FamilyGraphic family={family} /></div>
     </div>
   </Section>
 
   <Section labelledby="results-title">
-    <div class="page" id="family-root" data-lang={lang} data-strings={JSON.stringify(strings)} data-compare-url={comparePath(lang)} data-current-count={currentCount}>
+    <div class="page" id="family-root" data-lang={lang} data-family={family} data-strings={JSON.stringify(strings)} data-compare-url={comparePath(lang, [], family)} data-current-count={currentCount}>
       <aside class="side" id="filter-sheet" aria-label={t(lang, 'filters.title')}>
-        <FilterPanel lang={lang} features={featureValues} />
+        <FilterPanel lang={lang} family={family} features={featureValues} />
       </aside>
 
       <div class="results" id="results-region">
@@ -46,7 +52,7 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
         <p class="none" id="none" hidden>{t(lang, 'list.none')}</p>
 
         {
-          wirelessSeries.map((band) => (
+          series.map((band) => (
             <details class="band" open data-series={band.series}>
               <summary>
                 <span class="series-name">{band.series}</span>
@@ -55,7 +61,7 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
               <p class="intro-line">{seriesIntro(band, lang)}</p>
               <ul class="rows">
                 {band.cards.map((card) => (
-                  <ModelRow lang={lang} card={card} />
+                  <ModelRow lang={lang} family={family} card={card} />
                 ))}
               </ul>
             </details>
@@ -72,7 +78,7 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
       </button>
       <div class="tray" id="tray" aria-label={t(lang, 'tray.label')} hidden>
         <span id="tray-count"></span>
-        <a class="tray-go" id="tray-go" href={comparePath(lang)} aria-disabled="true">{t(lang, 'tray.compare')}</a>
+        <a class="tray-go" id="tray-go" href={comparePath(lang, [], family)} aria-disabled="true">{t(lang, 'tray.compare')}</a>
         <button type="button" class="tray-clear" id="tray-clear">{t(lang, 'tray.clear')}</button>
         <span class="tray-need" id="tray-need">{t(lang, 'tray.need')}</span>
       </div>
@@ -388,14 +394,15 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
 </style>
 
 <script>
-  import { matches, activeCount, EMPTY_FILTERS } from '../lib/filter.mjs';
+  import { emptyState, matchesWith, activeCountWith, readState } from '../lib/filter-engine.mjs';
+  import { FILTERS, CHIP_KEYS } from '../lib/filters.mjs';
   import { trPossessive } from '../lib/tr.mjs';
-
-  type Filters = typeof EMPTY_FILTERS;
 
   const root = document.getElementById('family-root');
   if (root) {
     const lang = root.dataset.lang === 'en' ? 'en' : 'tr';
+    const defs = FILTERS[(root.dataset.family ?? 'wireless') as keyof typeof FILTERS];
+    const singles = new Set(defs.filter((d) => d.kind === 'single').map((d) => d.id));
     const s = JSON.parse(root.dataset.strings ?? '{}') as Record<string, string>;
     const fill = (text: string, vars: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
     const form = document.getElementById('filter-form') as HTMLFormElement;
@@ -409,36 +416,23 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
     const heading = document.getElementById('results-title') as HTMLElement;
     const picked = new Set<string>();
 
-    const readState = (): Filters => {
-      const data = new FormData(form);
-      const all = (name: string) => data.getAll(name).map(String);
-      return {
-        mgmt: all('mgmt'),
-        gen: all('gen'),
-        env: all('env'),
-        poeMax: String(data.get('poeMax') ?? ''),
-        sixGhz: data.has('sixGhz'),
-        mgig: data.has('mgig'),
-        features: all('features'),
-        showOld: data.has('showOld'),
-      } as Filters;
-    };
-
     const labelOf = (input: HTMLInputElement) => input.closest('label')?.querySelector('span')?.textContent?.trim() ?? input.value;
 
     function renderChips(): void {
       chips.replaceChildren();
-      const checked = [...form.querySelectorAll<HTMLInputElement>('input:checked')].filter((i) => !(i.name === 'poeMax' && i.value === ''));
+      // A single-choice group (radio) shows a chip only when something other than "does not matter" is picked.
+      const checked = [...form.querySelectorAll<HTMLInputElement>('input:checked')].filter((i) => !(singles.has(i.name) && i.value === ''));
       for (const input of checked) {
         const li = document.createElement('li');
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'chip';
-        const text = input.name === 'poeMax' ? fill(s['filters.poeChip'] ?? '', { poe: labelOf(input) }) : labelOf(input);
+        const chipKey = (CHIP_KEYS as Record<string, string>)[input.name];
+        const text = chipKey ? fill(s[chipKey] ?? '', { poe: labelOf(input), v: labelOf(input) }) : labelOf(input);
         b.textContent = `${text} ×`;
         b.setAttribute('aria-label', fill(s['filters.remove'] ?? '', { label: text }));
         b.addEventListener('click', () => {
-          if (input.type === 'radio') (form.querySelector('input[name="poeMax"][value=""]') as HTMLInputElement).checked = true;
+          if (input.type === 'radio') (form.querySelector(`input[name="${input.name}"][value=""]`) as HTMLInputElement).checked = true;
           else input.checked = false;
           apply();
           heading.focus();
@@ -449,15 +443,15 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
     }
 
     function apply(): void {
-      const state = readState();
-      const baseline = { ...EMPTY_FILTERS, showOld: state.showOld } as Filters;
+      const state = readState(defs, new FormData(form));
+      const baseline = { ...emptyState(defs), showOld: state.showOld };
       let shown = 0;
       let total = 0;
       for (const r of rows) {
-        const ok = matches(r.data, state);
+        const ok = matchesWith(defs, r.data, state);
         r.el.hidden = !ok;
         if (ok) shown += 1;
-        if (matches(r.data, baseline)) total += 1;
+        if (matchesWith(defs, r.data, baseline)) total += 1;
       }
       for (const band of bands) {
         const visible = band.querySelectorAll('.row:not([hidden])').length;
@@ -467,7 +461,7 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
       }
       count.textContent = fill(s['list.count'] ?? '', { total, shown: lang === 'tr' ? trPossessive(shown) : shown });
       none.hidden = shown !== 0;
-      const n = activeCount(state);
+      const n = activeCountWith(defs, state);
       badge.hidden = n === 0;
       badge.textContent = String(n);
       renderChips();
@@ -557,7 +551,8 @@ const currentCount = wirelessCards.filter((c) => c.lifecycle === 'current').leng
       const ready = n >= 2;
       trayGo.setAttribute('aria-disabled', String(!ready));
       trayGo.tabIndex = ready ? 0 : -1;
-      trayGo.href = ready ? `${root!.dataset.compareUrl}?m=${[...picked].join(',')}` : root!.dataset.compareUrl ?? '#';
+      const compareUrl = root!.dataset.compareUrl ?? '#';
+      trayGo.href = ready ? `${compareUrl}${compareUrl.includes('?') ? '&' : '?'}m=${[...picked].join(',')}` : compareUrl;
       trayNeed.hidden = ready;
       for (const box of boxes) box.disabled = n >= 4 && !box.checked;
     }
