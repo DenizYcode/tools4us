@@ -81,3 +81,21 @@ MS210 dates: announced 2025-10-30, end of support 2031-04-30. The replacements a
 - **Layer 3 wording:** the datasheets list features, not a "basic/full" label. `basic_l3` means static routing and basic dynamic routing; `full_l3` is kept from the legacy file for the IOS XE Catalyst 9000 models (Network Advantage adds the full routing set). The Catalyst 9200 and 9200CX values are the legacy ones; the datasheet only says routing depends on the Essentials or Advantage tier.
 - **Management:** `management` and `unified` are unchanged from the legacy file (audit #20 stays open). The Catalyst 9200 datasheet also says 9200 switches can be migrated to Meraki, but the legacy data marks only the 9200L as both; not changed.
 - **Table reading:** the Catalyst 9300 PoE table was read through a text summary; the default-power-supply column was checked against the Meraki -M datasheets, which repeat the same numbers (445, 437, 830, 822, 560, 490, 645, 735, 590, 690, 505, 890, 880, 675 W). Re-check the Catalyst 9300 numbers against the datasheet PDF before quoting a customer.
+
+## Uplink modules and the configuration builder
+
+The builder on a model page lists the uplink network modules that fit that exact model and builds a draft order code (`C9300-48P + C9300-NM-8X`). Only pairs stated in a Cisco data sheet are published (13 modules, 121 pairs); everything else stays `draft`, so every other model shows no builder.
+
+| Series | Modules | Rule from the data sheet |
+| --- | --- | --- |
+| C9300 (16 models with modular uplinks) | C9300-NM-4G, -4M, -8X, -2Q, -2Y | fit every C9300 model ([Catalyst 9300 data sheet](https://www.cisco.com/c/en/us/products/collateral/switches/catalyst-9300-series-switches/nb-06-cat9300-ser-data-sheet-cte-en.html)) |
+| C9300X (6 models) | C9300X-NM-8M, -8Y, -2C | fit every C9300X model |
+| C9300X | C9300X-NM-4C | only C9300X-48HX, C9300X-48TX, C9300X-24Y |
+| C9200 (9 models) | C9200-NM-4X | fits every C9200 model ([Catalyst 9200 data sheet](https://www.cisco.com/c/en/us/products/collateral/switches/catalyst-9200-series-switches/nb-06-cat9200-ser-data-sheet-cte-en.html)) |
+| C9200 | C9200-NM-4G | all except C9200-24PXG and C9200-48PXG |
+| C9200 | C9200-NM-2Y, C9200-NM-2Q | only C9200-24PXG and C9200-48PXG |
+
+- One module slot per modular-uplink switch; the builder refuses a second module (`checkConfig`).
+- Not paired: the Meraki-mode (-M) twins (the Meraki data sheets name no modules), the fixed-uplink models (C9300L, C9200L, MS, CBS, C1200/C1300), the C9500 and the empty "BLANK" fillers.
+- The order code has no licence tier (-E/-A), power supply or cables; the page says so. Adding the result to the shortlist waits for the shortlist (Phase 6).
+- The legacy compat pairs of these modules (derived from series names) were wrong in places: for example C9300X-NM-4C was paired with every C9300X model, and the 9200 modules with every C9200 model. They are replaced by the verified pairs above.

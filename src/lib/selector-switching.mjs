@@ -72,9 +72,17 @@ export function recommendSwitch(cards, a) {
         return 0;
       });
 
-  // A recommended model leads even when its score is not the best (SPEC: "returns it first when it fits").
-  const rec = sorted.find((c) => c.recommended);
-  const ordered = rec ? [rec, ...sorted.filter((c) => c !== rec)] : sorted;
+  // A recommended model leads when it fits (SPEC: "returns it first when it fits"); not when the PoE need was relaxed.
+  const rec = relaxed.includes('poe') ? undefined : sorted.find((c) => c.recommended);
+  const ranked = rec ? [rec, ...sorted.filter((c) => c !== rec)] : sorted;
+  // A Meraki-mode (-M) model and its IOS XE twin are the same hardware: show the better-ranked one once.
+  const seen = new Set();
+  const ordered = ranked.filter((c) => {
+    const hardware = c.name.replace(/-M$/, '');
+    if (seen.has(hardware)) return false;
+    seen.add(hardware);
+    return true;
+  });
 
   const results = ordered.slice(0, MAX_RESULTS).map((card) => {
     const why = [];

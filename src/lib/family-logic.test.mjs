@@ -197,3 +197,52 @@ test('every compare row and published value has a label in Turkish and English',
     }
   }
 });
+
+test('switching selector: a Meraki-mode twin is not shown next to its IOS XE model, and a relaxed need puts the biggest budget first', opts, () => {
+  const cards = groupSwitchCards(sw.models);
+  const a = { ports: '24', poeCount: '24', poeWatts: '30', mgmt: 'any', uplink: 'any', extra: 'any' };
+  const names = SELECTORS.switching.recommend(cards, a).results.map((r) => r.card.name.replace(/-M$/, ''));
+  assert.equal(new Set(names).size, names.length, 'no twin pair in one result');
+  const huge = SELECTORS.switching.recommend(cards, { ...a, ports: '48', poeCount: '48', poeWatts: '60' });
+  assert.deepEqual(huge.relaxed, ['poe']);
+  const budgets = huge.results.map((r) => r.card.poe_budget_w);
+  assert.deepEqual(budgets, [...budgets].sort((x, y) => y - x), 'closest (largest budget) first');
+  assert.ok(huge.results.every((r) => r.warnings.some((w) => w.startsWith('poe-short'))));
+});
+
+test('config builder: only verified pairs are offered, one module slot, and the SKU string is the model plus the module', opts, async () => {
+  const { optionsFor, slotLimit, buildSku, checkConfig, describe } = await import('./config-builder.mjs');
+  const cards = groupSwitchCards(sw.models);
+  const card = (name) => cards.find((c) => c.name === name);
+  const opts = (name) => optionsFor(card(name).pids[0], sw.accessories, sw.compat).map((a) => a.pid).sort();
+
+  assert.deepEqual(opts('C9300-48P'), ['C9300-NM-2Q', 'C9300-NM-2Y', 'C9300-NM-4G', 'C9300-NM-4M', 'C9300-NM-8X']);
+  assert.deepEqual(opts('C9300X-48HX'), ['C9300X-NM-2C', 'C9300X-NM-4C', 'C9300X-NM-8M', 'C9300X-NM-8Y']);
+  assert.ok(!opts('C9300X-12Y').includes('C9300X-NM-4C'), 'C9300X-12Y is not on the NM-4C list');
+  assert.ok(opts('C9300X-24Y').includes('C9300X-NM-4C'), 'C9300X-24Y is');
+  assert.ok(opts('C9300X-24HX').every((p) => p !== 'C9300X-NM-4C'), 'the datasheet names only 48HX, 48TX and 24Y for NM-4C');
+  assert.deepEqual(opts('C9200-24PXG'), ['C9200-NM-2Q', 'C9200-NM-2Y', 'C9200-NM-4X']);
+  assert.deepEqual(opts('C9200-24P'), ['C9200-NM-4G', 'C9200-NM-4X']);
+  // No guessed pairs: Meraki-mode twins, fixed-uplink models and the End-of-Sale models have no builder.
+  for (const name of ['C9300-48P-M', 'C9300L-24P-4X', 'C9200L-24P-4G', 'MS150-24P-4X', 'C1300-24P-4X', 'C9500-16X']) assert.deepEqual(opts(name), [], name);
+
+  assert.equal(slotLimit(card('C9300-48P'), 'network_module'), 1);
+  assert.equal(slotLimit(card('C9300L-24P-4X'), 'network_module'), 0);
+  assert.equal(buildSku('C9300-48P', ['C9300-NM-8X']), 'C9300-48P + C9300-NM-8X');
+  assert.equal(buildSku('C9300-48P', []), 'C9300-48P');
+
+  const options = optionsFor('C9300-48P', sw.accessories, sw.compat);
+  assert.equal(checkConfig(card('C9300-48P'), ['C9300-NM-8X'], options).ok, true);
+  assert.equal(checkConfig(card('C9300-48P'), ['C9300-NM-8X', 'C9300-NM-2Q'], options).errors[0].code, 'TOO_MANY');
+  assert.equal(checkConfig(card('C9300-48P'), ['C9300X-NM-8M'], options).errors[0].code, 'NOT_COMPATIBLE');
+  assert.equal(describe(sw.accessories.find((a) => a.pid === 'C9300-NM-8X'), 'tr'), '8 x 10G');
+});
+
+test('published accessories: every one is current with a source, and every published pair joins two published rows', opts, () => {
+  const models = new Set(sw.models.map((m) => m.pid));
+  const accessories = new Set(sw.accessories.map((a) => a.pid));
+  assert.ok(sw.accessories.length >= 13);
+  for (const a of sw.accessories) assert.ok(a.lifecycle === 'current' && a.source_url && a.last_verified, a.pid);
+  for (const c of sw.compat) assert.ok(models.has(c.model_pid) && accessories.has(c.accessory_pid), `${c.accessory_pid} + ${c.model_pid}`);
+  assert.equal(sw.compat.length, 121);
+});

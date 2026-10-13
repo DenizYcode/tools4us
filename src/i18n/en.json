@@ -330,7 +330,7 @@
   "detail.perfSec": "Encrypted (VPN) or advanced security speed: {n}",
   "detail.perfNoSec": "The encrypted speed is not verified for this model.",
   "detail.perfNote": "The figures are the \"up to\" values in the datasheets; real speed depends on settings and licence.",
-  "detail.replacementNote": "Replacement (not in the catalogue yet): {note}",
+  "detail.replacementNote": "Note: {note}",
   "detail.replacementNone": "Cisco names no replacement for this model.",
   "filters.sw.ports": "How many ports?",
   "filters.sw.portsAny": "Does not matter",
@@ -471,5 +471,15 @@
   "selector.rt.assumption.1": "Only models that are on sale (current) are suggested.",
   "selector.rt.assumption.2": "Speed is the highest routing value in the datasheet; it is lower with VPN and security features on.",
   "selector.rt.assumption.3": "Meraki devices need a licence for every device; for Catalyst routers confirm the licence requirement with your partner.",
-  "selector.rt.assumption.4": "The cellular link (SIM and carrier), modules and real cabling must be checked for each project."
+  "selector.rt.assumption.4": "The cellular link (SIM and carrier), modules and real cabling must be checked for each project.",
+  "val.media.fiber": "Fibre (SFP)",
+  "val.media.copper": "Copper (RJ-45)",
+  "config.title": "Configuration: uplink module",
+  "config.lead": "The uplink of this switch is chosen with a module. The module fits the switch's {n} module slot. Only modules that the Cisco datasheet confirms for this model are listed.",
+  "config.pick": "Choose a module",
+  "config.none": "No module (empty slot)",
+  "config.sku": "Order code (draft)",
+  "config.copy": "Copy the code",
+  "config.copied": "Code copied",
+  "config.note": "This is a draft: the order code does not include the licence tier (for example -E or -A), power supplies or cables. For a real order use the Cisco ordering guide or confirm with your partner."
 }

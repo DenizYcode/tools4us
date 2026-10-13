@@ -48,8 +48,21 @@ export interface SeriesBand {
   [row: string]: unknown;
 }
 
+export interface Accessory {
+  pid: string;
+  kind: string;
+  lifecycle: string;
+  port_count?: number;
+  speed_gbps?: number[];
+  media?: string[];
+  datasheet_url?: string;
+  [field: string]: unknown;
+}
+
 interface FamilyData {
   cards: Card[];
+  accessories: Accessory[];
+  compat: { accessory_pid: string; model_pid: string }[];
   series: SeriesBand[];
   lookup: Map<string, Card>;
   verified: string;
@@ -58,8 +71,22 @@ interface FamilyData {
 
 const newest = (models: { last_verified: string }[]) => models.map((m) => m.last_verified).sort().at(-1) ?? '';
 
-function build(cards: Card[], series: SeriesBand[], models: { last_verified: string }[]): FamilyData {
-  return { cards, series, lookup: cardByPid(cards), verified: newest(models), currentCount: cards.filter(isCurrent).length };
+interface Published {
+  models: { last_verified: string }[];
+  accessories: unknown[];
+  compat: unknown[];
+}
+
+function build(cards: Card[], series: SeriesBand[], data: Published): FamilyData {
+  return {
+    cards,
+    accessories: data.accessories as Accessory[],
+    compat: data.compat as FamilyData['compat'],
+    series,
+    lookup: cardByPid(cards),
+    verified: newest(data.models),
+    currentCount: cards.filter(isCurrent).length,
+  };
 }
 
 const wirelessCards = groupCards(wireless.models) as unknown as Card[];
@@ -67,9 +94,9 @@ const switchCards = groupSwitchCards(switching.models) as unknown as Card[];
 const routerCards = groupRouterCards(routing.models) as unknown as Card[];
 
 export const FAMILY_DATA: Record<Family, FamilyData> = {
-  wireless: build(wirelessCards, wirelessBands(wirelessCards, wireless.series) as unknown as SeriesBand[], wireless.models),
-  switching: build(switchCards, switchBands(switchCards, switching.series) as unknown as SeriesBand[], switching.models),
-  routing: build(routerCards, routerBands(routerCards, routing.series) as unknown as SeriesBand[], routing.models),
+  wireless: build(wirelessCards, wirelessBands(wirelessCards, wireless.series) as unknown as SeriesBand[], wireless),
+  switching: build(switchCards, switchBands(switchCards, switching.series) as unknown as SeriesBand[], switching),
+  routing: build(routerCards, routerBands(routerCards, routing.series) as unknown as SeriesBand[], routing),
 };
 
 export { replacementCards, textOf, isCurrent, hasSixGhz };

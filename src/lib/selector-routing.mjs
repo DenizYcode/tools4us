@@ -64,7 +64,7 @@ export function recommendRouter(cards, a) {
       });
 
   // A recommended model leads even when its score is not the best (SPEC: "returns it first when it fits").
-  const rec = sorted.find((c) => c.recommended);
+  const rec = relaxed.includes('size') ? undefined : sorted.find((c) => c.recommended);
   const ordered = rec ? [rec, ...sorted.filter((c) => c !== rec)] : sorted;
 
   const results = ordered.slice(0, MAX_RESULTS).map((card) => {

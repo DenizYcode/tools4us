@@ -29,11 +29,15 @@ test('only ready, in-scope rows reach the site data, and none is left unverified
   }
 });
 
-test('only wireless, switching and routing models are ready so far (Phases 3-4); every accessory and the data centre family are still draft', () => {
+test('only wireless, switching and routing rows are ready so far (Phases 3-4); the only ready accessories are the 13 verified Catalyst uplink modules', () => {
   for (const [family, sheets] of Object.entries(catalog.families)) {
     const ready = [...sheets.models, ...sheets.accessories].filter((r) => r.status === 'ready');
-    if (family === 'wireless' || family === 'switching' || family === 'routing') assert.ok(ready.every((r) => sheets.models.includes(r)), `${family} accessories are still draft`);
-    else assert.equal(ready.length, 0, `${family}: rows were marked ready, update this test and the lifecycle expectations below`);
+    if (family === 'wireless' || family === 'routing') assert.ok(ready.every((r) => sheets.models.includes(r)), `${family} accessories are still draft`);
+    else if (family === 'switching') {
+      const accessories = sheets.accessories.filter((r) => r.status === 'ready').map((r) => r.pid).sort();
+      assert.equal(accessories.length, 13);
+      assert.ok(accessories.every((pid) => /^C9[23]00X?-NM-/.test(pid)), accessories.join(', '));
+    } else assert.equal(ready.length, 0, `${family}: rows were marked ready, update this test and the lifecycle expectations below`);
   }
 });
 

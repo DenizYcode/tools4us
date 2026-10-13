@@ -7,6 +7,7 @@ import DeviceGraphic from './graphics/DeviceGraphic.astro';
 import LifecycleBadge from './LifecycleBadge.astro';
 import ExtLink from './ExtLink.astro';
 import Term from './Term.astro';
+import ConfigBuilder from './ConfigBuilder.astro';
 import { t, tf, td, tp, type Lang } from '../i18n';
 import { familyPath, modelSwitchPath, comparePath, selectorPath, modelPath, type Family } from '../i18n/routes';
 import { textOf, hasSixGhz, replacementCards, FAMILY_DATA, type Card } from '../lib/catalog';
@@ -179,6 +180,8 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
       </div>
     </div>
   </Section>
+
+  <ConfigBuilder lang={lang} family={family} card={card} />
 
   <Section tone="soft" labelledby="variants-title">
     <h2 id="variants-title">{t(lang, 'detail.variants')}</h2>

@@ -330,7 +330,7 @@
   "detail.perfSec": "Şifreli (VPN) veya gelişmiş güvenlik hızı: {n}",
   "detail.perfNoSec": "Şifreli hız bu model için doğrulanmadı.",
   "detail.perfNote": "Rakamlar veri sayfalarındaki \"en fazla\" değerlerdir; gerçek hız ayarlara ve lisansa bağlıdır.",
-  "detail.replacementNote": "Yerine geçen (kataloğa henüz eklenmedi): {note}",
+  "detail.replacementNote": "Not: {note}",
   "detail.replacementNone": "Cisco bu model için yerine geçen bir model önermiyor.",
   "filters.sw.ports": "Kaç port gerekli?",
   "filters.sw.portsAny": "Fark etmez",
@@ -471,5 +471,15 @@
   "selector.rt.assumption.1": "Yalnızca satışta olan (güncel) modeller önerilir.",
   "selector.rt.assumption.2": "Hız, veri sayfasındaki en yüksek yönlendirme değeridir; VPN ve güvenlik özellikleri açıkken daha düşüktür.",
   "selector.rt.assumption.3": "Meraki cihazlar her cihaz için lisans ister; Catalyst yönlendiricilerde lisans şartını iş ortağınıza doğrulatın.",
-  "selector.rt.assumption.4": "Hücresel hat (SIM ve operatör), modüller ve gerçek kablolama proje bazında doğrulanmalıdır."
+  "selector.rt.assumption.4": "Hücresel hat (SIM ve operatör), modüller ve gerçek kablolama proje bazında doğrulanmalıdır.",
+  "val.media.fiber": "Fiber (SFP)",
+  "val.media.copper": "Bakır (RJ-45)",
+  "config.title": "Yapılandırma: yukarı bağlantı modülü",
+  "config.lead": "Bu anahtarın yukarı bağlantısı modülle seçilir. Modül, anahtarın {n} modül yuvasına takılır. Yalnızca bu modele uyduğu Cisco veri sayfasında doğrulanan modüller listelenir.",
+  "config.pick": "Modül seçin",
+  "config.none": "Modül seçme (boş yuva)",
+  "config.sku": "Sipariş kodu (taslak)",
+  "config.copy": "Kodu kopyala",
+  "config.copied": "Kod kopyalandı",
+  "config.note": "Bu bir taslaktır: sipariş koduna lisans seviyesi (örneğin -E veya -A), güç kaynağı ve kablolar eklenmez. Gerçek sipariş için Cisco sipariş kılavuzunu kullanın veya iş ortağınıza doğrulatın."
 }
