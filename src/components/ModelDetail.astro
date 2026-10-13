@@ -312,6 +312,13 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
     list-style: none;
   }
 
+  /* Links to replacement models are tap targets of at least 44 px. */
+  .plain a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
   .pids li {
     padding: var(--space-2) 0;
   }
