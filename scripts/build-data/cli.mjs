@@ -11,9 +11,9 @@ if (command !== 'check' && command !== 'build') {
   process.exit(2);
 }
 
-const { catalog, glossary, errors } = await runCheck();
+const { catalog, glossary, stories, errors } = await runCheck();
 if (errors.length) process.exit(1);
 if (command === 'build') {
-  const manifest = emitCatalog(catalog, undefined, glossary);
+  const manifest = emitCatalog(catalog, undefined, glossary, stories);
   console.log(`build:data wrote ${Object.keys(manifest.files).length} file(s) to src/data/generated/`);
 }

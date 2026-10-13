@@ -5,6 +5,7 @@ import { loadCatalog, ROOT } from './catalog.mjs';
 import { validateCatalog } from './validate.mjs';
 import { checkI18nParity } from './i18n-parity.mjs';
 import { readGlossary, validateGlossary } from './glossary.mjs';
+import { readStories, validateStories } from './stories.mjs';
 
 const MAX_LISTED = 40;
 
@@ -41,12 +42,17 @@ export async function runCheck() {
   const glossary = await readGlossary();
   const glossaryErrors = [...glossary.problems.filter((p) => p.level === 'error'), ...validateGlossary(glossary.terms)];
 
-  const errors = [...problems.filter((p) => p.level === 'error'), ...result.errors, ...parity, ...glossaryErrors];
-  const warnings = [...problems.filter((p) => p.level === 'warning'), ...result.warnings];
+  const read = readStories();
+  const storyResult = validateStories(read.stories, catalog);
+
+  const errors = [...problems.filter((p) => p.level === 'error'), ...result.errors, ...parity, ...glossaryErrors, ...read.problems.filter((p) => p.level === 'error'), ...storyResult.errors];
+  const warnings = [...problems.filter((p) => p.level === 'warning'), ...result.warnings, ...storyResult.warnings];
 
   printStats(result.stats);
+  console.log(`
+Stories: ${storyResult.stats.ready} ready (${storyResult.stats.featured} featured), ${storyResult.stats.draft} draft`);
   listFindings('Warnings', warnings);
   listFindings('Errors', errors);
   console.log(errors.length ? `\ncheck:data FAILED with ${errors.length} error(s)` : `\ncheck:data passed (${warnings.length} warning(s))`);
-  return { catalog, glossary: glossary.terms, errors, warnings };
+  return { catalog, glossary: glossary.terms, stories: read.stories, errors, warnings };
 }

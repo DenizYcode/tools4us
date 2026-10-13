@@ -6,6 +6,7 @@ import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './catalog.mjs';
 import { glossaryJson } from './glossary.mjs';
+import { storiesJson } from './stories.mjs';
 
 export const GENERATED_DIR = join(ROOT, 'src', 'data', 'generated');
 
@@ -35,7 +36,7 @@ export function buildFamilyJson(family, sheets) {
   };
 }
 
-export function emitCatalog(catalog, dir = GENERATED_DIR, glossaryTerms = []) {
+export function emitCatalog(catalog, dir = GENERATED_DIR, glossaryTerms = [], stories = []) {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   const manifest = { files: {} };
@@ -48,6 +49,10 @@ export function emitCatalog(catalog, dir = GENERATED_DIR, glossaryTerms = []) {
 `;
   writeFileSync(join(dir, 'glossary.json'), glossary);
   manifest.files['glossary.json'] = createHash('sha256').update(glossary).digest('hex');
+  const storyText = `${JSON.stringify(storiesJson(stories), null, 2)}
+`;
+  writeFileSync(join(dir, 'stories.json'), storyText);
+  manifest.files['stories.json'] = createHash('sha256').update(storyText).digest('hex');
   writeFileSync(join(dir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   return manifest;
 }
