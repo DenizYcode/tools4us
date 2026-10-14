@@ -5,7 +5,9 @@
 import { normalize, words } from './search.mjs';
 import { replacementCards, textOf } from './cards.mjs';
 
-const join = (...texts) => [...new Set(texts.flatMap((t) => words(t)))].join(' ');
+// Words of the texts, plus the joined form of every hyphenated term, so "Wi-Fi" is also found as "wifi" and "SD-WAN" as "sdwan".
+const joined = (text) => (String(text ?? '').match(/[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+/g) ?? []).map((m) => normalize(m).replace(/ /g, ''));
+const join = (...texts) => [...new Set(texts.flatMap((t) => [...words(t), ...joined(t)]))].join(' ');
 const oneLine = (text, max = 160) => {
   const clean = String(text ?? '').replace(/\s+/g, ' ').trim();
   return clean.length <= max ? clean : `${clean.slice(0, max - 1).trimEnd()}…`;
@@ -17,9 +19,10 @@ const oneLine = (text, max = 160) => {
  *   familyNames: { family: string }, pages: [{ id, title, text, href }],
  *   href: { model(family, slug), story(slug), term(key) }
  * }
- * `labels` is the i18n dictionary of the language (feature names come from `val.feature.*`).
+ * `labels` is the i18n dictionary of the language (feature names come from `val.feature.*`). `familyTerms` is optional:
+ * everyday words per family ("router", "switch", "wifi") that the Turkish texts do not contain.
  */
-export function buildIndex({ lang, cards, lookup, stories, glossary, labels, familyNames, pages = [], href }) {
+export function buildIndex({ lang, cards, lookup, stories, glossary, labels, familyNames, familyTerms = {}, pages = [], href }) {
   const out = [];
 
   for (const page of pages) {
@@ -42,10 +45,13 @@ export function buildIndex({ lang, cards, lookup, stories, glossary, labels, fam
         lc: card.lifecycle,
         lo: card.last_order,
         repl: replacements,
+        // End-of-Sale without a replacement PID: the note, or "Cisco lists none", is shown in place of a link.
+        rn: textOf(card, lang, 'replacement_note'),
+        rx: card.replacement_none === true,
         w: {
           name: join(card.name, ...card.pids),
           series: join(card.series),
-          text: join(summary, textOf(card, lang, 'good_for'), ...featureNames, familyNames[family]),
+          text: join(summary, textOf(card, lang, 'good_for'), ...featureNames, familyNames[family], familyTerms[family]),
         },
       });
     }

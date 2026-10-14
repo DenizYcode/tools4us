@@ -22,6 +22,9 @@ export function buildShortlistData({ lang, families, href }) {
         lo: card.last_order,
         r: replacementCards(card, data.lookup).map((r) => ({ n: r.name, h: href(family, r.slug) })),
         s: textOf(card, lang, 'summary'),
+        // No replacement PID: the note (or "none") stands in for the replacement links.
+        rn: textOf(card, lang, 'replacement_note'),
+        rx: card.replacement_none === true,
         d: card.datasheet_url,
         cfg: options.map((o) => buildSku(card.pids[0], [o.pid])),
       };

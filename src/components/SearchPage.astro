@@ -14,6 +14,8 @@ const { lang } = Astro.props;
 const strings = {
   ...tp(lang, 'search.'),
   ...tp(lang, 'val.life.'),
+  'detail.replacementNote': t(lang, 'detail.replacementNote'),
+  'detail.replacementNone': t(lang, 'detail.replacementNone'),
   ...Object.fromEntries(LAUNCH_FAMILIES.map((f) => [`family.${f}.name`, td(lang, `family.${f}.name`)])),
 };
 ---
@@ -55,6 +57,8 @@ const strings = {
     lc?: string;
     lo?: string | null;
     repl?: { title: string; href: string }[];
+    rn?: string | null;
+    rx?: boolean;
   };
 
   const root = document.getElementById('search-root')!;
@@ -112,6 +116,10 @@ const strings = {
           if (i) eos.append(', ');
           eos.append(link(r.href, r.title));
         });
+      } else if (entry.rn) {
+        eos.append(fill(strings['detail.replacementNote'], { note: entry.rn }));
+      } else if (entry.rx) {
+        eos.append(strings['detail.replacementNone']);
       }
       li.append(eos);
     }

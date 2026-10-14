@@ -35,7 +35,8 @@ function indexFor(lang) {
     en: { wireless: 'Wireless', switching: 'Switching', routing: 'Routing' },
   };
   const familyNames = names[lang];
-  const pages = Object.entries(familyNames).map(([family, title]) => ({ id: family, title, text: `${title} ${family}`, href: `/${lang}/${family}/` }));
+  const familyTerms = Object.fromEntries(Object.keys(familyNames).map((f) => [f, labels[lang][`search.syn.${f}`]]));
+  const pages = Object.entries(familyNames).map(([family, title]) => ({ id: family, title, text: `${title} ${family} ${familyTerms[family]}`, href: `/${lang}/${family}/` }));
   const raw = buildIndex({
     lang,
     cards,
@@ -44,6 +45,7 @@ function indexFor(lang) {
     glossary: gl,
     labels: labels[lang],
     familyNames,
+    familyTerms,
     pages,
     href: {
       model: (family, slug) => `/${lang}/${family}/${slug}/`,
@@ -165,4 +167,37 @@ test('no draft or excluded PID is in the index and none is found by search', opt
     assert.equal(hits.some((h) => h.entry.pids?.some((p) => compact(p) === compact(pid))), false, `${pid} found`);
   }
   assert.ok(JSON.stringify(index).length < 900_000, 'index too large');
+});
+
+test('everyday words work: "wifi" finds Wi-Fi, "sdwan" finds SD-WAN, "router" and "switch" find their families', opts, () => {
+  for (const lang of ['tr', 'en']) {
+    const index = indexFor(lang);
+    assert.ok(search(index, 'wifi').length > 20, `${lang}: wifi`);
+    // Both spellings find Wi-Fi 7 access points among the first results.
+    for (const q of ['wifi 7', 'wi-fi 7']) {
+      const hits = search(index, q, { limit: 30 }).map((h) => h.entry);
+      assert.ok(hits.length >= 5, `${lang}: ${q} found ${hits.length}`);
+      assert.ok(hits.some((e) => e.kind === 'model' && e.family === 'wireless'), `${lang}: ${q} found no wireless model in the first 30`);
+    }
+    assert.ok(search(index, 'sdwan').length > 10, `${lang}: sdwan`);
+    assert.equal(top(index, 'router').kind === 'page' ? top(index, 'router').id : search(index, 'router').find((h) => h.entry.kind === 'page')?.entry.id, 'page:routing', `${lang}: router`);
+    assert.ok(search(index, 'switch 24 port').length > 5, `${lang}: switch 24 port`);
+  }
+});
+
+test('broad queries show current models before End-of-Sale ones; a whole old PID still comes first', opts, () => {
+  const index = indexFor('tr');
+  for (const q of ['yonlendirici', 'kablosuz erisim noktasi', 'kablosz']) {
+    const models = search(index, q, { limit: 40 }).map((h) => h.entry).filter((e) => e.kind === 'model').slice(0, 10);
+    const old = models.filter((e) => e.lc !== 'current').length;
+    assert.ok(old <= 3, `${q}: ${old} of the first ${models.length} models are End-of-Sale`);
+  }
+  assert.equal(top(index, 'MS210-24-HW').lc, 'eos');
+});
+
+test('every End-of-Sale entry in the index carries a replacement link, a note, or "none"', opts, () => {
+  const index = indexFor('tr');
+  const old = index.filter((e) => e.kind === 'model' && e.lc !== 'current');
+  assert.ok(old.length > 50);
+  for (const e of old) assert.ok(e.repl.length > 0 || e.rn || e.rx, `${e.title} has nothing to point to`);
 });

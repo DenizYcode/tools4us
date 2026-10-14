@@ -112,7 +112,11 @@ export function search(index, query, { limit = 40 } = {}) {
   const q = tokens.join('');
   const hits = [];
   for (const entry of index) {
-    const score = Math.max(pidScore(entry, q), scoreEntry(entry, tokens));
+    const pid = pidScore(entry, q);
+    let score = Math.max(pid, scoreEntry(entry, tokens));
+    // A model that is no longer sold ranks below a current one for the same words. A PID typed in full still wins,
+    // so an old PID leads to its page and its replacement.
+    if (pid < 500 && entry.lc && entry.lc !== 'current') score *= 0.6;
     if (score > 0) hits.push({ entry, score });
   }
   hits.sort((a, b) => b.score - a.score || KIND_RANK[a.entry.kind] - KIND_RANK[b.entry.kind] || a.entry.title.localeCompare(b.entry.title));

@@ -73,7 +73,7 @@ const strings = { ...tp(lang, 'list.'), ...filterStrings, ...tp(lang, 'tray.') }
 
   <div class="bar" id="bar">
     <div class="bar-inner container">
-      <button type="button" class="bar-filters" id="filters-open" aria-controls="filter-sheet" aria-expanded="false">
+      <button type="button" class="bar-filters" id="filters-open" data-track="filter-open" aria-controls="filter-sheet" aria-expanded="false">
         {t(lang, 'filters.open')} <span id="filters-badge" class="pill" hidden></span>
       </button>
       <div class="tray" id="tray" aria-label={t(lang, 'tray.label')} hidden>

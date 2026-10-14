@@ -21,7 +21,13 @@ if (!w.__t4uTrack) {
   const queue: string[] = [];
   let ready = false;
 
-  const send = (name: string) => w.goatcounter?.count?.({ event: true, path: name, title: name });
+  const send = (name: string) => {
+    try {
+      w.goatcounter?.count?.({ event: true, path: name, title: name });
+    } catch {
+      /* analytics must never break the page */
+    }
+  };
 
   document.addEventListener('t4u:track', (event) => {
     const name = (event as CustomEvent<{ event?: string }>).detail?.event ?? '';
@@ -60,7 +66,12 @@ if (!w.__t4uTrack) {
         delete data.q;
         return data;
       };
-      gc.count();
+      // count.js reads localStorage; where that throws, analytics stops but nothing else does.
+      try {
+        gc.count();
+      } catch {
+        /* blocked storage */
+      }
       ready = true;
       for (const name of queue.splice(0)) send(name);
     });

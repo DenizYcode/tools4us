@@ -10,6 +10,7 @@ export const EVENTS = [
   'story-click', // a story card or link was opened
   'model-select', // a model page was opened from a family list
   'datasheet-click', // a Cisco datasheet link was opened
+  'filter-open', // the filter sheet was opened on a phone
   'shortlist-add',
   'shortlist-remove',
   'export-print',

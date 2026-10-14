@@ -611,7 +611,7 @@
   "contact.messageHint": "Say briefly what you want to do. Example: I need a 24-port switch that powers 8 cameras.",
   "contact.list": "Your shortlist",
   "contact.listAttach": "Attach my shortlist to the message",
-  "contact.listCount": "{n} models will be attached:",
+  "contact.listCount": "Your list has {n} models. Tick the box to attach it to the message:",
   "contact.listEmpty": "Your list is empty. You can add models to your shortlist first; you can still send a message.",
   "contact.consentBefore": "I have read the ",
   "contact.consentLink": "privacy notice (KVKK)",
@@ -639,7 +639,7 @@
   "privacy.controller.h": "Data controller",
   "privacy.controller.p": "Tools4Us is a personal, independent project. Data controller: {name}. Contact: {email}.",
   "privacy.data.h": "What data do we process?",
-  "privacy.data.p": "Only if you send the “Ask us” form:",
+  "privacy.data.p": "If you send the “Ask us” form (visit statistics are described separately below):",
   "privacy.data.1": "Your name, email address and (if you wrote it) company name",
   "privacy.data.2": "Your message",
   "privacy.data.3": "Your shortlist (model names and part numbers) if you chose to attach it",
@@ -661,7 +661,11 @@
   "privacy.rights.5": "Have it deleted or destroyed, and have those it was passed to told",
   "privacy.rights.6": "Object to the processing and ask for compensation for damage from unlawful processing",
   "privacy.rights.apply": "To apply, write to {email}.",
-  "privacy.cookies.h": "Cookies and statistics",
-  "privacy.cookies.p": "This site uses no cookies. A cookie-free statistics service (GoatCounter) counts which pages and features are used; visitors are not tracked one by one, and nothing is sent when “Do Not Track” is on in your browser. Your shortlist stays in your browser's storage; it is not sent to us unless you attach it to the form.",
-  "privacy.indep.p": "This is not an official Cisco or Ingram Micro site."
+  "privacy.cookies.h": "Cookies and visit statistics",
+  "privacy.cookies.p": "This site uses no cookies. To count which pages and features are used, a third party's cookie-free statistics service (GoatCounter) is used, even if you never touch the form. Each page view sends this service's server: the page address (without anything after “?”, such as your search text or a shortlist link), the page title, your screen width, the name of the referring site and a robot flag; for events such as “added to shortlist” or “search found nothing” only the event name is sent. Because your browser connects to that server, your IP address and browser details are visible to it. That server may be outside Turkey. Nothing is sent when “Do Not Track” or Global Privacy Control is on in your browser. Your shortlist stays in your browser's storage; it is not sent to us unless you attach it to the form.",
+  "privacy.indep.p": "This is not an official Cisco or Ingram Micro site.",
+  "search.syn.wireless": "wifi wi-fi access point ap",
+  "search.syn.switching": "switch poe port",
+  "search.syn.routing": "router sd-wan vpn firewall",
+  "shortlist.cleared": "The list was cleared."
 }

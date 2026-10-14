@@ -46,15 +46,15 @@ function announce(message: string) {
 }
 
 /** Adds or removes a model; tells the reader what happened. Returns whether the item is now on the list. */
-export function toggle(item: Item, name: string): boolean {
+export function toggle(item: Item, name: string): { on: boolean; changed: boolean } {
   const result = toggleItem(getList(), item) as { list: Item[]; on: boolean; ok: boolean };
   if (!result.ok) {
     announce(fill(text('slFull'), { n: MAX_ITEMS }));
-    return hasItem(getList(), item);
+    return { on: hasItem(getList(), item), changed: false };
   }
   const saved = setList(result.list);
   announce(`${fill(text(result.on ? 'slAdded' : 'slRemoved'), { name })}${saved ? '' : ` ${text('slSaveFailed')}`}`);
-  return result.on;
+  return { on: result.on, changed: true };
 }
 
 const itemOf = (button: HTMLElement): Item => ({ f: button.dataset.slF ?? '', s: button.dataset.slS ?? '', ...(button.dataset.slC ? { c: button.dataset.slC } : {}) });
@@ -111,8 +111,8 @@ if (!(window as unknown as { __t4uShortlist?: boolean }).__t4uShortlist) {
   document.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button.sl-btn');
     if (!button) return;
-    toggle(itemOf(button), button.dataset.slName ?? '');
-    document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event: hasItem(getList(), itemOf(button)) ? 'shortlist-add' : 'shortlist-remove' } }));
+    const { on, changed } = toggle(itemOf(button), button.dataset.slName ?? '');
+    if (changed) document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event: on ? 'shortlist-add' : 'shortlist-remove' } }));
   });
   window.addEventListener(EVENT, () => refresh());
   window.addEventListener('storage', () => refresh());

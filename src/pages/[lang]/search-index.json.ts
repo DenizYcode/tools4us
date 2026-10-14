@@ -18,8 +18,10 @@ export const GET: APIRoute = ({ params }) => {
   const lookup = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, FAMILY_DATA[f].lookup])) as Record<Family, (typeof FAMILY_DATA)[Family]['lookup']>;
   const familyNames = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, td(lang, `family.${f}.name`)])) as Record<Family, string>;
 
+  const familyTerms = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, td(lang, `search.syn.${f}`)])) as Record<Family, string>;
+
   const pages = [
-    ...LAUNCH_FAMILIES.map((f) => ({ id: f, title: td(lang, `family.${f}.name`), text: td(lang, `family.${f}.blurb`), href: familyPath(lang, f) })),
+    ...LAUNCH_FAMILIES.map((f) => ({ id: f, title: td(lang, `family.${f}.name`), text: `${td(lang, `family.${f}.blurb`)} ${td(lang, `search.syn.${f}`)}`, href: familyPath(lang, f) })),
     { id: 'stories', title: td(lang, 'stories.title'), text: td(lang, 'stories.lead'), href: storiesPath(lang) },
     { id: 'compare', title: td(lang, 'compare.title'), text: td(lang, 'compare.lead'), href: comparePath(lang) },
     { id: 'legacy', title: td(lang, 'shortcuts.legacy.title'), text: td(lang, 'migration.lead'), href: migrationPath(lang) },
@@ -36,6 +38,7 @@ export const GET: APIRoute = ({ params }) => {
     glossary: glossary as Record<string, Record<Lang, { term: string; meaning: string }>>,
     labels: tp(lang, 'val.feature.'),
     familyNames,
+    familyTerms,
     pages,
     href: {
       model: (family: string, slug: string) => modelPath(lang, slug, family as Family),

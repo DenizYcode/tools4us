@@ -126,7 +126,10 @@ test('shortlist data: every published card is listed, configurations are verifie
       assert.ok(families[family].compat.some((c) => c.model_pid === model && c.accessory_pid === accessory), `${sku} is not a verified pair`);
       assert.equal(entry.lc, 'current', `${key} offers a configuration but is not current`);
     }
-    if (entry.lc !== 'current') assert.ok(entry.lo, `${key}: no last order date`);
+    if (entry.lc !== 'current') {
+      assert.ok(entry.lo, `${key}: no last order date`);
+      assert.ok(entry.r.length > 0 || entry.rn || entry.rx, `${key}: End-of-Sale with no replacement link, note or "none"`);
+    }
   }
   assert.ok(configured >= 100, `only ${configured} configurations`);
 });

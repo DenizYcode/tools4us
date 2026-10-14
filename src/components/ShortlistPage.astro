@@ -16,6 +16,8 @@ const strings = {
   ...tp(lang, 'shortlist.'),
   ...tp(lang, 'val.life.'),
   'detail.datasheet': t(lang, 'detail.datasheet'),
+  'detail.replacementNote': t(lang, 'detail.replacementNote'),
+  'detail.replacementNone': t(lang, 'detail.replacementNone'),
   'note.external': t(lang, 'note.external'),
   'compare.title': t(lang, 'compare.title'),
   ...Object.fromEntries(LAUNCH_FAMILIES.map((f) => [`family.${f}.name`, td(lang, `family.${f}.name`)])),
@@ -62,7 +64,7 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
   import { getList, setList, type Item } from '../scripts/shortlist';
   import { decodeList, encodeList, mergeLists, removeItem, toCsv, isConfig } from '../lib/shortlist.mjs';
 
-  type Entry = { n: string; se: string; p: string[]; h: string; lc: string; lo: string | null; r: { n: string; h: string }[]; s: string; d: string; cfg: string[] };
+  type Entry = { n: string; se: string; p: string[]; h: string; lc: string; lo: string | null; r: { n: string; h: string }[]; rn: string | null; rx: boolean; s: string; d: string; cfg: string[] };
 
   const root = document.getElementById('shortlist-root')!;
   const s: Record<string, string> = JSON.parse(root.dataset.strings ?? '{}');
@@ -128,6 +130,10 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
             if (i) warn.append(', ');
             warn.append(link(r.h, r.n));
           });
+        } else if (entry.rn) {
+          warn.append(fill(s['detail.replacementNote'], { note: entry.rn }));
+        } else if (entry.rx) {
+          warn.append(s['detail.replacementNone']);
         }
         li.append(warn);
       }
@@ -175,6 +181,7 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
         history.replaceState(null, '', root.dataset.pageUrl);
         render();
         status.textContent = s['shortlist.savedShared'];
+        status.focus();
       });
       const mine = el('button', '', s['shortlist.showMine']) as HTMLButtonElement;
       mine.type = 'button';
@@ -182,6 +189,7 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
         shared = null;
         history.replaceState(null, '', root.dataset.pageUrl);
         render();
+        status.focus();
       });
       banner.append(save, ' ', mine);
     }
@@ -278,6 +286,8 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
     if (!window.confirm(s['shortlist.clearConfirm'])) return;
     setList([]);
     render();
+    status.textContent = s['shortlist.cleared'];
+    status.focus();
   });
   window.addEventListener('t4u:shortlist', () => {
     if (!shared && data) render();

@@ -611,7 +611,7 @@
   "contact.messageHint": "Ne yapmak istediğinizi kısaca yazın. Örnek: 24 portlu, 8 kamera besleyecek bir anahtar arıyorum.",
   "contact.list": "Seçimlerim listeniz",
   "contact.listAttach": "Seçimlerim listemi mesaja ekle",
-  "contact.listCount": "{n} model eklenecek:",
+  "contact.listCount": "Listenizde {n} model var. Kutuyu işaretlerseniz mesaja eklenir:",
   "contact.listEmpty": "Listeniz boş. İsterseniz önce Seçimlerim'e model ekleyin; yine de mesaj gönderebilirsiniz.",
   "contact.consentBefore": "KVKK kapsamında ",
   "contact.consentLink": "Aydınlatma Metni",
@@ -639,7 +639,7 @@
   "privacy.controller.h": "Veri sorumlusu",
   "privacy.controller.p": "Tools4Us kişisel ve bağımsız bir projedir. Veri sorumlusu: {name}. İletişim: {email}.",
   "privacy.data.h": "Hangi verileri işliyoruz?",
-  "privacy.data.p": "Yalnızca “Bize sorun” formunu gönderirseniz:",
+  "privacy.data.p": "“Bize sorun” formunu gönderirseniz (istatistik verisi aşağıda ayrıca anlatılıyor):",
   "privacy.data.1": "Adınız, e-posta adresiniz ve (yazdıysanız) şirket adınız",
   "privacy.data.2": "Mesajınız",
   "privacy.data.3": "Eklemeyi seçtiyseniz Seçimlerim listeniz (model adları ve ürün kodları)",
@@ -661,7 +661,11 @@
   "privacy.rights.5": "Silinmesini veya yok edilmesini istemek ve bunun aktarılan kişilere bildirilmesini istemek",
   "privacy.rights.6": "İşlemeye itiraz etmek ve kanuna aykırı işlemeden doğan zararın giderilmesini istemek",
   "privacy.rights.apply": "Başvuru için {email} adresine yazın.",
-  "privacy.cookies.h": "Çerezler ve istatistik",
-  "privacy.cookies.p": "Bu site çerez kullanmaz. Hangi sayfaların ve özelliklerin kullanıldığını saymak için çerezsiz bir istatistik hizmeti (GoatCounter) kullanılır; ziyaretçiler tek tek izlenmez ve istatistik, tarayıcınızda “İzlemeyi reddet” (Do Not Track) açıksa hiç gönderilmez. Seçimlerim listeniz yalnızca tarayıcınızın deposunda durur; siz forma eklemedikçe bize gönderilmez.",
-  "privacy.indep.p": "Bu site Cisco'nun veya Ingram Micro'nun resmî sitesi değildir."
+  "privacy.cookies.h": "Çerezler ve ziyaret istatistiği",
+  "privacy.cookies.p": "Bu site çerez kullanmaz. Hangi sayfaların ve özelliklerin kullanıldığını saymak için, siz forma hiç dokunmasanız bile, üçüncü bir tarafın çerezsiz istatistik hizmeti (GoatCounter) kullanılır. Her sayfa açılışında bu hizmetin sunucusuna şunlar gönderilir: sayfanın adresi (arama yazınız ve liste bağlantısı gibi “?” sonrası kısım olmadan), sayfa başlığı, ekran genişliği, yönlendiren sitenin adı ve bir robot işareti; ayrıca “Seçimlerim’e ekle” veya “arama sonuç vermedi” gibi olayların yalnızca adı. Tarayıcınız o sunucuya bağlandığı için IP adresiniz ve tarayıcı bilgileriniz sunucu tarafından görülür. Bu sunucu Türkiye dışında olabilir. Tarayıcınızda “İzlemeyi reddet” (Do Not Track) veya Global Privacy Control açıksa bu istatistik hiç gönderilmez. Seçimlerim listeniz yalnızca tarayıcınızın deposunda durur; siz forma eklemedikçe bize gönderilmez.",
+  "privacy.indep.p": "Bu site Cisco'nun veya Ingram Micro'nun resmî sitesi değildir.",
+  "search.syn.wireless": "wifi wi-fi access point ap erişim noktası",
+  "search.syn.switching": "switch anahtar poe port",
+  "search.syn.routing": "router yönlendirici sd-wan vpn güvenlik duvarı",
+  "shortlist.cleared": "Liste temizlendi."
 }
