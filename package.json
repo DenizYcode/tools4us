@@ -23,6 +23,8 @@
     "check:links": "node scripts/check-links.mjs",
     "check:freshness": "node scripts/freshness.mjs",
     "check:launch": "node scripts/check-launch.mjs",
+    "kvkk:check": "node scripts/kvkk-check.mjs",
+    "kvkk:text": "node scripts/kvkk-check.mjs --print",
     "review:export": "node scripts/review/cli.mjs export",
     "review:apply": "node scripts/review/cli.mjs apply"
   },

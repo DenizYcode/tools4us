@@ -83,6 +83,12 @@ if (fast) {
   add('Built site', 'Zero broken internal links; disclaimer on every page; no draft PID', d.code === 0 ? 'PASS' : 'FAIL', lastLine(d.out, /check:dist/) + ' / ' + lastLine(d.out, /internal links/));
 }
 
+// 4b. KVKK notice and disclaimer: every element still on the built pages (the legal reading is a manual check below).
+{
+  const k = run(['scripts/kvkk-check.mjs']);
+  add('KVKK', 'KVKK notice and form consent carry every element; disclaimer on the page (TR and EN)', k.code === 0 ? 'PASS' : 'FAIL', k.code === 0 ? 'both notices have all 8 sections, name Web3Forms and GoatCounter, cite KVKK 5 and 11; required consent box links to the notice' : k.out.trim().split('\n').slice(0, 3).join('; '));
+}
+
 // 5. External link report: the last committed report (the network check runs weekly in CI, or `npm run check:links`).
 {
   const path = 'docs/Phase7_External_Links.md';
