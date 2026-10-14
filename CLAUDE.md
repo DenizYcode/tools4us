@@ -31,7 +31,7 @@ The full spec is `docs/SPEC.md`. Before planning any task, read the SPEC.md sect
 - `npm run build:data`: `check:data`, then write the published rows (ready + in scope only) to `src/data/generated/*.json` plus `manifest.json` (sha256 per file). The folder is gitignored.
 - `npm run check:design`: WCAG contrast check of every colour pair in `src/styles/tokens.css`; fails below 4.5:1 (3:1 for large text and UI edges).
 - `npm run check:dist`: checks the built `dist/` (no dev gallery, disclaimer footer on every page, every internal link carries the base path and points at a page that exists, no third-party requests, external links only to cisco.com or meraki.com in a new tab, no draft or excluded PID anywhere, no End-of-Sale model in the selector data). `DIST_DIR=<folder>` runs it on another folder. Run after `astro build`.
-- `npm run build`: `check:design`, `build:data`, `astro build`, `check:dist`, then `pagefind --site dist`. Output in `dist/`. This is what CI runs.
+- `npm run build`: `check:design`, `build:data`, `astro build`, `check:dist`. Output in `dist/`. This is what CI runs.
 - `npm run test:data`: node:test suite for the validator, glossary, the migration invariants against the real workbooks, the audit closure, the graphics layout maths and the wireless logic (grouping, filters, selector run over every answer on the real catalog, compare, Turkish count suffix).
 - `npm run migrate:legacy`: one-time seed of `data/catalog/` from `data/legacy/`. Refuses to overwrite existing workbooks (they are edited by hand now); `-- --force` regenerates them and discards manual edits.
 - `npm run audit:closure`: regenerate `docs/Phase1_Audit_Closure.md` and `.csv` from the audit workbook and the catalog.

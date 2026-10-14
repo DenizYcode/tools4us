@@ -9,7 +9,7 @@
   "scripts": {
     "predev": "npm run build:data",
     "dev": "astro dev",
-    "build": "npm run check:design && npm run build:data && astro build && npm run check:dist && pagefind --site dist",
+    "build": "npm run check:design && npm run build:data && astro build && npm run check:dist",
     "check:data": "node scripts/build-data/cli.mjs check",
     "preview": "astro preview",
     "test:data": "node --test \"scripts/**/*.test.mjs\" \"src/**/*.test.mjs\"",
@@ -22,7 +22,6 @@
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
     "astro": "^7.3.8",
-    "pagefind": "^1.5.2",
     "yaml": "^2.9.1"
   },
   "devDependencies": {

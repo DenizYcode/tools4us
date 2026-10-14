@@ -54,3 +54,26 @@ export const storiesPath = (lang: Lang): string => localePath(lang, `${STORIES_S
 export const storyPath = (lang: Lang, slug: string): string => localePath(lang, `${STORIES_SLUG[lang]}/${slug}/`);
 export const storiesSwitchPath = (lang: Lang): string => `${STORIES_SLUG[otherLang(lang)]}/`;
 export const storySwitchPath = (lang: Lang, slugInOtherLang: string): string => `${STORIES_SLUG[otherLang(lang)]}/${slugInOtherLang}/`;
+
+// Tools and notices added in Phase 6. One page each per language, slugs readable in each language.
+export const SEARCH_SLUG: Record<Lang, string> = { tr: 'ara', en: 'search' };
+export const SHORTLIST_SLUG: Record<Lang, string> = { tr: 'seclimlerim', en: 'shortlist' };
+export const MIGRATION_SLUG: Record<Lang, string> = { tr: 'eski-cihazim', en: 'old-device' };
+export const GLOSSARY_SLUG: Record<Lang, string> = { tr: 'sozluk', en: 'glossary' };
+export const CONTACT_SLUG: Record<Lang, string> = { tr: 'iletisim', en: 'contact' };
+export const PRIVACY_SLUG: Record<Lang, string> = { tr: 'aydinlatma-metni', en: 'privacy-notice' };
+
+export const searchPath = (lang: Lang, query = ''): string => localePath(lang, `${SEARCH_SLUG[lang]}/`) + (query ? `?q=${encodeURIComponent(query)}` : '');
+export const shortlistPath = (lang: Lang): string => localePath(lang, `${SHORTLIST_SLUG[lang]}/`);
+export const migrationPath = (lang: Lang): string => localePath(lang, `${MIGRATION_SLUG[lang]}/`);
+export const glossaryPath = (lang: Lang, key = ''): string => localePath(lang, `${GLOSSARY_SLUG[lang]}/`) + (key ? `#${key}` : '');
+export const contactPath = (lang: Lang): string => localePath(lang, `${CONTACT_SLUG[lang]}/`);
+export const privacyPath = (lang: Lang): string => localePath(lang, `${PRIVACY_SLUG[lang]}/`);
+
+// Paths (after /<lang>/) of the same page in the other language, for the language toggle.
+export const searchSwitchPath = (lang: Lang): string => `${SEARCH_SLUG[otherLang(lang)]}/`;
+export const shortlistSwitchPath = (lang: Lang): string => `${SHORTLIST_SLUG[otherLang(lang)]}/`;
+export const migrationSwitchPath = (lang: Lang): string => `${MIGRATION_SLUG[otherLang(lang)]}/`;
+export const glossarySwitchPath = (lang: Lang): string => `${GLOSSARY_SLUG[otherLang(lang)]}/`;
+export const contactSwitchPath = (lang: Lang): string => `${CONTACT_SLUG[otherLang(lang)]}/`;
+export const privacySwitchPath = (lang: Lang): string => `${PRIVACY_SLUG[otherLang(lang)]}/`;

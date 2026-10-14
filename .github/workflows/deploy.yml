@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
-      # Runs `npm run build`, which is check:data -> astro build -> pagefind.
+      # Runs `npm run build`, which is check:data -> astro build -> check:dist.
       # A failing data check stops the job, so nothing is published.
       - name: Install, build and upload the site
         uses: withastro/action@v6
