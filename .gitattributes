@@ -1,0 +1,2 @@
+# Vendored files are published byte for byte (their hash is pinned by check:dist), so Git must not convert line endings.
+public/vendor/** -text
