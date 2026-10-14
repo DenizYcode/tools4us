@@ -1,0 +1,43 @@
+name: Weekly checks
+
+# Stale content and dead links are the biggest risk of this site (SPEC "Risks"), and neither shows up in a normal
+# push. This run builds the site as it is today (so a featured story past `review_by` fails the build), reports
+# stories and catalog rows that are due for review, and checks every external address in the built site.
+# It never deploys. Read the run summary; a red run means something needs a person.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install
+        run: npm ci
+      # check:design, check:data (stories past review_by fail here), the build and check:dist.
+      - name: Build
+        run: npm run build
+      - name: Freshness (stories and catalog rows due for review)
+        run: npm run check:freshness
+      # Writes the report to the run summary too. Moved and unverified addresses are listed but do not fail the run.
+      - name: External links
+        run: node scripts/check-links.mjs --write=external-links.md
+      - name: Keep the link report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: external-links
+          path: external-links.md
+          if-no-files-found: ignore
