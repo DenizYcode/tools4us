@@ -48,6 +48,8 @@ const PAIRS = [
   ['eos-edge', 'bg', 3, 'End-of-Sale banner edge'],
   ['ink', 'warn-bg', 4.5, 'body text inside a caution note'],
   ['ink', 'eos-bg', 4.5, 'body text inside an End-of-Sale banner'],
+  ['accent', 'eos-bg', 4.5, 'links inside an End-of-Sale banner'],
+  ['accent', 'warn-bg', 4.5, 'links inside a caution note'],
   ['accent-bright', 'navy-900', 4.5, 'accent text and graphics on navy'],
   ['accent-bright', 'navy-700', 4.5, 'accent text and graphics on mid navy'],
 ];

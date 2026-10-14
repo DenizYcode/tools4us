@@ -89,9 +89,17 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
     margin-bottom: var(--space-4);
   }
 
-  .controls[hidden],
+  /* The controls are filled in by script after load. Keep their space (not display: none) so the page does not jump. */
+  .controls[hidden] {
+    visibility: hidden;
+  }
+
   .scroller[hidden] {
     display: none;
+  }
+
+  #compare-root {
+    min-height: 24rem;
   }
 
   .check,

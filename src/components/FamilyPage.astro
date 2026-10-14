@@ -8,6 +8,7 @@ import FamilyGraphic from './graphics/FamilyGraphic.astro';
 import FilterPanel from './FilterPanel.astro';
 import ModelRow from './ModelRow.astro';
 import { t, tf, td, tp, type Lang } from '../i18n';
+import { trPossessive } from '../lib/tr.mjs';
 import { familySwitchPath, comparePath, selectorPath, type Family } from '../i18n/routes';
 import { FAMILY_DATA, seriesIntro } from '../lib/catalog';
 
@@ -24,6 +25,9 @@ const featureValues = [...new Set(cards.filter((c) => c.lifecycle === 'current')
 const others = ['filters.sw.', 'filters.rt.'].filter((p) => p !== (family === 'switching' ? 'filters.sw.' : family === 'routing' ? 'filters.rt.' : ''));
 const filterStrings = Object.fromEntries(Object.entries(tp(lang, 'filters.')).filter(([key]) => !others.some((p) => key.startsWith(p))));
 const strings = { ...tp(lang, 'list.'), ...filterStrings, ...tp(lang, 'tray.') };
+// The page starts in the state the script would apply anyway (older models hidden), so nothing jumps after load.
+const currentIn = (band: (typeof series)[number]) => band.cards.filter((c) => c.lifecycle === 'current').length;
+const startCount = tf(lang, 'list.count', { total: currentCount, shown: lang === 'tr' ? trPossessive(currentCount) : currentCount });
 ---
 
 <Base lang={lang} title={`${td(lang, `family.${family}.name`)} · ${t(lang, 'site.name')}`} switchPath={familySwitchPath(lang, family)} current={family}>
@@ -47,16 +51,16 @@ const strings = { ...tp(lang, 'list.'), ...filterStrings, ...tp(lang, 'tray.') }
 
       <div class="results" id="results-region">
         <h2 id="results-title" tabindex="-1">{t(lang, 'list.resultsTitle')}</h2>
-        <p class="count" id="count" role="status" aria-live="polite" aria-atomic="true"></p>
+        <p class="count" id="count" role="status" aria-live="polite" aria-atomic="true">{startCount}</p>
         <ul class="chips" id="chips" aria-label={t(lang, 'filters.active')}></ul>
         <p class="none" id="none" hidden>{t(lang, 'list.none')}</p>
 
         {
           series.map((band) => (
-            <details class="band" open data-series={band.series}>
+            <details class="band" open hidden={currentIn(band) === 0} data-series={band.series}>
               <summary>
                 <span class="series-name">{band.series}</span>
-                <span class="series-count" data-total={band.cards.length}>{tf(lang, 'list.seriesCount', { n: band.cards.length })}</span>
+                <span class="series-count" data-total={band.cards.length}>{tf(lang, 'list.seriesCount', { n: currentIn(band) })}</span>
               </summary>
               <p class="intro-line">{seriesIntro(band, lang)}</p>
               <ul class="rows">

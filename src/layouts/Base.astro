@@ -1,6 +1,8 @@
 ---
 import '@fontsource-variable/inter/wght.css';
 import '@fontsource-variable/inter/wght-italic.css';
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import interLatinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
 import '../styles/tokens.css';
 import '../styles/base.css';
 import Header from '../components/Header.astro';
@@ -33,6 +35,9 @@ const switchHref = switchPath === undefined ? undefined : localePath(other, swit
     <meta name="description" content={t(lang, 'site.tagline')} />
     <meta name="theme-color" content="#0a1f44" />
     <title>{title}</title>
+    {/* Preload the upright Inter files: Turkish letters (ı ş ğ İ) live in latin-ext, and a late font swap moves the text. */}
+    <link rel="preload" as="font" type="font/woff2" href={interLatin} crossorigin />
+    {lang === 'tr' || bilingual ? <link rel="preload" as="font" type="font/woff2" href={interLatinExt} crossorigin /> : null}
     <slot name="head" />
   </head>
   <body
