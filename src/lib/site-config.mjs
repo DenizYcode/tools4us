@@ -16,7 +16,7 @@ export const SITE_CONFIG = {
   },
   // The data controller named in the KVKK notice (Aydınlatma Metni). The owner fills these in; nothing is invented.
   controller: {
-    name: TO_FILL,
+    name: 'Deniz Yarpınar',
     email: TO_FILL,
   },
 };
