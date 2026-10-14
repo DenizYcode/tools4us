@@ -7,6 +7,7 @@ import DeviceGraphic from './graphics/DeviceGraphic.astro';
 import LifecycleBadge from './LifecycleBadge.astro';
 import ExtLink from './ExtLink.astro';
 import Term from './Term.astro';
+import ShortlistButton from './ShortlistButton.astro';
 import ConfigBuilder from './ConfigBuilder.astro';
 import { t, tf, td, tp, type Lang } from '../i18n';
 import { familyPath, modelSwitchPath, comparePath, selectorPath, modelPath, storyPath, type Family } from '../i18n/routes';
@@ -56,6 +57,7 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
           {family === 'routing' && card.sd_wan && <span class="badge">{t(lang, 'badge.sdwan')}</span>}
         </p>
         <p class="lead">{textOf(card, lang, 'summary')}</p>
+        {current && <p class="sl-row"><ShortlistButton lang={lang} family={family} slug={card.slug} name={card.name} /></p>}
       </div>
       <div class="art">
         {family === 'wireless' && <DeviceGraphic kind="ap" environment={card.environment} wallPlate={card.wall_plate} externalAntennas={card.antenna_type === 'external' ? 2 : 0} ports={card.port_count ?? 1} label={artLabel} />}
@@ -231,12 +233,17 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
     <p class="verify"><strong>{t(lang, 'note.verify')}</strong></p>
     <p class="actions">
       {current && <a class="button" href={comparePath(lang, [card.slug], family)}>{t(lang, 'detail.addCompare')}</a>}
+      {current && <ShortlistButton lang={lang} family={family} slug={card.slug} name={card.name} />}
       <a class="button ghost" href={selectorPath(lang, family)}>{td(lang, `${family}.selectorCta`)}</a>
     </p>
   </Section>
 </Base>
 
 <style>
+  .sl-row {
+    margin: var(--space-4) 0 0;
+  }
+
   .back a {
     display: inline-flex;
     align-items: center;

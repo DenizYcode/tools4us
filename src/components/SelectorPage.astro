@@ -237,6 +237,7 @@ const terms = selector.terms as Record<string, string>;
 
 <script>
   import { SELECTORS } from '../lib/selectors.mjs';
+  import { makeButton } from '../scripts/shortlist';
 
   const root = document.getElementById('selector-root');
   if (root) {
@@ -292,6 +293,12 @@ const terms = selector.terms as Record<string, string>;
         const go = el('a', 'go', `${s['selector.see']} →`) as HTMLAnchorElement;
         go.href = `${base}${r.card.slug}/`;
         article.append(go);
+        const add = makeButton({ f: root.dataset.family ?? '', s: r.card.slug }, r.card.name);
+        if (add) {
+          const wrap = el('p', 'sl-row');
+          wrap.append(add);
+          article.append(wrap);
+        }
         out.append(article);
       }
       heading.focus();

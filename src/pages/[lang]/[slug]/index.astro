@@ -5,8 +5,9 @@ import ComparePage from '../../../components/ComparePage.astro';
 import StoriesIndex from '../../../components/StoriesIndex.astro';
 import SearchPage from '../../../components/SearchPage.astro';
 import GlossaryPage from '../../../components/GlossaryPage.astro';
+import ShortlistPage from '../../../components/ShortlistPage.astro';
 import { locales, type Lang } from '../../../i18n';
-import { LAUNCH_FAMILIES, SLUGS, COMPARE_SLUG, STORIES_SLUG, SEARCH_SLUG, GLOSSARY_SLUG, type Family } from '../../../i18n/routes';
+import { LAUNCH_FAMILIES, SLUGS, COMPARE_SLUG, STORIES_SLUG, SEARCH_SLUG, GLOSSARY_SLUG, SHORTLIST_SLUG, type Family } from '../../../i18n/routes';
 
 export function getStaticPaths() {
   return locales.flatMap((lang) => [
@@ -15,15 +16,17 @@ export function getStaticPaths() {
     { params: { lang, slug: STORIES_SLUG[lang] }, props: { kind: 'stories' as const, family: null } },
     { params: { lang, slug: SEARCH_SLUG[lang] }, props: { kind: 'search' as const, family: null } },
     { params: { lang, slug: GLOSSARY_SLUG[lang] }, props: { kind: 'glossary' as const, family: null } },
+    { params: { lang, slug: SHORTLIST_SLUG[lang] }, props: { kind: 'shortlist' as const, family: null } },
   ]);
 }
 
 const lang = Astro.params.lang as Lang;
-const { kind, family } = Astro.props as { kind: 'family' | 'compare' | 'stories' | 'search' | 'glossary'; family: Family | null };
+const { kind, family } = Astro.props as { kind: 'family' | 'compare' | 'stories' | 'search' | 'glossary' | 'shortlist'; family: Family | null };
 ---
 
 {kind === 'compare' && <ComparePage lang={lang} />}
 {kind === 'stories' && <StoriesIndex lang={lang} />}
 {kind === 'search' && <SearchPage lang={lang} />}
 {kind === 'glossary' && <GlossaryPage lang={lang} />}
+{kind === 'shortlist' && <ShortlistPage lang={lang} />}
 {kind === 'family' && family && <FamilyPage lang={lang} family={family} />}

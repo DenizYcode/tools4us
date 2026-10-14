@@ -3,6 +3,7 @@
 // the slot limit and a live SKU string. A model without a verified pair shows nothing.
 import Section from './Section.astro';
 import Term from './Term.astro';
+import ShortlistButton from './ShortlistButton.astro';
 import { t, tf, td, tp, type Lang } from '../i18n';
 import { FAMILY_DATA, type Card } from '../lib/catalog';
 import { optionsFor, slotLimit, describe, buildSku } from '../lib/config-builder.mjs';
@@ -45,7 +46,11 @@ const strings = tp(lang, 'config.');
         </form>
         <p class="sku-label">{t(lang, 'config.sku')}</p>
         <p class="sku" id="config-sku" role="status" aria-live="polite"><code>{buildSku(card.pids[0], [])}</code></p>
-        <p class="actions"><button type="button" id="config-copy">{t(lang, 'config.copy')}</button> <span id="config-status" role="status"></span></p>
+        <p class="actions">
+          <button type="button" id="config-copy">{t(lang, 'config.copy')}</button>
+          <span id="config-add" data-family={family} data-slug={card.slug} data-name={card.name} data-label={t(lang, 'shortlist.addConfig')}></span>
+          <span id="config-status" role="status"></span>
+        </p>
         <p class="muted">{t(lang, 'config.note')}</p>
       </div>
     </Section>
@@ -120,6 +125,7 @@ const strings = tp(lang, 'config.');
 
 <script>
   import { buildSku } from '../lib/config-builder.mjs';
+  import { makeButton } from '../scripts/shortlist';
 
   const root = document.getElementById('config-root');
   if (root) {
@@ -132,9 +138,19 @@ const strings = tp(lang, 'config.');
       const pick = String(new FormData(form).get('module') ?? '');
       return buildSku(model, pick ? [pick] : []);
     };
+    // The shortlist button follows the choice: with a module it adds the configured model (the SKU string).
+    const slot = document.getElementById('config-add') as HTMLElement;
+    const drawAdd = () => {
+      const pick = String(new FormData(form).get('module') ?? '');
+      const name = pick ? `${slot.dataset.name} (${sku()})` : (slot.dataset.name ?? '');
+      const button = makeButton({ f: slot.dataset.family ?? '', s: slot.dataset.slug ?? '', ...(pick ? { c: sku() } : {}) }, name, true, pick ? slot.dataset.label : undefined);
+      if (button) slot.replaceChildren(button);
+    };
+    drawAdd();
     form.addEventListener('change', () => {
       out.querySelector('code')!.textContent = sku();
       status.textContent = '';
+      drawAdd();
     });
     document.getElementById('config-copy')?.addEventListener('click', async () => {
       try {

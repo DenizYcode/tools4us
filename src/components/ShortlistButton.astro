@@ -1,0 +1,21 @@
+---
+// "Add to my shortlist" on a model page or row. Only current models get one (an End-of-Sale model is never offered).
+// The script in src/scripts/shortlist.ts fills in the label and state; without script the button simply does nothing.
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  family: string;
+  slug: string;
+  name: string;
+  // Configuration (the SKU string of the builder), when the item is a configured model.
+  config?: string;
+  label?: string;
+}
+
+const { lang, family, slug, name, config, label } = Astro.props;
+---
+
+<button type="button" class="sl-btn" aria-pressed="false" aria-label={t(lang, 'shortlist.addFor').replace('{name}', name)} data-sl-f={family} data-sl-s={slug} data-sl-c={config} data-sl-name={name}>
+  <span class="sl-mark" aria-hidden="true">+</span><span class="sl-text">{label ?? t(lang, 'shortlist.add')}</span>
+</button>

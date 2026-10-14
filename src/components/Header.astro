@@ -1,13 +1,13 @@
 ---
 import { t, localePath, type Lang } from '../i18n';
-import { LAUNCH_FAMILIES, familyPath, comparePath, storiesPath, searchPath, type Family } from '../i18n/routes';
+import { LAUNCH_FAMILIES, familyPath, comparePath, storiesPath, searchPath, shortlistPath, type Family } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
   // Full URL of the same page in the other language. Omit to hide the toggle.
   switchHref?: string;
   switchLang?: Lang;
-  current?: Family | 'home' | 'compare' | 'stories' | 'search' | 'glossary';
+  current?: Family | 'home' | 'compare' | 'stories' | 'search' | 'glossary' | 'shortlist';
 }
 
 const { lang, switchHref, switchLang, current } = Astro.props;
@@ -41,10 +41,17 @@ const { lang, switchHref, switchLang, current } = Astro.props;
         <li>
           <a href={searchPath(lang)} aria-current={current === 'search' ? 'page' : undefined}>{t(lang, 'nav.search')}</a>
         </li>
+        <li>
+          <a class="sl-link" href={shortlistPath(lang)} aria-current={current === 'shortlist' ? 'page' : undefined}>{t(lang, 'nav.shortlist')} <span class="sl-n" data-sl-count hidden></span></a>
+        </li>
       </ul>
     </nav>
   </div>
 </header>
+
+<script>
+  import '../scripts/shortlist';
+</script>
 
 <style>
   .site-header {
@@ -156,6 +163,25 @@ const { lang, switchHref, switchLang, current } = Astro.props;
   .families a[aria-current='page'] {
     color: var(--on-navy);
     border-bottom-color: var(--accent-bright);
+  }
+
+  .sl-n {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    margin-inline-start: var(--space-2);
+    padding-inline: var(--space-2);
+    border-radius: 999px;
+    background: var(--accent-bright);
+    color: var(--navy-900);
+    font-size: var(--text-small);
+    font-weight: 700;
+  }
+
+  .sl-n[hidden] {
+    display: none;
   }
 
   .site-header :focus-visible {

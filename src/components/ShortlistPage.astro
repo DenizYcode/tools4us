@@ -1,0 +1,503 @@
+---
+// "Seçimlerim": the models a visitor collected, across families. The list lives in this browser (no account) and is
+// shared as a link or exported as a printout or a CSV file that opens in Turkish Excel. No prices, no ordering: it is
+// a list of models to talk about with a partner, not a quote.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import { t, td, tp, localePath, type Lang } from '../i18n';
+import { shortlistPath, shortlistSwitchPath, comparePath, searchPath, LAUNCH_FAMILIES } from '../i18n/routes';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const strings = {
+  ...tp(lang, 'shortlist.'),
+  ...tp(lang, 'val.life.'),
+  'detail.datasheet': t(lang, 'detail.datasheet'),
+  'note.external': t(lang, 'note.external'),
+  'compare.title': t(lang, 'compare.title'),
+  ...Object.fromEntries(LAUNCH_FAMILIES.map((f) => [`family.${f}.name`, td(lang, `family.${f}.name`)])),
+};
+const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePath(lang, [], f)]));
+---
+
+<Base lang={lang} title={`${t(lang, 'shortlist.title')} · ${t(lang, 'site.name')}`} switchPath={shortlistSwitchPath(lang)} current="shortlist">
+  <Section tone="soft" labelledby="shortlist-title">
+    <h1 id="shortlist-title">{t(lang, 'shortlist.title')}</h1>
+    <p class="lead">{t(lang, 'shortlist.lead')}</p>
+    <p class="note"><strong>{t(lang, 'shortlist.notQuote')}</strong></p>
+    <p class="print-only" id="print-date"></p>
+  </Section>
+
+  <Section labelledby="list-title">
+    <div
+      id="shortlist-root"
+      data-lang={lang}
+      data-data-url={localePath(lang, 'shortlist-data.json')}
+      data-page-url={shortlistPath(lang)}
+      data-search-url={searchPath(lang)}
+      data-compare-urls={JSON.stringify(compareUrls)}
+      data-families={JSON.stringify(LAUNCH_FAMILIES)}
+      data-strings={JSON.stringify(strings)}
+    >
+      <h2 id="list-title" class="visually-hidden">{t(lang, 'shortlist.title')}</h2>
+      <div id="shared-banner" class="shared no-print" hidden></div>
+      <p id="status" class="status" role="status" aria-live="polite" tabindex="-1">{t(lang, 'shortlist.loading')}</p>
+      <div id="toolbar" class="toolbar no-print" hidden>
+        <button type="button" id="do-print">{t(lang, 'shortlist.print')}</button>
+        <button type="button" id="do-csv">{t(lang, 'shortlist.csv')}</button>
+        <button type="button" id="do-copy">{t(lang, 'shortlist.copy')}</button>
+        <button type="button" id="do-clear" class="danger">{t(lang, 'shortlist.clear')}</button>
+      </div>
+      <div id="groups"></div>
+    </div>
+    <noscript><p>{t(lang, 'search.noscript')}</p></noscript>
+  </Section>
+</Base>
+
+<script>
+  import { getList, setList, type Item } from '../scripts/shortlist';
+  import { decodeList, encodeList, mergeLists, removeItem, toCsv, isConfig } from '../lib/shortlist.mjs';
+
+  type Entry = { n: string; se: string; p: string[]; h: string; lc: string; lo: string | null; r: { n: string; h: string }[]; s: string; d: string; cfg: string[] };
+
+  const root = document.getElementById('shortlist-root')!;
+  const s: Record<string, string> = JSON.parse(root.dataset.strings ?? '{}');
+  const compareUrls: Record<string, string> = JSON.parse(root.dataset.compareUrls ?? '{}');
+  const families: string[] = JSON.parse(root.dataset.families ?? '[]');
+  const status = document.getElementById('status')!;
+  const groups = document.getElementById('groups')!;
+  const toolbar = document.getElementById('toolbar')!;
+  const banner = document.getElementById('shared-banner')!;
+  const fill = (template: string, vars: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
+  const el = (tag: string, className?: string, content?: string) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (content !== undefined) node.textContent = content;
+    return node;
+  };
+  const link = (href: string, content: string) => {
+    const a = document.createElement('a');
+    a.href = href;
+    a.textContent = content;
+    return a;
+  };
+  const today = new Date().toISOString().slice(0, 10);
+  const printDate = document.getElementById('print-date');
+  if (printDate) printDate.textContent = fill(s['shortlist.date'], { date: today });
+
+  // A list opened from a share link is shown as it is, read-only, until the visitor saves it on this device.
+  const sharedParam = new URLSearchParams(location.search).get('l');
+  let shared: Item[] | null = sharedParam ? (decodeList(sharedParam) as Item[]) : null;
+  let data: Record<string, Entry> | null = null;
+
+  const current = (): Item[] => shared ?? getList();
+  const entryOf = (item: Item): Entry | undefined => data?.[`${item.f}/${item.s}`];
+  const configOf = (item: Item, entry: Entry) => (item.c && entry.cfg.includes(item.c) && isConfig(item.c) ? item.c : null);
+
+  function itemRow(item: Item, entry: Entry | undefined) {
+    const li = el('li', 'item');
+    if (!entry) {
+      li.append(el('p', 'missing', s['shortlist.missing']));
+    } else {
+      const head = el('div', 'head');
+      const h = el('h3');
+      h.append(link(entry.h, entry.n));
+      head.append(h);
+      if (entry.lc !== 'current') head.append(el('span', `life ${entry.lc}`, s[`val.life.${entry.lc}`] ?? entry.lc));
+      li.append(head);
+      li.append(el('p', 'series', entry.se));
+      li.append(el('p', 'summary', entry.s));
+      li.append(el('p', 'meta', `${s['shortlist.pids']}: ${entry.p.join(', ')}`));
+      const config = configOf(item, entry);
+      if (config) {
+        const p = el('p', 'meta config');
+        p.append(`${s['shortlist.config']}: `, el('code', '', config));
+        li.append(p, el('p', 'meta small', s['shortlist.configNote']));
+      }
+      if (entry.lc !== 'current') {
+        const warn = el('p', 'eos-note');
+        warn.append(`${s['shortlist.notCurrent']} `);
+        if (entry.lo) warn.append(`${fill(s['shortlist.lastOrder'], { date: entry.lo })} `);
+        if (entry.r.length) {
+          warn.append(`${s['shortlist.replacedBy']}: `);
+          entry.r.forEach((r, i) => {
+            if (i) warn.append(', ');
+            warn.append(link(r.h, r.n));
+          });
+        }
+        li.append(warn);
+      }
+      const ds = link(entry.d, '');
+      ds.target = '_blank';
+      ds.rel = 'noopener noreferrer';
+      ds.className = 'ext';
+      ds.append(s['detail.datasheet'], ' ↗');
+      const sr = el('span', 'visually-hidden', ` ${s['note.external']}`);
+      ds.append(sr);
+      const dsRow = el('p', 'meta');
+      dsRow.append(ds);
+      li.append(dsRow);
+    }
+    if (!shared) {
+      const remove = el('button', 'remove no-print', s['shortlist.remove']) as HTMLButtonElement;
+      remove.type = 'button';
+      remove.setAttribute('aria-label', fill(s['shortlist.removeNamed'], { name: `${entry?.n ?? `${item.f}/${item.s}`}${item.c && entry && configOf(item, entry) ? ` (${item.c})` : ''}` }));
+      remove.addEventListener('click', () => {
+        const next = removeItem(getList(), item) as Item[];
+        setList(next);
+        status.textContent = fill(s['shortlist.removed'], { name: entry?.n ?? '' });
+        render();
+        status.focus();
+      });
+      li.append(remove);
+    }
+    return li;
+  }
+
+  function render() {
+    const list = current();
+    groups.replaceChildren();
+    banner.hidden = shared === null;
+    if (shared) {
+      banner.replaceChildren();
+      banner.append(el('p', '', fill(s['shortlist.shared'], { n: shared.length })));
+      const save = el('button', '', s['shortlist.saveShared']) as HTMLButtonElement;
+      save.type = 'button';
+      save.addEventListener('click', () => {
+        setList(mergeLists(getList(), shared ?? []) as Item[]);
+        shared = null;
+        history.replaceState(null, '', root.dataset.pageUrl);
+        render();
+        status.textContent = s['shortlist.savedShared'];
+      });
+      const mine = el('button', '', s['shortlist.showMine']) as HTMLButtonElement;
+      mine.type = 'button';
+      mine.addEventListener('click', () => {
+        shared = null;
+        history.replaceState(null, '', root.dataset.pageUrl);
+        render();
+      });
+      banner.append(save, ' ', mine);
+    }
+    toolbar.hidden = list.length === 0;
+    (document.getElementById('do-clear') as HTMLElement).hidden = shared !== null;
+    if (!list.length) {
+      status.textContent = '';
+      const empty = el('div', 'empty');
+      empty.append(el('p', '', s['shortlist.empty']), link(root.dataset.searchUrl ?? '#', s['shortlist.emptyLink']));
+      groups.append(empty);
+      return;
+    }
+    status.textContent = fill(s['shortlist.count'], { n: list.length });
+    for (const family of families) {
+      const own = list.filter((i) => i.f === family);
+      if (!own.length) continue;
+      const section = el('section', 'group');
+      section.append(el('h2', '', `${s[`family.${family}.name`]} (${own.length})`));
+      const slugs = [...new Set(own.filter((i) => entryOf(i)?.lc === 'current').map((i) => i.s))];
+      if (slugs.length >= 2) {
+        const base = compareUrls[family] ?? '#';
+        const go = link(`${base}${base.includes('?') ? '&' : '?'}m=${slugs.slice(0, 4).join(',')}`, fill(s['shortlist.compare'], { n: Math.min(slugs.length, 4) }));
+        go.className = 'compare-link no-print';
+        section.append(go);
+      }
+      const ul = el('ul', 'items');
+      for (const item of own) ul.append(itemRow(item, entryOf(item)));
+      section.append(ul);
+      groups.append(section);
+    }
+  }
+
+  function csv(): string {
+    const header = (s['shortlist.csvHeader'] ?? '').split('|');
+    const rows: string[][] = [];
+    for (const family of families) {
+      for (const item of current().filter((i) => i.f === family)) {
+        const entry = entryOf(item);
+        if (!entry) continue;
+        rows.push([
+          s[`family.${family}.name`],
+          entry.n,
+          entry.se,
+          entry.p.join(' / '),
+          configOf(item, entry) ?? '',
+          s[`val.life.${entry.lc}`] ?? entry.lc,
+          entry.lo ?? '',
+          entry.r.map((r) => r.n).join(' / '),
+          entry.s,
+          new URL(entry.h, location.origin).href,
+          entry.d,
+        ]);
+      }
+    }
+    return toCsv(header, rows);
+  }
+
+  const say = (message: string) => {
+    status.textContent = message;
+  };
+
+  document.getElementById('do-print')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event: 'export-print' } }));
+    window.print();
+  });
+  document.getElementById('do-csv')?.addEventListener('click', () => {
+    const blob = new Blob([csv()], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${s['shortlist.csvFile']}-${today}.csv`;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event: 'export-csv' } }));
+  });
+  document.getElementById('do-copy')?.addEventListener('click', async () => {
+    const url = `${location.origin}${root.dataset.pageUrl}?l=${encodeURIComponent(encodeList(current()))}`;
+    document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event: 'export-link' } }));
+    try {
+      await navigator.clipboard.writeText(url);
+      say(s['shortlist.copied']);
+    } catch {
+      say(url);
+    }
+  });
+  document.getElementById('do-clear')?.addEventListener('click', () => {
+    if (!window.confirm(s['shortlist.clearConfirm'])) return;
+    setList([]);
+    render();
+  });
+  window.addEventListener('t4u:shortlist', () => {
+    if (!shared && data) render();
+  });
+
+  (async () => {
+    try {
+      const response = await fetch(root.dataset.dataUrl!);
+      if (!response.ok) throw new Error(String(response.status));
+      data = await response.json();
+    } catch {
+      status.textContent = s['shortlist.error'];
+      return;
+    }
+    render();
+  })();
+</script>
+
+<style>
+  .lead {
+    max-width: 42rem;
+    margin: 0 0 var(--space-3);
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .note {
+    max-width: 42rem;
+    margin: 0;
+  }
+
+  .print-only {
+    display: none;
+  }
+
+  .status {
+    margin: 0 0 var(--space-4);
+    color: var(--muted);
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+  }
+
+  .toolbar button,
+  :global(#shortlist-root .shared button) {
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-s);
+    background: var(--white);
+    color: var(--accent-strong);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .toolbar button:hover,
+  :global(#shortlist-root .shared button:hover) {
+    background: var(--bg-tint);
+  }
+
+  .toolbar .danger {
+    color: var(--eos-ink);
+    border-color: var(--eos-edge);
+  }
+
+  .shared {
+    margin-bottom: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--warn-edge);
+    border-radius: var(--radius-m);
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+  }
+
+  .shared[hidden] {
+    display: none;
+  }
+
+  :global(#shortlist-root .shared p) {
+    margin: 0 0 var(--space-3);
+  }
+
+  :global(#shortlist-root .shared button) {
+    margin: 0 var(--space-2) var(--space-2) 0;
+  }
+
+  :global(#shortlist-root .group) {
+    margin-bottom: var(--space-6);
+  }
+
+  :global(#shortlist-root .compare-link) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    margin-bottom: var(--space-3);
+    font-weight: 650;
+  }
+
+  :global(#shortlist-root .items) {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  :global(#shortlist-root .item) {
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    background: var(--white);
+    break-inside: avoid;
+  }
+
+  :global(#shortlist-root .head) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  :global(#shortlist-root .head h3) {
+    margin: 0;
+  }
+
+  :global(#shortlist-root .head h3 a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--navy-900);
+  }
+
+  :global(#shortlist-root .life) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0 var(--space-3);
+    border-radius: 999px;
+    background: var(--eos-bg);
+    color: var(--eos-ink);
+    font-size: var(--text-small);
+    font-weight: 650;
+  }
+
+  :global(#shortlist-root .series) {
+    margin: 0 0 var(--space-2);
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  :global(#shortlist-root .summary) {
+    margin: 0 0 var(--space-2);
+  }
+
+  :global(#shortlist-root .meta) {
+    margin: 0 0 var(--space-2);
+    color: var(--muted);
+    font-size: var(--text-small);
+    overflow-wrap: anywhere;
+  }
+
+  :global(#shortlist-root .meta a),
+  :global(#shortlist-root .eos-note a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  :global(#shortlist-root .eos-note) {
+    margin: 0 0 var(--space-2);
+    padding: var(--space-3);
+    border-radius: var(--radius-s);
+    background: var(--eos-bg);
+    color: var(--eos-ink);
+  }
+
+  :global(#shortlist-root .eos-note a) {
+    color: var(--eos-ink);
+    font-weight: 650;
+  }
+
+  :global(#shortlist-root .remove) {
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-s);
+    background: var(--white);
+    color: var(--eos-ink);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  :global(#shortlist-root .empty a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-weight: 650;
+  }
+
+  @media (min-width: 48em) {
+    :global(#shortlist-root .items) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* A printout is the list and the disclaimer: no header, no buttons. */
+  @media print {
+    .print-only {
+      display: block;
+      margin: var(--space-2) 0 0;
+    }
+
+    :global(.site-header),
+    :global(.no-print) {
+      display: none !important;
+    }
+
+    :global(#shortlist-root .items) {
+      grid-template-columns: 1fr;
+    }
+
+    :global(#shortlist-root .item) {
+      border-color: #999;
+    }
+  }
+</style>

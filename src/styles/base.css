@@ -118,3 +118,48 @@ a:hover {
     scroll-behavior: auto !important;
   }
 }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* "Add to my shortlist" button: on model pages and rows, and drawn by script in selector results and compare columns. */
+.sl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-s);
+  background: var(--white);
+  color: var(--accent-strong);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.sl-btn:hover {
+  background: var(--bg-tint);
+}
+
+.sl-btn[aria-pressed='true'] {
+  background: var(--bg-tint);
+  border-color: var(--accent-strong);
+}
+
+.sl-mark {
+  font-weight: 800;
+}
+
+@media print {
+  .sl-btn {
+    display: none;
+  }
+}

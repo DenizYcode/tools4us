@@ -3,6 +3,7 @@
 // carries the few fields the filter script needs, so the filter logic is the same tested code as in src/lib.
 import DeviceGraphic from './graphics/DeviceGraphic.astro';
 import LifecycleBadge from './LifecycleBadge.astro';
+import ShortlistButton from './ShortlistButton.astro';
 import { t, tf, td, tp, type Lang } from '../i18n';
 import { modelPath, type Family } from '../i18n/routes';
 import { textOf, hasSixGhz, FAMILY_DATA, replacementCards, type Card } from '../lib/catalog';
@@ -96,10 +97,13 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
       )
     }
   </div>
-  <label class="cmp">
-    <input type="checkbox" class="cmp-box" value={card.slug} aria-label={tf(lang, 'list.compareAddFor', { name: card.name })} />
-    <span>{t(lang, 'list.compareAdd')}</span>
-  </label>
+  <div class="actions">
+    <label class="cmp">
+      <input type="checkbox" class="cmp-box" value={card.slug} aria-label={tf(lang, 'list.compareAddFor', { name: card.name })} />
+      <span>{t(lang, 'list.compareAdd')}</span>
+    </label>
+    {current && <ShortlistButton lang={lang} family={family} slug={card.slug} name={card.name} />}
+  </div>
 </li>
 
 <style>
@@ -177,13 +181,19 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
     min-height: var(--tap);
   }
 
-  .cmp {
+  .actions {
     grid-area: cmp;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .cmp {
     display: inline-flex;
     align-items: center;
     gap: var(--space-3);
     min-height: var(--tap);
-    justify-self: start;
     cursor: pointer;
     font-weight: 600;
   }
@@ -203,6 +213,11 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
       grid-template-columns: 8rem 1fr auto;
       grid-template-areas: 'art main cmp';
       align-items: start;
+    }
+
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
     }
   }
 </style>

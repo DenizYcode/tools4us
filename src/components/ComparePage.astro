@@ -244,6 +244,7 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
 <script>
   import { buildRows, parseSelection, MAX_COMPARE, MIN_COMPARE } from '../lib/compare.mjs';
   import { formatValue } from '../lib/format.mjs';
+  import { makeButton } from '../scripts/shortlist';
 
   const root = document.getElementById('compare-root');
   if (root) {
@@ -344,6 +345,8 @@ const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spe
         const a = el('a', '', c.name);
         a.href = `${base}${c.slug}/`;
         th.append(a, removeButton(c));
+        const add = makeButton({ f: family, s: c.slug as string }, c.name as string, c.lifecycle === 'current');
+        if (add) th.append(add);
         hr.append(th);
       }
       thead.append(hr);
