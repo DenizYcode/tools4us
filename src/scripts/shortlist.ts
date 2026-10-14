@@ -66,9 +66,11 @@ export function refresh(root: ParentNode = document): void {
     const on = hasItem(list, itemOf(button));
     const name = button.dataset.slName ?? '';
     button.setAttribute('aria-pressed', String(on));
-    button.setAttribute('aria-label', fill(text(on ? 'slRemoveFor' : 'slAddFor'), { name }));
+    const addLabel = button.dataset.slAddLabel ?? text('slAdd');
+    // The accessible name starts with the visible text (WCAG 2.5.3, label in name).
+    button.setAttribute('aria-label', on ? fill(text('slRemoveFor'), { name }) : `${addLabel}: ${name}`);
     const label = button.querySelector('.sl-text');
-    if (label) label.textContent = on ? text('slIn') : (button.dataset.slAddLabel ?? text('slAdd'));
+    if (label) label.textContent = on ? text('slIn') : addLabel;
     const mark = button.querySelector('.sl-mark');
     if (mark) mark.textContent = on ? '✓' : '+';
   }
@@ -102,7 +104,7 @@ export function makeButton(item: Item, name: string, current = true, addLabel?: 
   mark.textContent = on ? '✓' : '+';
   label.textContent = on ? text('slIn') : (addLabel ?? text('slAdd'));
   button.setAttribute('aria-pressed', String(on));
-  button.setAttribute('aria-label', fill(text(on ? 'slRemoveFor' : 'slAddFor'), { name }));
+  button.setAttribute('aria-label', on ? fill(text('slRemoveFor'), { name }) : `${addLabel ?? text('slAdd')}: ${name}`);
   return button;
 }
 

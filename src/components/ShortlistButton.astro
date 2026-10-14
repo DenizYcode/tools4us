@@ -16,6 +16,6 @@ interface Props {
 const { lang, family, slug, name, config, label } = Astro.props;
 ---
 
-<button type="button" class="sl-btn" aria-pressed="false" aria-label={t(lang, 'shortlist.addFor').replace('{name}', name)} data-sl-f={family} data-sl-s={slug} data-sl-c={config} data-sl-name={name}>
+<button type="button" class="sl-btn" aria-pressed="false" aria-label={`${label ?? t(lang, 'shortlist.add')}: ${name}`} data-sl-f={family} data-sl-s={slug} data-sl-c={config} data-sl-name={name}>
   <span class="sl-mark" aria-hidden="true">+</span><span class="sl-text">{label ?? t(lang, 'shortlist.add')}</span>
 </button>

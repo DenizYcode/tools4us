@@ -3,14 +3,10 @@
 // mobile emulation and simulated slow 4G, prints a table and exits 1 if a page is below the limit.
 // Usage: node scripts/check-lighthouse.mjs [--all] [--min=90] [--url=/tr/kablosuz/]
 // Needs Chrome (CHROME_PATH, or the usual install). Run `npm run build` first.
-import { createServer } from 'node:http';
-import { existsSync, readFileSync, statSync } from 'node:fs';
-import { extname, join, normalize } from 'node:path';
-import { gzipSync } from 'node:zlib';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
+import { serveDist } from './serve-dist.mjs';
 
-const BASE = '/tools4us';
 const PORT = 4399;
 const args = process.argv.slice(2);
 const min = Number((args.find((a) => a.startsWith('--min=')) ?? '--min=90').split('=')[1]);
@@ -37,37 +33,15 @@ const MORE = [
 ];
 const pages = only.length ? only : args.includes('--all') ? [...CORE, ...MORE] : CORE;
 
-// Static server for dist/ under the Pages base path. Text files are gzipped like GitHub Pages does, so transfer sizes
-// (and the Lighthouse network score) are realistic.
-const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.woff': 'font/woff', '.png': 'image/png', '.webp': 'image/webp', '.ico': 'image/x-icon', '.txt': 'text/plain', '.xml': 'application/xml' };
-const server = createServer(async (req, res) => {
-  let path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  if (!path.startsWith(BASE + '/')) { res.writeHead(404).end('not found'); return; }
-  path = path.slice(BASE.length);
-  if (path.endsWith('/')) path += 'index.html';
-  const file = join('dist', normalize(path));
-  if (!file.startsWith('dist') || !existsSync(file) || statSync(file).isDirectory()) { res.writeHead(404, { 'content-type': TYPES['.html'] }).end(existsSync('dist/404.html') ? readFileSync('dist/404.html') : 'not found'); return; }
-  const type = TYPES[extname(file)] ?? 'application/octet-stream';
-  const body = readFileSync(file);
-  const headers = { 'content-type': type, 'cache-control': 'max-age=600' };
-  if (/^(text\/|application\/json|image\/svg)/.test(type) && /gzip/.test(req.headers['accept-encoding'] ?? '')) {
-    headers['content-encoding'] = 'gzip';
-    res.writeHead(200, headers).end(gzipSync(body));
-  } else res.writeHead(200, headers).end(body);
-});
-await new Promise((r) => server.listen(PORT, r));
-const stop = () => server.close();
+const site = await serveDist(PORT, process.env.DIST_DIR ?? 'dist');
+const stop = () => site.close();
 
-if (!existsSync('dist/index.html')) {
-  console.error('dist/ is missing: run npm run build first');
-  process.exit(1);
-}
 const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless=new', '--no-sandbox'] });
 const rows = [];
 let failed = false;
 try {
   for (const p of pages) {
-    const url = `http://localhost:${PORT}${BASE}${p}`;
+    const url = `${site.origin}${p}`;
     const res = await lighthouse(url, { port: chrome.port, output: 'json', logLevel: 'error', onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'] });
     const lhr = res.lhr;
     if (lhr.runtimeError) throw new Error(`${p}: ${lhr.runtimeError.code} ${lhr.runtimeError.message}`);
