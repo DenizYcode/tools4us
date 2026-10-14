@@ -25,6 +25,8 @@
     "check:launch": "node scripts/check-launch.mjs",
     "kvkk:check": "node scripts/kvkk-check.mjs",
     "kvkk:text": "node scripts/kvkk-check.mjs --print",
+    "usability:key": "node scripts/usability/key.mjs",
+    "usability:sheet": "node scripts/usability/sheet.mjs",
     "review:export": "node scripts/review/cli.mjs export",
     "review:apply": "node scripts/review/cli.mjs apply"
   },
