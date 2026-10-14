@@ -1,13 +1,13 @@
 ---
 import { t, localePath, type Lang } from '../i18n';
-import { LAUNCH_FAMILIES, familyPath, comparePath, storiesPath, type Family } from '../i18n/routes';
+import { LAUNCH_FAMILIES, familyPath, comparePath, storiesPath, searchPath, type Family } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
   // Full URL of the same page in the other language. Omit to hide the toggle.
   switchHref?: string;
   switchLang?: Lang;
-  current?: Family | 'home' | 'compare' | 'stories';
+  current?: Family | 'home' | 'compare' | 'stories' | 'search' | 'glossary';
 }
 
 const { lang, switchHref, switchLang, current } = Astro.props;
@@ -37,6 +37,9 @@ const { lang, switchHref, switchLang, current } = Astro.props;
         }
         <li>
           <a href={storiesPath(lang)} aria-current={current === 'stories' ? 'page' : undefined}>{t(lang, 'stories.title')}</a>
+        </li>
+        <li>
+          <a href={searchPath(lang)} aria-current={current === 'search' ? 'page' : undefined}>{t(lang, 'nav.search')}</a>
         </li>
       </ul>
     </nav>

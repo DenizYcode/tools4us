@@ -1,0 +1,100 @@
+---
+// Glossary (SPEC "Glossary page", SHOULD): every term behind a "?" button, in one list, with an anchor per term so
+// search results and tooltips can link straight to it. Reads the same data as the tooltips.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import { t, tf, type Lang } from '../i18n';
+import { glossarySwitchPath } from '../i18n/routes';
+import glossaryData from '../data/generated/glossary.json';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const glossary = glossaryData as Record<string, Record<Lang, { term: string; meaning: string }>>;
+const entries = Object.entries(glossary)
+  .map(([key, value]) => ({ key, ...value[lang] }))
+  .sort((a, b) => a.term.localeCompare(b.term, lang));
+---
+
+<Base lang={lang} title={`${t(lang, 'glossary.title')} · ${t(lang, 'site.name')}`} switchPath={glossarySwitchPath(lang)} current="glossary">
+  <Section tone="soft" labelledby="glossary-title">
+    <h1 id="glossary-title">{t(lang, 'glossary.title')}</h1>
+    <p class="lead">{t(lang, 'glossary.lead')}</p>
+    <p class="count">{tf(lang, 'glossary.count', { n: entries.length })}</p>
+  </Section>
+
+  <Section>
+    <dl class="terms">
+      {
+        entries.map((entry) => (
+          <div class="term" id={entry.key}>
+            <dt>{entry.term}</dt>
+            <dd>{entry.meaning}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    <p class="top"><a href="#main">{t(lang, 'glossary.back')} ↑</a></p>
+  </Section>
+</Base>
+
+<style>
+  .lead {
+    max-width: 42rem;
+    margin: 0 0 var(--space-3);
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .count {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .terms {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+
+  .term {
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    background: var(--white);
+    scroll-margin-top: var(--space-5);
+  }
+
+  /* The term a link points at is outlined, so a reader who followed a search result sees which one it is. */
+  .term:target {
+    border: 2px solid var(--accent);
+    background: var(--bg-tint);
+  }
+
+  dt {
+    margin: 0 0 var(--space-2);
+    color: var(--navy-900);
+    font-size: var(--text-h3);
+    font-weight: 650;
+  }
+
+  dd {
+    margin: 0;
+    max-width: 46rem;
+  }
+
+  .top a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-weight: 650;
+  }
+
+  @media (min-width: 48em) {
+    .terms {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

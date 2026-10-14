@@ -8,7 +8,7 @@ import ShortcutLink from '../../components/ShortcutLink.astro';
 import SelectorShortcut from '../../components/SelectorShortcut.astro';
 import HeroGraphic from '../../components/graphics/HeroGraphic.astro';
 import { locales, t, type Lang } from '../../i18n';
-import { LAUNCH_FAMILIES, LATER_FAMILIES, comparePath, storiesPath } from '../../i18n/routes';
+import { LAUNCH_FAMILIES, LATER_FAMILIES, comparePath, storiesPath, searchPath } from '../../i18n/routes';
 import { hubStories } from '../../lib/stories';
 
 export function getStaticPaths() {
@@ -28,6 +28,13 @@ const shortcutHref = { compare: comparePath(lang) } as const;
         <p class="eyebrow">{t(lang, 'hero.eyebrow')}</p>
         <h1 id="hero-title">{t(lang, 'hero.title')}</h1>
         <p class="lead">{t(lang, 'hero.lead')}</p>
+        <form class="hero-search" role="search" method="get" action={searchPath(lang)}>
+          <label for="hero-q">{t(lang, 'hero.search.label')}</label>
+          <div class="hero-search-row">
+            <input id="hero-q" name="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder={t(lang, 'hero.search.placeholder')} />
+            <button type="submit">{t(lang, 'search.button')}</button>
+          </div>
+        </form>
         <a class="button" href="#families">{t(lang, 'hero.cta')}</a>
       </div>
       <div class="hero-art"><HeroGraphic /></div>
@@ -118,6 +125,55 @@ const shortcutHref = { compare: comparePath(lang) } as const;
     margin-bottom: var(--space-5);
     color: var(--on-navy-muted);
     font-size: var(--text-lead);
+  }
+
+  .hero-search {
+    max-width: 34rem;
+    margin-bottom: var(--space-5);
+  }
+
+  .hero-search label {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--on-navy);
+    font-weight: 650;
+  }
+
+  .hero-search-row {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .hero-search input {
+    flex: 1;
+    min-width: 0;
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border: 2px solid var(--on-navy-muted);
+    border-radius: var(--radius-s);
+    background: var(--white);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  .hero-search button {
+    min-height: var(--tap);
+    padding: 0 var(--space-5);
+    border: 2px solid var(--accent-bright);
+    border-radius: var(--radius-s);
+    background: var(--accent);
+    color: var(--white);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .hero-search button:hover {
+    background: var(--accent-strong);
+  }
+
+  .hero-search :focus-visible {
+    outline-color: var(--focus-on-navy);
   }
 
   .button {

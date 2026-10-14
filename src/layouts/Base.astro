@@ -15,7 +15,7 @@ interface Props {
   bilingual?: boolean;
   // Path after /<lang>/ for the same page in the other language (e.g. "kablosuz/"). Omit to hide the toggle.
   switchPath?: string;
-  current?: Family | 'home' | 'compare' | 'stories';
+  current?: Family | 'home' | 'compare' | 'stories' | 'search' | 'glossary';
 }
 
 const { lang, title, bilingual = false, switchPath, current } = Astro.props;

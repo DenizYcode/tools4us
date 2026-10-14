@@ -22,6 +22,7 @@ export const GET: APIRoute = ({ params }) => {
     ...LAUNCH_FAMILIES.map((f) => ({ id: f, title: td(lang, `family.${f}.name`), text: td(lang, `family.${f}.blurb`), href: familyPath(lang, f) })),
     { id: 'stories', title: td(lang, 'stories.title'), text: td(lang, 'stories.lead'), href: storiesPath(lang) },
     { id: 'compare', title: td(lang, 'compare.title'), text: td(lang, 'compare.lead'), href: comparePath(lang) },
+    { id: 'glossary', title: td(lang, 'glossary.title'), text: td(lang, 'glossary.lead'), href: glossaryPath(lang) },
   ];
 
   const index = buildIndex({

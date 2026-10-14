@@ -1,0 +1,329 @@
+---
+// Global search (SPEC "Text search"): one box over models, PIDs, features, stories and glossary terms. The index is a
+// JSON file that loads when the page opens; the query lives in the URL (?q=) so a search can be shared.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import { t, td, tp, localePath, type Lang } from '../i18n';
+import { searchPath, searchSwitchPath, LAUNCH_FAMILIES } from '../i18n/routes';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const strings = {
+  ...tp(lang, 'search.'),
+  ...tp(lang, 'val.life.'),
+  ...Object.fromEntries(LAUNCH_FAMILIES.map((f) => [`family.${f}.name`, td(lang, `family.${f}.name`)])),
+};
+---
+
+<Base lang={lang} title={`${t(lang, 'search.title')} · ${t(lang, 'site.name')}`} switchPath={searchSwitchPath(lang)} current="search">
+  <Section tone="soft" labelledby="search-title">
+    <h1 id="search-title">{t(lang, 'search.title')}</h1>
+    <p class="lead">{t(lang, 'search.lead')}</p>
+    <form class="box" role="search" method="get" action={searchPath(lang)} id="search-form">
+      <label for="q">{t(lang, 'search.label')}</label>
+      <div class="row">
+        <input id="q" name="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder={t(lang, 'search.placeholder')} />
+        <button type="submit">{t(lang, 'search.button')}</button>
+      </div>
+    </form>
+  </Section>
+
+  <Section labelledby="results-title">
+    <div id="search-root" data-lang={lang} data-index-url={localePath(lang, 'search-index.json')} data-strings={JSON.stringify(strings)}>
+      <h2 id="results-title" class="visually-hidden">{t(lang, 'search.title')}</h2>
+      <p id="status" class="status" role="status" aria-live="polite">{t(lang, 'search.hint')}</p>
+      <div id="groups"></div>
+    </div>
+    <noscript><p>{t(lang, 'search.noscript')}</p></noscript>
+  </Section>
+</Base>
+
+<script>
+  import { search, prepareIndex } from '../lib/search.mjs';
+
+  type Entry = {
+    id: string;
+    kind: 'page' | 'model' | 'story' | 'term';
+    family?: string;
+    title: string;
+    sub: string;
+    href: string;
+    pids?: string[];
+    lc?: string;
+    lo?: string | null;
+    repl?: { title: string; href: string }[];
+  };
+
+  const root = document.getElementById('search-root')!;
+  const strings: Record<string, string> = JSON.parse(root.dataset.strings ?? '{}');
+  const form = document.getElementById('search-form') as HTMLFormElement;
+  const input = document.getElementById('q') as HTMLInputElement;
+  const status = document.getElementById('status')!;
+  const groups = document.getElementById('groups')!;
+  const fill = (text: string, vars: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
+
+  let index: Promise<ReturnType<typeof prepareIndex>> | null = null;
+  const loadIndex = () => {
+    index ??= fetch(root.dataset.indexUrl!)
+      .then((r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      })
+      .then(prepareIndex);
+    return index;
+  };
+
+  const el = (tag: string, className?: string, text?: string) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+
+  function link(href: string, text: string) {
+    const a = document.createElement('a');
+    a.href = href;
+    a.textContent = text;
+    return a;
+  }
+
+  function renderEntry(entry: Entry) {
+    const li = el('li', 'result');
+    const head = el('div', 'head');
+    head.append(link(entry.href, entry.title));
+    if (entry.kind === 'model' && entry.lc && entry.lc !== 'current') head.append(el('span', `life ${entry.lc}`, strings[`val.life.${entry.lc}`] ?? entry.lc));
+    if (entry.kind === 'model' && entry.family) head.append(el('span', 'family', strings[`family.${entry.family}.name`] ?? entry.family));
+    li.append(head);
+    if (entry.sub) li.append(el('p', 'sub', entry.sub));
+    if (entry.kind === 'model' && entry.pids?.length) {
+      const shown = entry.pids.slice(0, 4).join(', ');
+      const more = entry.pids.length > 4 ? ` ${fill(strings['search.more'], { n: entry.pids.length - 4 })}` : '';
+      li.append(el('p', 'meta', `${strings['search.pids']}: ${shown}${more}`));
+    }
+    if (entry.kind === 'model' && entry.lc && entry.lc !== 'current') {
+      const eos = el('p', 'meta eos-note');
+      if (entry.lo) eos.append(`${fill(strings['search.lastOrder'], { date: entry.lo })}. `);
+      if (entry.repl?.length) {
+        eos.append(`${strings['search.replacedBy']}: `);
+        entry.repl.forEach((r, i) => {
+          if (i) eos.append(', ');
+          eos.append(link(r.href, r.title));
+        });
+      }
+      li.append(eos);
+    }
+    return li;
+  }
+
+  const LIMIT = 200;
+  let timer = 0;
+  async function run(query: string, { track = false }: { track?: boolean } = {}) {
+    const q = query.trim();
+    groups.replaceChildren();
+    if (!q) {
+      status.textContent = strings['search.hint'];
+      return;
+    }
+    status.textContent = strings['search.loading'];
+    let data;
+    try {
+      data = await loadIndex();
+    } catch {
+      status.textContent = strings['search.error'];
+      return;
+    }
+    if (input.value.trim() !== q) return; // a newer query is already on its way
+    const hits = search(data, q, { limit: LIMIT }).map((h) => h.entry as Entry);
+    if (!hits.length) {
+      status.textContent = fill(strings['search.none'], { q });
+      groups.append(el('p', 'tip', strings['search.noneTip']));
+      if (track) document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event: 'search-zero' } }));
+      return;
+    }
+    status.textContent = fill(strings['search.count'], { n: hits.length >= LIMIT ? `${LIMIT}+` : hits.length });
+    // The group that holds the best match comes first, so one exact term is not buried under many loose models.
+    const order = [...new Set(hits.map((h) => h.kind))];
+    for (const kind of order) {
+      const list = hits.filter((h) => h.kind === kind);
+      if (!list.length) continue;
+      const section = el('section', 'group');
+      section.append(el('h3', undefined, `${strings[`search.group.${kind}`]} (${list.length})`));
+      const ul = el('ul', 'results');
+      for (const entry of list) ul.append(renderEntry(entry));
+      section.append(ul);
+      groups.append(section);
+    }
+  }
+
+  function remember(query: string) {
+    const url = new URL(location.href);
+    if (query.trim()) url.searchParams.set('q', query.trim());
+    else url.searchParams.delete('q');
+    history.replaceState(null, '', url);
+  }
+
+  input.addEventListener('input', () => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      remember(input.value);
+      void run(input.value);
+    }, 140);
+  });
+  input.addEventListener('focus', () => void loadIndex().catch(() => {}), { once: true });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    window.clearTimeout(timer);
+    remember(input.value);
+    void run(input.value, { track: true });
+  });
+
+  const initial = new URLSearchParams(location.search).get('q') ?? '';
+  if (initial) {
+    input.value = initial;
+    void run(initial, { track: true });
+  }
+</script>
+
+<style>
+  .lead {
+    max-width: 42rem;
+    margin: 0 0 var(--space-5);
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .box label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 650;
+    color: var(--navy-900);
+  }
+
+  .row {
+    display: flex;
+    gap: var(--space-2);
+    max-width: 40rem;
+  }
+
+  input[type='search'] {
+    flex: 1;
+    min-width: 0;
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border: 2px solid var(--border-strong);
+    border-radius: var(--radius-s);
+    background: var(--white);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  button[type='submit'] {
+    min-height: var(--tap);
+    padding: 0 var(--space-5);
+    border: 2px solid var(--accent-strong);
+    border-radius: var(--radius-s);
+    background: var(--accent);
+    color: var(--white);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  button[type='submit']:hover {
+    background: var(--accent-strong);
+  }
+
+  .status {
+    margin: 0 0 var(--space-4);
+    color: var(--muted);
+  }
+
+  :global(#search-root .group) {
+    margin-bottom: var(--space-6);
+  }
+
+  :global(#search-root .results) {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  :global(#search-root .result) {
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    background: var(--white);
+  }
+
+  :global(#search-root .head) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  :global(#search-root .head a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-weight: 650;
+  }
+
+  :global(#search-root .family) {
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  :global(#search-root .life) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0 var(--space-3);
+    border-radius: 999px;
+    background: var(--eos-bg);
+    color: var(--eos-ink);
+    font-size: var(--text-small);
+    font-weight: 650;
+  }
+
+  :global(#search-root .sub) {
+    margin: 0 0 var(--space-2);
+  }
+
+  :global(#search-root .meta) {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-small);
+    overflow-wrap: anywhere;
+  }
+
+  :global(#search-root .eos-note) {
+    margin-top: var(--space-2);
+  }
+
+  :global(#search-root .eos-note a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: var(--space-1);
+  }
+
+  :global(#search-root .tip) {
+    color: var(--muted);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+</style>
