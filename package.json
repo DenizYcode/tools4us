@@ -22,7 +22,9 @@
     "check:a11y": "node scripts/check-a11y.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:freshness": "node scripts/freshness.mjs",
-    "check:launch": "node scripts/check-launch.mjs"
+    "check:launch": "node scripts/check-launch.mjs",
+    "review:export": "node scripts/review/cli.mjs export",
+    "review:apply": "node scripts/review/cli.mjs apply"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
