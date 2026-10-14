@@ -18,7 +18,10 @@ import { readWorkbook, writeWorkbook } from '../build-data/xlsx-io.mjs';
 import { readGlossary, writeGlossary } from '../build-data/glossary.mjs';
 import { parseStoryFile } from '../build-data/stories.mjs';
 
-const MODEL_TEXT_COLUMNS = ['name', 'summary', 'good_for', 'licence_note', 'poe_note', 'variant_note', 'recommended_why'];
+// replacement_note is the Turkish text itself (its English twin is replacement_note_en); the others end in _tr.
+const MODEL_TEXT_COLUMNS = ['name', 'summary', 'good_for', 'licence_note', 'poe_note', 'variant_note', 'recommended_why', 'replacement_note'];
+const turkishColumn = (base) => (base === 'replacement_note' ? base : `${base}_tr`);
+const englishColumn = (base) => (base === 'replacement_note' ? 'replacement_note_en' : `${base}_en`);
 const STORY_FIELDS = ['title', 'teaser', 'why'];
 const norm = (s) => String(s ?? '').replace(/\r\n?/g, '\n').trim();
 const placeholders = (s) => [...String(s).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');
@@ -68,7 +71,7 @@ export async function collect(root = ROOT) {
       add({ area: 'Series explainers', section: family, where: `data/catalog/${family}.xlsx series: ${r.series}`, english: r.series_intro_en ?? '', turkish: r.series_intro_tr, target: { kind: 'catalog', family, sheet: 'series', column: 'series_intro_tr' } });
     }
     for (const base of MODEL_TEXT_COLUMNS) {
-      const column = `${base}_tr`;
+      const column = turkishColumn(base);
       if (!sheets.models.length || !(column in sheets.models[0])) continue;
       const groups = new Map();
       for (const r of sheets.models.filter(published)) {
@@ -76,7 +79,7 @@ export async function collect(root = ROOT) {
         if (!text) continue;
         // A product name that is the same in both languages is a name, not a translation.
         if (base === 'name' && text === r.name_en) continue;
-        const g = groups.get(text) ?? { rows: [], english: r[`${base}_en`] ?? '' };
+        const g = groups.get(text) ?? { rows: [], english: r[englishColumn(base)] ?? '' };
         g.rows.push(r.pid);
         groups.set(text, g);
       }

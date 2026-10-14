@@ -9,9 +9,10 @@
 //   broken      404/410 or the host does not exist: this fails the run
 //   unexpected  a host other than cisco.com / meraki.com / youtube: the site must not link anywhere else
 //
+// The catalog's datasheet, source and bulletin addresses are checked too (--dist-only skips them).
 // Usage: node scripts/check-links.mjs [--list] [--write=docs/Phase7_External_Links.md] [--only=text] [--concurrency=4]
 // Run after `npm run build`. DIST_DIR=<folder> checks another folder. Exit 1 on a broken, landing-page or unexpected link.
-import { readFileSync, readdirSync, writeFileSync, appendFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync, appendFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DIST = process.env.DIST_DIR ?? 'dist';
@@ -112,6 +113,19 @@ async function check(url) {
 }
 
 const found = collect();
+// The catalog's own addresses (datasheet, source and bulletin) are not all on a page, so read them from the published data too.
+if (!args.includes('--dist-only')) {
+  const generated = 'src/data/generated';
+  for (const family of ['wireless', 'switching', 'routing']) {
+    const path = join(generated, family + '.json');
+    if (!existsSync(path)) continue;
+    for (const model of JSON.parse(readFileSync(path, 'utf8')).models) {
+      for (const [field, value] of Object.entries(model)) {
+        if (/_url$/.test(field) && typeof value === 'string' && /^https?:\/\//.test(value) && !found.has(value)) found.set(value, 'catalog ' + model.pid + ' ' + field);
+      }
+    }
+  }
+}
 const rows = [];
 for (const [url, file] of found) {
   const host = hostOf(url);
@@ -160,6 +174,10 @@ const report = lines.join('\n');
 console.log(report);
 if (reportPath) writeFileSync(reportPath, report + '\n');
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, report + '\n');
-const failed = (counts.broken ?? 0) + (counts.landing ?? 0) + (counts.unexpected ?? 0) > 0;
+const reached = (counts.ok ?? 0) + (counts.moved ?? 0) + (counts.broken ?? 0) + (counts.landing ?? 0);
+// Offline, or blocked everywhere: nothing was really checked, so the run must not look like a pass.
+const nothingChecked = rows.length > 0 && reached === 0;
+if (nothingChecked) console.log('check:links could not reach any address (offline or blocked): nothing was checked');
+const failed = nothingChecked || (counts.broken ?? 0) + (counts.landing ?? 0) + (counts.unexpected ?? 0) > 0;
 console.log(failed ? 'check:links FAILED (broken, landing-page or unexpected addresses)' : 'check:links passed (no broken address; review the moved and unverified ones)');
 process.exit(failed ? 1 : 0);

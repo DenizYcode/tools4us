@@ -40,7 +40,7 @@ const questions = selector.questions;
 const terms = selector.terms as Record<string, string>;
 ---
 
-<Base lang={lang} title={`${td(lang, `${prefix}.title`)} · ${t(lang, 'site.name')}`} switchPath={selectorSwitchPath(lang, family)} current={family}>
+<Base lang={lang} title={`${td(lang, `${prefix}.title`)} · ${t(lang, 'site.name')}`} switchPath={selectorSwitchPath(lang, family)} current={family} description={td(lang, `${prefix}.lead`)}>
   <Section tone="soft" labelledby="selector-title">
     <p class="back"><a href={familyPath(lang, family)}>← {td(lang, `detail.back.${family}`)}</a></p>
     <h1 id="selector-title">{td(lang, `${prefix}.title`)}</h1>

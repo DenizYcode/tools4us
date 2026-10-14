@@ -21,7 +21,7 @@ Prepared 14 Oct 2026. **This is not legal advice.** It lists what the site does,
 | Legal basis | "Hukuki sebep": explicit consent, KVKK art. 5/1, for the form | Present for the form only (see B2) |
 | Transfer abroad | "Yurt dışına aktarım": Web3Forms, servers outside Turkey, explicit consent | Present (see B1) |
 | Retention | "Saklama süresi": until answered and follow-up is over, then deleted | Present (see B6) |
-| Data subject rights | "Haklarınız (KVKK madde 11)": six items and how to apply | Present |
+| Data subject rights | "Haklarınız (KVKK madde 11)": six items and how to apply | Present, but the list is shorter than art. 11 (see B10) |
 | Cookies and statistics | No cookies; GoatCounter described in full | Present |
 | Consent box on the form | Required checkbox, links to the notice, names the transfer abroad | Present |
 | Independence disclaimer | Footer on every page (`check:dist`) | Present |
@@ -29,7 +29,7 @@ Prepared 14 Oct 2026. **This is not legal advice.** It lists what the site does,
 ## B. Gaps I can see (for the lawyer to confirm or dismiss)
 
 1. **Transfer abroad rests on consent only.** As I understand the 2024 change to KVKK art. 9, explicit consent covers only incidental (non-repeated) transfers, and regular transfers need an adequacy decision or an appropriate safeguard such as a standard contract. A contact form that sends to Web3Forms every time is a regular transfer. Does the current wording and checkbox satisfy art. 9, or does the site need another route (a different form provider in Turkey or the EU with adequacy or a standard contract, or a mail-to link instead of a form)?
-2. **Legal basis for the visit counter is not stated.** The counter processes an IP address and browser details of every visitor, with no consent. The notice describes the data but names no legal basis (for example legitimate interest, art. 5/2-f). The notice needs one, or the counter needs to be dropped or made opt-in.
+2. **Legal basis for the visit counter is not stated.** The counter processes an IP address and browser details of every visitor, with no consent. The notice describes the data but names no legal basis (for example legitimate interest, art. 5/2-f). I think it should name one, or the counter should be dropped or made opt-in; whether the counter's data counts as personal data at all depends on how GoatCounter handles the IP address (see C).
 3. **One checkbox covers two consents** (processing for the reply, and the transfer abroad). Should they be two separate boxes?
 4. **No sentence about withdrawing consent.** The notice does not say the visitor can withdraw consent and how. I have not added wording: it is a legal sentence.
 5. **Method of collection** (the notice should probably say "through the web form, automatically") is not stated in those words.
@@ -37,6 +37,7 @@ Prepared 14 Oct 2026. **This is not legal advice.** It lists what the site does,
 7. **Recipients.** The notice names Web3Forms and GoatCounter. It does not name the owner's own email provider, which also stores the message.
 8. **Controller details.** Is name plus email enough, or should the postal address also appear? Is a registration with VERBİS required for this project, or does an exemption apply?
 9. **English text.** The English notice is a translation of the Turkish. Which one is authoritative if they differ?
+10. **The rights list may be incomplete.** The notice lists six rights. As far as I can tell art. 11 has more items (for example objecting to a result against the person that comes only from automated analysis, and asking for compensation for loss caused by unlawful processing, which the notice mentions only in part). Does the list need to follow art. 11 item by item? Also: does the notice have to follow the elements of the Communiqué on the duty to inform (Aydınlatma Yükümlülüğünün Yerine Getirilmesinde Uyulacak Usul ve Esaslar Hakkında Tebliğ) in a set order or wording?
 
 ## C. Facts only the owner can confirm (before the lawyer reads)
 
@@ -57,6 +58,7 @@ Prepared 14 Oct 2026. **This is not legal advice.** It lists what the site does,
 | 6 | Saklama süresi cümlesi ("yanıt verilene ve gerekli takip bitene kadar") yeterince açık mı? | Is the retention sentence precise enough? |
 | 7 | Metin kişisel bir proje için orantılı mı, eksik ya da fazla bir şey var mı? | Is the notice proportionate for a personal project; is anything missing or unnecessary? |
 | 8 | Türkçe ve İngilizce metinden hangisi esas alınır? | Which of the Turkish and English texts governs? |
+| 9 | Haklar listesi KVKK m. 11'in tüm bentlerini ve Aydınlatma Tebliği'nin sırasını karşılıyor mu? | Does the rights list cover every item of art. 11, and does the notice follow the Communiqué? |
 
 ## E. After the lawyer
 

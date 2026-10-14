@@ -18,7 +18,7 @@ const entries = Object.entries(glossary)
   .sort((a, b) => a.term.localeCompare(b.term, lang));
 ---
 
-<Base lang={lang} title={`${t(lang, 'glossary.title')} · ${t(lang, 'site.name')}`} switchPath={glossarySwitchPath(lang)} current="glossary">
+<Base lang={lang} title={`${t(lang, 'glossary.title')} · ${t(lang, 'site.name')}`} switchPath={glossarySwitchPath(lang)} current="glossary" description={t(lang, 'glossary.lead')}>
   <Section tone="soft" labelledby="glossary-title">
     <h1 id="glossary-title">{t(lang, 'glossary.title')}</h1>
     <p class="lead">{t(lang, 'glossary.lead')}</p>

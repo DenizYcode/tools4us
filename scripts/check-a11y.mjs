@@ -41,6 +41,7 @@ const STATES = [
     name: 'wireless filter sheet open',
     path: '/tr/kablosuz/',
     only: 'mobile',
+    expect: () => document.getElementById('filter-sheet')?.classList.contains('open'),
     run: async (page) => {
       await page.click('#filters-open');
       await settle(500);
@@ -49,13 +50,15 @@ const STATES = [
   {
     name: 'wireless filter + compare tray',
     path: '/tr/kablosuz/',
+    expect: () => document.querySelector('#tray') && !document.querySelector('#tray').hidden && document.querySelectorAll('#filter-form input:checked').length > 0,
     run: async (page, vp) => {
       if (vp.mobile) {
         await page.click('#filters-open');
         await settle(500);
       }
       const box = await page.$('#filter-form input[type=checkbox]');
-      if (box) await box.evaluate((el) => el.click());
+      if (!box) throw new Error('no filter checkbox to click');
+      await box.evaluate((el) => el.click());
       await settle(200);
       if (vp.mobile) {
         await page.keyboard.press('Escape');
@@ -76,6 +79,7 @@ const STATES = [
   {
     name: 'selector result',
     path: '/tr/anahtarlama/bana-model-oner/',
+    expect: () => document.querySelectorAll('#selector-results a[href]').length > 0,
     run: async (page) => {
       await page.click('#selector-form button[type=submit]');
       await settle(400);
@@ -88,12 +92,13 @@ const STATES = [
   { name: 'story', path: '/tr/yenilikler/birlesik-lisans/' },
   { name: 'story en', path: '/en/stories/unified-licensing/' },
   { name: 'search empty', path: '/tr/ara/' },
-  { name: 'search results', path: '/tr/ara/?q=kablosuz' },
+  { name: 'search results', path: '/tr/ara/?q=kablosuz', expect: () => document.querySelectorAll('main li a[href]').length > 0 },
   { name: 'search no result', path: '/tr/ara/?q=zzzzqx' },
   { name: 'shortlist empty', path: '/tr/seclimlerim/' },
   {
     name: 'shortlist with items',
     path: '/tr/kablosuz/cisco-wireless-9172i/',
+    expect: () => document.querySelectorAll('main li').length > 0 && !document.querySelector('.empty, [data-empty]:not([hidden])') && Object.keys(localStorage).length > 0,
     run: async (page) => {
       await page.click('.sl-btn');
       await settle(300);
@@ -101,12 +106,13 @@ const STATES = [
     },
   },
   { name: 'migration finder', path: '/tr/eski-cihazim/' },
-  { name: 'migration result', path: '/tr/eski-cihazim/?q=catalyst-9120axi' },
+  { name: 'migration result', path: '/tr/eski-cihazim/?q=catalyst-9120axi', expect: () => document.querySelectorAll('main a[href*="/kablosuz/"]').length > 0 },
   { name: 'glossary', path: '/tr/sozluk/' },
   { name: 'contact form', path: '/tr/iletisim/' },
   {
     name: 'contact form with errors',
     path: '/tr/iletisim/',
+    expect: () => Boolean(document.querySelector('form :invalid')) && document.activeElement?.matches(':invalid'),
     run: async (page) => {
       await settle(3200);
       const submit = await page.$('form button[type=submit]');
@@ -124,7 +130,7 @@ const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless=new', '--
 const browser = await puppeteer.connect({ browserURL: `http://localhost:${chrome.port}` });
 
 /** Tab through the page; return the stops whose focus is not visible. */
-async function tabAudit(page, limit = 45) {
+async function tabAudit(page, limit = 80) {
   const problems = [];
   await page.evaluate(() => {
     document.activeElement?.blur?.();
@@ -174,6 +180,8 @@ try {
         const expected = state.path.includes('yok-boyle') ? 404 : 200;
         if (response?.status() !== expected) throw new Error(`${state.path} answered ${response?.status()}, expected ${expected}`);
         if (state.run) await state.run(page, vp);
+        // The state must really have been reached: a silently skipped click would test the wrong page.
+        if (state.expect && !(await page.evaluate(state.expect))) throw new Error(`state "${state.name}" was not reached`);
         await page.evaluate(axeSource);
         const result = await page.evaluate(() =>
           // eslint-disable-next-line no-undef

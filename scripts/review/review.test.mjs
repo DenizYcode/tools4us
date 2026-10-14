@@ -36,6 +36,13 @@ test('every Turkish text is listed once with a target, and ids are unique', () =
   for (const a of ['UI', 'KVKK ve form (lawyer too)', 'Stories', 'Glossary', 'Series explainers', 'Model texts']) assert.ok(areas.has(a), a);
 });
 
+test('every Turkish column the site shows is exported, including the replacement notes of End-of-Sale models', () => {
+  const columns = new Set(items.filter((i) => i.area === 'Model texts').map((i) => i.target.column));
+  for (const c of ['summary_tr', 'good_for_tr', 'licence_note_tr', 'poe_note_tr', 'variant_note_tr', 'recommended_why_tr', 'replacement_note']) assert.ok(columns.has(c), c);
+  const note = items.find((i) => i.target.column === 'replacement_note');
+  assert.ok(note.english && note.english !== note.turkish, 'the English twin comes from replacement_note_en');
+});
+
 test('the sheet starts with the most visible text and model texts come last', () => {
   assert.equal(items[0].area, 'UI');
   assert.equal(items.at(-1).area, 'Model texts');

@@ -1,6 +1,6 @@
 # External link report
 
-Checked 2026-10-14 against `dist/`: 93 addresses. 6 moved, 87 ok.
+Checked 2026-10-14 against `dist/`: 94 addresses. 6 moved, 88 ok.
 
 ## Moved (6)
 

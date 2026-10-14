@@ -32,7 +32,7 @@ const oldModels = LAUNCH_FAMILIES.map((family) => ({
 const total = oldModels.reduce((n, g) => n + g.cards.length, 0);
 ---
 
-<Base lang={lang} title={`${t(lang, 'shortcuts.legacy.title')} · ${t(lang, 'site.name')}`} switchPath={migrationSwitchPath(lang)} current="migration">
+<Base lang={lang} title={`${t(lang, 'shortcuts.legacy.title')} · ${t(lang, 'site.name')}`} switchPath={migrationSwitchPath(lang)} current="migration" description={t(lang, 'migration.lead')}>
   <Section tone="soft" labelledby="migration-title">
     <h1 id="migration-title">{t(lang, 'shortcuts.legacy.title')}</h1>
     <p class="lead">{t(lang, 'migration.lead')}</p>

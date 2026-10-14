@@ -46,7 +46,10 @@ const add = (area, spec, status, detail) => results.push({ area, spec, status, d
 if (fast) {
   add('Performance and accessibility', 'Mobile Lighthouse 90+ on hub, a family page and a story', 'SKIP', '--fast: run npm run check:lighthouse');
   add('Accessibility', 'WCAG 2.1 AA (axe, Tab focus) on every page type', 'SKIP', '--fast: run npm run check:a11y');
+  add('Mobile', 'Every page type at 375 px: no horizontal scroll, 16 px body, 44 px tap targets', 'SKIP', '--fast: run npm run check:mobile');
 } else {
+  const mob = run(['scripts/check-mobile.mjs']);
+  add('Mobile', 'Every page type at 375 px: no horizontal scroll, 16 px body, 44 px tap targets', mob.code === 0 ? 'PASS' : 'FAIL', lastLine(mob.out, /check:mobile/));
   const lh = run(['scripts/check-lighthouse.mjs'], ['--all']);
   add('Performance and accessibility', 'Mobile Lighthouse 90+ on hub, a family page and a story', lh.code === 0 ? 'PASS' : 'FAIL', lastLine(lh.out, /check:lighthouse/) + ' (18 page types)');
   const ax = run(['scripts/check-a11y.mjs']);
@@ -103,7 +106,12 @@ if (fast) {
     const summary = /addresses\. (.*)\./.exec(text)?.[1] ?? '';
     if (found.length) add('External links', 'External link report reviewed', 'FAIL', `report of ${date}: ${summary}; fix the addresses listed in ${path}`);
     else if (age > 14) add('External links', 'External link report reviewed', 'WARN', `report of ${date} is ${age} days old: run npm run check:links -- --write=${path}`);
-    else add('External links', 'External link report reviewed', unverified ? 'WARN' : 'PASS', `report of ${date}: ${summary}${unverified ? '; open the unverified ones once in a browser' : ''}`);
+    else {
+      // Moved and unverified addresses need a person: a redirect may be permanent, a blocked address may be dead.
+      const moved = /(\d+) moved/.exec(text)?.[1];
+      const todo = [moved && `update the ${moved} moved address(es) in the catalog if the move is permanent`, unverified && 'open the unverified ones once in a browser'].filter(Boolean);
+      add('External links', 'External link report reviewed', todo.length ? 'WARN' : 'PASS', `report of ${date}: ${summary}${todo.length ? `; ${todo.join('; ')} (see ${path})` : ''}`);
+    }
   }
 }
 

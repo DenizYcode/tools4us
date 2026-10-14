@@ -4,9 +4,9 @@
 
 ## Task 1: 24-port switch for 10 access points and 8 cameras
 
-Assumption used to judge the answer: 10 access points at about 30 W plus 8 cameras at about 15 W = **420 W** of PoE budget, and 18 PoE ports used. (The site's selector asks "how many PoE devices" and "how much power each", and multiplies; with 24 devices at 30 W it asks for 720 W, so a selector result is always a safe answer.)
+Assumption used to judge the answer: 10 access points at about 30 W plus 8 cameras at about 15 W = **420 W** of PoE budget, and 18 PoE ports used. This figure is the key's own assumption (the SPEC says only "enough PoE budget"); change `AP_WATTS` and `CAMERA_WATTS` at the top of `scripts/usability/key.mjs` if you disagree and run `npm run usability:key` again. A model at exactly 420 W has no margin: it passes, but a moderator may note it.
 
-**Pass:** the participant names (or opens the page of) a **current** model with 24 ports and a PoE budget of at least 420 W, in under 3 minutes. Any model in the first table passes.
+**Pass:** the participant names (or opens the page of) a **current** model with 24 ports and a PoE budget of at least 420 W, in under 3 minutes. Any model in the first table passes. Score the model the participant **ends on**, however they got there.
 
 ### Passes (20 models)
 
@@ -70,33 +70,37 @@ Choosing one of these is the mistake the site exists to prevent (PoE budget unde
 | CBS220-24FP-4X | CBS220-24FP-4X | 382 W | cisco_business |
 | C1300X-24P-4X | C1300X-24P-4X | 385 W | on_prem | recommended
 
+**If the participant followed the selector ("Bana model öner") and it returned a model from the fail table:** that is still an N for the task, and it is also a **site finding** to write down. The selector multiplies the number of PoE devices by the watts per device the participant picks; "Düşük (IP telefon, yaklaşık 15 W)" for cameras and access points gives 24 x 15 = 360 W, which several 370 W models satisfy. Record which option they picked and whether the wording of the question led them there.
+
 Also a fail: an End-of-Sale model (the site should never offer one), a non-PoE switch, or a switch with fewer than 24 ports. Note how they found it (selector "Bana model öner", family page filters, search).
 
 ## Task 2: compare two access points
 
 The moderator hands over the two names on a card: **Cisco Wireless 9172I** and **Catalyst 9162I**. They are on the Kablosuz (wireless) page; the participant may also use Karşılaştır or search.
 
-**Pass:** the participant names **one difference that is true**, in their own words. Differences the compare table shows (raw values, in the order of the table):
+**Pass:** the participant names **one difference that is true**, in their own words. Differences the compare table shows (raw values, same rows and order as the site, variants merged):
 
 | Row | Cisco Wireless 9172I | Catalyst 9162I |
 | --- | --- | --- |
 | wifi_generation | 7 | 6e |
-| management | cloud, on_prem | on_prem |
-| radio_config | 2x2 (Tri-radio) | 2x2 (2.4 / 5 / 6 GHz) |
+| radio_config (wording only) | 2x2 (Tri-radio) | 2x2 (2.4 / 5 / 6 GHz) |
+| licence | Lisans gerekir: Cisco Ağ Aboneliği (Cisco Wireless Essentials veya Advantage). | Lisans gerekir: Cisco Ağ Aboneliği (Wireless Essentials veya Advantage) ya da Cisco DNA lisansı (Essentials veya Advantage). Hangisinin zoru |
+
+- **radio_config:** wording only: check the two model pages; both are 2x2 with 2.4, 5 and 6 GHz radios, so "tri-radio" against "2.4 / 5 / 6 GHz" is the same hardware described two ways.
 
 A difference that is not in the table can still be true (for example from the model pages): check it against the two model pages before failing the participant. A wrong statement, or no statement, is a fail.
 
 ## Task 3: find a new Cisco feature and explain it
 
-**Pass:** the participant opens one story and explains **what it is and what it is for** in their own words (not by reading a line aloud). Accept any of the stories below; the one-line key is what the story is about.
+**Pass:** the participant opens one story and explains **what it is and what it is for** in their own words (not by reading a line aloud). Accept any of the stories below. "What it is" is the story's own one-line description; "Why it matters" is what it means for a partner. A participant who can say the first in their own words passes; the second is a bonus.
 
-| Story | What it is about (key) |
-| --- | --- |
-| Live Protect: yama gelene kadar canlı koruma | Müşteriler yama için bakım penceresi beklemek zorunda kalıyor. Live Protect bu boşluğu kapatmayı hedefliyor, ama bugün yalnızca Nexus 9000'de çalışıyor. Kampüs ve şube ürünleri için Cisco tarih vermedi; müşteriye söz vermeyin. |
-| Kuantum sonrası şifreleme: şimdiden hazırlanmak | Müşteriler 'kuantum' sorusunu sormaya başlıyor. Doğru cevap korkutmak değil, planlamak: hangi veri uzun süre gizli kalmalı, hangi bağlantılar bu veriyi taşıyor? Cisco'nun tarihleri bir taahhüt ve yol haritasıdır; ürün ve sürüm bazında Cisco'dan doğrulayın. |
-| Security Cloud Control: güvenlik ilkeleri tek yerden | Güvenlik ürünü satan bir iş ortağı için güçlü bir konuşma açılışı: yönetim hizmeti uygun ürünü alan müşteriye ek ücretsiz, ek yetenekler abonelikle. Güvenlik ailesi Tools4Us'ta henüz yok; ürün listesi için Cisco'nun sayfasına bakın. |
-| Akıllı anahtarlar: C9350, C9550 ve C9610 | Catalyst 9300 ya da Catalyst 3850 yenileyen bir müşteri artık C9350'yi de konuşmalı. C9350, Catalyst 9300 ile aynı yığına girmez ve lisans satın alırken zorunludur; bunu baştan bilmek teklifi düzeltir. |
-| Birleşik lisans: Wi-Fi 7 ve yeni anahtarlarda tek abonelik | Lisans türü ve yönetim biçimi aboneliğe bağlıdır. Müşteriyle bunu konuşmadan teklif hazırlarsanız, sonradan lisans taşıma sorusuyla karşılaşırsınız; Cisco bu konuda herkese açık bir kural yayımlamıyor. |
+| Story | What it is (key) | Why it matters (key) |
+| --- | --- | --- |
+| Live Protect: yama gelene kadar canlı koruma | Cisco, güvenlik açığı duyurulunca cihazı yeniden başlatmadan geçici bir kalkan uygulayabiliyor. Bugün yalnızca Nexus 9000 anahtarlarında. | Müşteriler yama için bakım penceresi beklemek zorunda kalıyor. Live Protect bu boşluğu kapatmayı hedefliyor, ama bugün yalnızca Nexus 9000'de çalışıyor. Kampüs ve şube ürünleri için Cisco tarih vermedi; müşteriye söz vermeyin. |
+| Kuantum sonrası şifreleme: şimdiden hazırlanmak | Bugün kaydedilen şifreli trafik yarın çözülebilir. Cisco ne yapıyor, WAN'da bugün ne var, müşteriye ne söylemeli? | Müşteriler 'kuantum' sorusunu sormaya başlıyor. Doğru cevap korkutmak değil, planlamak: hangi veri uzun süre gizli kalmalı, hangi bağlantılar bu veriyi taşıyor? Cisco'nun tarihleri bir taahhüt ve yol haritasıdır; ürün ve sürüm bazında Cisco'dan doğrulayın. |
+| Security Cloud Control: güvenlik ilkeleri tek yerden | Cisco'nun güvenlik ürünleri için bulut yönetim hizmeti. Neleri yönetiyor, hangi durumda ek ücret yok? | Güvenlik ürünü satan bir iş ortağı için güçlü bir konuşma açılışı: yönetim hizmeti uygun ürünü alan müşteriye ek ücretsiz, ek yetenekler abonelikle. Güvenlik ailesi Tools4Us'ta henüz yok; ürün listesi için Cisco'nun sayfasına bakın. |
+| Akıllı anahtarlar: C9350, C9550 ve C9610 | Catalyst 9000 ailesine üç yeni seri eklendi. Hangisi nerede kullanılır, eski modellerin yerine ne geçer, lisans nasıl? | Catalyst 9300 ya da Catalyst 3850 yenileyen bir müşteri artık C9350'yi de konuşmalı. C9350, Catalyst 9300 ile aynı yığına girmez ve lisans satın alırken zorunludur; bunu baştan bilmek teklifi düzeltir. |
+| Birleşik lisans: Wi-Fi 7 ve yeni anahtarlarda tek abonelik | Wi-Fi 7 ve yeni anahtarlarda lisans, cihaza değil ağa bağlanıyor. Neyi bildiğimizi, neyi Cisco'ya sormanız gerektiğini yazdık. | Lisans türü ve yönetim biçimi aboneliğe bağlıdır. Müşteriyle bunu konuşmadan teklif hazırlarsanız, sonradan lisans taşıma sorusuyla karşılaşırsınız; Cisco bu konuda herkese açık bir kural yayımlamıyor. |
 
 ## Task 4: add models to the list and share it
 

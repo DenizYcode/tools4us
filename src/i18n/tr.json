@@ -1,6 +1,7 @@
 {
   "site.name": "Tools4Us",
   "site.tagline": "Türkiye'deki iş ortakları için bağımsız Cisco ürün rehberi: ihtiyacını anlat, doğru modeli bul.",
+  "site.ogImageAlt": "Tools4Us yazısı ve üç cihaz çizimi: anahtar, erişim noktası ve yönlendirici",
   "nav.skip": "Ana içeriğe geç",
   "nav.main": "Ana gezinme",
   "nav.home": "Tools4Us ana sayfa",

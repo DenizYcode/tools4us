@@ -52,6 +52,14 @@ test('task 2 key: the two access points are published, current and differ in at 
   assert.equal(cards.length, 2);
   assert.ok(cards.every((c) => c.lifecycle === 'current'));
   assert.ok(rows.length >= 1);
+  // The site merges variants into one card: the key must too (a cloud variant adds "cloud" to the management list).
+  const all = read('wireless').models;
+  for (const c of cards) {
+    const union = new Set(all.filter((m) => m.name_tr === c.name).flatMap((m) => m.management ?? []));
+    assert.deepEqual([...c.management].sort(), [...union].sort(), c.name);
+  }
+  // The licence row is shown by the site and is a true difference, so the key keeps it.
+  assert.ok(rows.some((r) => r.key === 'licence'));
 });
 
 test('the whole key renders with all four tasks and the stories', opts, () => {

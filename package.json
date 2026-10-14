@@ -21,6 +21,7 @@
     "check:lighthouse": "node scripts/check-lighthouse.mjs",
     "check:a11y": "node scripts/check-a11y.mjs",
     "check:links": "node scripts/check-links.mjs",
+    "check:mobile": "node scripts/check-mobile.mjs",
     "check:freshness": "node scripts/freshness.mjs",
     "check:launch": "node scripts/check-launch.mjs",
     "kvkk:check": "node scripts/kvkk-check.mjs",

@@ -1,6 +1,7 @@
 {
   "site.name": "Tools4Us",
   "site.tagline": "An independent Cisco product guide for partners in Turkey: describe the need, find the right model.",
+  "site.ogImageAlt": "The Tools4Us name above drawings of a switch, an access point and a router",
   "nav.skip": "Skip to main content",
   "nav.main": "Main navigation",
   "nav.home": "Tools4Us home",

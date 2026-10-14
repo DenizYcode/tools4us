@@ -16,7 +16,7 @@ const { lang } = Astro.props;
 const { name, email } = SITE_CONFIG.controller;
 ---
 
-<Base lang={lang} title={`${t(lang, 'privacy.title')} · ${t(lang, 'site.name')}`} switchPath={privacySwitchPath(lang)}>
+<Base lang={lang} title={`${t(lang, 'privacy.title')} · ${t(lang, 'site.name')}`} switchPath={privacySwitchPath(lang)} description={t(lang, 'privacy.lead')}>
   <Section tone="soft" labelledby="privacy-title">
     <h1 id="privacy-title">{t(lang, 'privacy.title')}</h1>
     <p class="lead">{t(lang, 'privacy.lead')}</p>

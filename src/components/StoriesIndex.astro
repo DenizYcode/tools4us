@@ -17,7 +17,7 @@ const { lang } = Astro.props;
 const categories = categoryCounts(STORIES);
 ---
 
-<Base lang={lang} title={`${t(lang, 'stories.title')} · ${t(lang, 'site.name')}`} switchPath={storiesSwitchPath(lang)} current="stories">
+<Base lang={lang} title={`${t(lang, 'stories.title')} · ${t(lang, 'site.name')}`} switchPath={storiesSwitchPath(lang)} current="stories" description={t(lang, 'stories.lead')}>
   <Section tone="soft" labelledby="stories-index-title">
     <h1 id="stories-index-title">{t(lang, 'stories.title')}</h1>
     <p class="lead">{t(lang, 'stories.lead')}</p>

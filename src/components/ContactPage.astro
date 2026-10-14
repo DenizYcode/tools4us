@@ -17,7 +17,7 @@ const { lang } = Astro.props;
 const strings = { ...tp(lang, 'contact.'), 'shortlist.pids': t(lang, 'shortlist.pids'), 'shortlist.config': t(lang, 'shortlist.config') };
 ---
 
-<Base lang={lang} title={`${t(lang, 'contact.title')} · ${t(lang, 'site.name')}`} switchPath={contactSwitchPath(lang)}>
+<Base lang={lang} title={`${t(lang, 'contact.title')} · ${t(lang, 'site.name')}`} switchPath={contactSwitchPath(lang)} description={t(lang, 'contact.lead')}>
   <Section tone="soft" labelledby="contact-title">
     <h1 id="contact-title">{t(lang, 'contact.title')}</h1>
     <p class="lead">{t(lang, 'contact.lead')}</p>

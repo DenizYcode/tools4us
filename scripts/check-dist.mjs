@@ -254,6 +254,7 @@ for (const file of files.filter((f) => /[\\/]_astro[\\/].*\.js$/.test(f))) {
 const SITE_URL = new URL(config.site).origin;
 const NOINDEX_PAGES = new Set(['404.html', 'tr/ara/index.html', 'en/search/index.html', 'tr/seclimlerim/index.html', 'en/shortlist/index.html', 'tr/karsilastir/index.html', 'en/compare/index.html']);
 const metaOf = (html, re) => html.match(re)?.[1];
+const TAGLINES = { tr: JSON.parse(readFileSync(join(ROOT, 'src/i18n/tr.json'), 'utf8'))['site.tagline'], en: JSON.parse(readFileSync(join(ROOT, 'src/i18n/en.json'), 'utf8'))['site.tagline'] };
 for (const asset of ['favicon.svg', 'apple-touch-icon.png', 'social-preview.png', 'robots.txt', 'sitemap.xml']) {
   if (!existsSync(join(DIST, asset))) fail(`${asset} is missing from dist`);
 }
@@ -292,6 +293,8 @@ for (const page of pages) {
   if (canonicals.length !== 1 || canonicals[0] !== expected) fail(`${name}: canonical is ${canonicals.join(', ') || 'missing'}, expected ${expected}`);
   const description = metaOf(html, /<meta name="description" content="([^"]*)"/);
   if (!description || description.length < 20 || description.length > 170) fail(`${name}: meta description is ${description ? `${description.length} characters` : 'missing'} (20 to 170)`);
+  // An indexable page other than the hub needs a description of its own, not the site tagline.
+  if (!noindex && !/^(tr|en)\/index\.html$/.test(name) && name !== 'index.html' && [TAGLINES.tr, TAGLINES.en].some((tag) => description?.replace(/&#39;/g, "'") === tag)) fail(`${name}: meta description is the generic site tagline`);
   for (const key of ['og:title', 'og:description', 'og:image']) if (!new RegExp(`<meta property="${key}" content="[^"]+"`).test(html)) fail(`${name}: ${key} is missing`);
   if (!html.includes(`<meta property="og:image" content="${SITE_URL}${BASE}social-preview.png"`)) fail(`${name}: og:image does not point at the site's social-preview.png`);
   if (!bilingual) {
