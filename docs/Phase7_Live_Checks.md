@@ -1,6 +1,6 @@
 # Live checks after the first push
 
-`npm run check:launch` shows this check as passed only when the line below says `Result: PASS`. These need the real services, so no script can do them. Do them on the live site (`https://denizycode.github.io/tools4us/`), once, after the push.
+`npm run check:launch` shows this check as passed only when the line below says `Result: PASS`. These need the real services, so no script can do them. Run `npm run check:live` first: it proves everything that needs no service (pages, head tags, sitemap, notice, form markup, the pinned script). Then do these on the live site (`https://denizycode.github.io/tools4us/`), once, after the push.
 
 Result: PENDING
 

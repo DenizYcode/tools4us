@@ -1,7 +1,7 @@
 // Live-site check: fetches the deployed site and applies the checks that do not need a browser. Run it after a deploy
 // (Actions run green). It cannot test the two things that need the real services: a GoatCounter page view and a Web3Forms
 // message (docs/Phase7_Live_Checks.md).
-//   node scripts/check-live.mjs [--site=https://denizycode.github.io/tools4us] [--sample=40]
+//   node scripts/check-live.mjs [--site=https://denizycode.github.io/tools4us] [--sample=40] [--strict]
 // Exit 1 on a failed check.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -13,7 +13,8 @@ const flag = (n, d) => (args.find((a) => a.startsWith(`--${n}=`)) ?? `--${n}=${d
 const site = flag('site', `${config.site}${config.base}`.replace(/\/$/, ''));
 const sample = Number(flag('sample', 40));
 const results = [];
-const check = (name, ok, detail = '') => results.push({ name, ok, detail });
+const strict = args.includes('--strict');
+const check = (name, ok, detail = '', warn = false) => results.push({ name, ok, detail, warn });
 
 const get = async (path, opts = {}) => {
   const res = await fetch(`${site}/${path}`, { redirect: 'follow', headers: { 'user-agent': 'Tools4Us-livecheck' }, ...opts });
@@ -59,7 +60,7 @@ const notice = await get('tr/aydinlatma-metni/');
 const name = SITE_CONFIG.controller.name;
 check('KVKK notice shows the controller name', name !== TO_FILL && notice.text.includes(name.replace(/ı/g, 'ı')), `controller.name = ${name}`);
 const mailLeft = notice.text.includes(TO_FILL);
-check('KVKK notice has no "TO FILL" left', !mailLeft, mailLeft ? 'the contact email is still a placeholder (owner choice)' : '');
+check('KVKK notice has no "TO FILL" left', !mailLeft, mailLeft ? 'the contact email is still a placeholder (owner choice; fails with --strict)' : '', true);
 const contact = await get('tr/iletisim/');
 check('contact form has the required consent box and posts only to Web3Forms', /id="c-consent"[^>]*required|required[^>]*id="c-consent"/.test(contact.text) && /api\.web3forms\.com\/submit/.test(contact.text) && !/<form[^>]*action="https?:\/\/(?!api\.web3forms\.com)/.test(contact.text));
 
@@ -79,7 +80,8 @@ for (const url of picked) {
 }
 check(`${picked.length} sampled sitemap addresses answer 200`, bad.length === 0 && picked.length > 0, bad.slice(0, 3).join('; '));
 
-for (const r of results) console.log(`${r.ok ? 'ok  ' : 'FAIL'} ${r.name}${r.ok || !r.detail ? '' : `  [${r.detail}]`}`);
-const failed = results.filter((r) => !r.ok);
-console.log(failed.length ? `\ncheck:live FAILED (${failed.length} of ${results.length})` : `\ncheck:live passed (${results.length} checks against ${site})`);
+for (const r of results) console.log(`${r.ok ? 'ok  ' : r.warn && !strict ? 'WARN' : 'FAIL'} ${r.name}${r.ok || !r.detail ? '' : `  [${r.detail}]`}`);
+const failed = results.filter((r) => !r.ok && (!r.warn || strict));
+const warned = results.filter((r) => !r.ok && r.warn && !strict).length;
+console.log(failed.length ? `\ncheck:live FAILED (${failed.length} of ${results.length})` : `\ncheck:live passed (${results.length - warned} of ${results.length} checks against ${site}${warned ? `, ${warned} warning` : ''})`);
 process.exit(failed.length ? 1 : 0);
