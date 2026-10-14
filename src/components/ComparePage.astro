@@ -33,7 +33,7 @@ const modelBases = Object.fromEntries(LAUNCH_FAMILIES.map((family) => [family, m
 const strings = { ...tp(lang, 'compare.'), ...tp(lang, 'val.'), ...tp(lang, 'spec.'), ...tp(lang, 'note.'), ...tp(lang, 'detail.'), ...tp(lang, 'family.') };
 ---
 
-<Base lang={lang} title={`${t(lang, 'compare.title')} · ${t(lang, 'site.name')}`} switchPath={compareSwitchPath(lang)} current="compare">
+<Base lang={lang} title={`${t(lang, 'compare.title')} · ${t(lang, 'site.name')}`} switchPath={compareSwitchPath(lang)} current="compare" noindex>
   <Section tone="soft" labelledby="compare-title">
     <h1 id="compare-title">{t(lang, 'compare.title')}</h1>
     <p class="lead">{t(lang, 'compare.lead')}</p>

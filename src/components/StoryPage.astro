@@ -25,7 +25,7 @@ const overdue = story.review_by < today();
 const first = models[0];
 ---
 
-<Base lang={lang} title={`${story.title[lang]} · ${t(lang, 'site.name')}`} switchPath={storySwitchPath(lang, story.slug[otherLang(lang)])} current="stories">
+<Base lang={lang} title={`${story.title[lang]} · ${t(lang, 'site.name')}`} switchPath={storySwitchPath(lang, story.slug[otherLang(lang)])} current="stories" description={story.teaser[lang]} ogType="article">
   <Section tone="soft" labelledby="story-title">
     <p class="back"><a href={storiesPath(lang)}>← {t(lang, 'stories.back')}</a></p>
     <p class="category">{td(lang, `stories.cat.${story.category}`)}</p>

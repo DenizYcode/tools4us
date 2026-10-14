@@ -40,7 +40,7 @@ const artLabel = family === 'wireless' ? `${card.name}, ${td(lang, `val.env.${ca
 const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?.includes('desktop') ? 'desktop' : 'rack';
 ---
 
-<Base lang={lang} title={`${card.name} · ${td(lang, `family.${family}.name`)} · ${t(lang, 'site.name')}`} switchPath={modelSwitchPath(lang, card.slug, family)} current={family}>
+<Base lang={lang} title={`${card.name} · ${td(lang, `family.${family}.name`)} · ${t(lang, 'site.name')}`} switchPath={modelSwitchPath(lang, card.slug, family)} current={family} description={textOf(card, lang, 'summary')}>
   <Section tone="soft" labelledby="model-title">
     <p class="back"><a href={familyPath(lang, family)}>← {td(lang, `detail.back.${family}`)}</a></p>
     <div class="intro">

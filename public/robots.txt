@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://denizycode.github.io/tools4us/sitemap.xml

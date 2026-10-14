@@ -20,7 +20,7 @@ const strings = {
 };
 ---
 
-<Base lang={lang} title={`${t(lang, 'search.title')} · ${t(lang, 'site.name')}`} switchPath={searchSwitchPath(lang)} current="search">
+<Base lang={lang} title={`${t(lang, 'search.title')} · ${t(lang, 'site.name')}`} switchPath={searchSwitchPath(lang)} current="search" noindex>
   <Section tone="soft" labelledby="search-title">
     <h1 id="search-title">{t(lang, 'search.title')}</h1>
     <p class="lead">{t(lang, 'search.lead')}</p>

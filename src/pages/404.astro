@@ -4,7 +4,7 @@ import Section from '../components/Section.astro';
 import { t, localePath } from '../i18n';
 ---
 
-<Base lang="tr" title={`${t('tr', 'notFound.title')} · ${t('en', 'notFound.title')} · ${t('tr', 'site.name')}`} bilingual>
+<Base lang="tr" title={`${t('tr', 'notFound.title')} · ${t('en', 'notFound.title')} · ${t('tr', 'site.name')}`} bilingual noindex>
   <Section labelledby="nf-title">
     <h1 id="nf-title">{t('tr', 'notFound.title')}</h1>
     <p>{t('tr', 'notFound.body')}</p>

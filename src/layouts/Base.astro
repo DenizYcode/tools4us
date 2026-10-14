@@ -18,13 +18,27 @@ interface Props {
   bilingual?: boolean;
   // Path after /<lang>/ for the same page in the other language (e.g. "kablosuz/"). Omit to hide the toggle.
   switchPath?: string;
+  // One sentence for search results and link previews. Defaults to the site tagline.
+  description?: string;
+  // Tool pages whose content is personal or empty until used (search, shortlist, compare) and the 404 page.
+  noindex?: boolean;
+  ogType?: 'website' | 'article';
   current?: Family | 'home' | 'compare' | 'stories' | 'search' | 'glossary' | 'shortlist' | 'migration';
 }
 
-const { lang, title, bilingual = false, switchPath, current } = Astro.props;
+const { lang, title, bilingual = false, switchPath, current, description, noindex = false, ogType = 'website' } = Astro.props;
 const other = otherLang(lang);
 const footerLangs: Lang[] = bilingual ? ['tr', 'en'] : [lang];
 const switchHref = switchPath === undefined ? undefined : localePath(other, switchPath);
+
+// Absolute addresses for the search engines and link previews. The bilingual pages (root redirect, 404) have no single language.
+const clip = (text: string, max = 160) => (text.length <= max ? text : `${text.slice(0, max - 1).replace(/\s+\S*$/, '')}…`);
+const abs = (path: string) => new URL(path, Astro.site).href;
+const summary = clip(description ?? t(lang, 'site.tagline'));
+const canonical = bilingual ? undefined : abs(Astro.url.pathname);
+const alternate = switchHref === undefined ? undefined : abs(switchHref);
+const image = abs(`${import.meta.env.BASE_URL}social-preview.png`);
+const locale = { tr: 'tr_TR', en: 'en_US' };
 ---
 
 <!doctype html>
@@ -32,7 +46,29 @@ const switchHref = switchPath === undefined ? undefined : localePath(other, swit
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={t(lang, 'site.tagline')} />
+    <meta name="description" content={summary} />
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={`${import.meta.env.BASE_URL}apple-touch-icon.png`} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {canonical && alternate && <link rel="alternate" hreflang={lang} href={canonical} />}
+    {canonical && alternate && <link rel="alternate" hreflang={other} href={alternate} />}
+    {canonical && alternate && <link rel="alternate" hreflang="x-default" href={lang === 'tr' ? canonical : alternate} />}
+    <meta property="og:site_name" content={t(lang, 'site.name')} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={summary} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:locale" content={locale[lang]} />
+    {canonical && alternate && <meta property="og:locale:alternate" content={locale[other]} />}
+    <meta property="og:image" content={image} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${t(lang, 'site.name')}: ${t(lang, 'site.tagline')}`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={summary} />
+    <meta name="twitter:image" content={image} />
     <meta name="theme-color" content="#0a1f44" />
     <title>{title}</title>
     {/* Preload the upright Inter files: Turkish letters (ı ş ğ İ) live in latin-ext, and a late font swap moves the text. */}

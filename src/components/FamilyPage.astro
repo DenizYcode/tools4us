@@ -30,7 +30,7 @@ const currentIn = (band: (typeof series)[number]) => band.cards.filter((c) => c.
 const startCount = tf(lang, 'list.count', { total: currentCount, shown: lang === 'tr' ? trPossessive(currentCount) : currentCount });
 ---
 
-<Base lang={lang} title={`${td(lang, `family.${family}.name`)} · ${t(lang, 'site.name')}`} switchPath={familySwitchPath(lang, family)} current={family}>
+<Base lang={lang} title={`${td(lang, `family.${family}.name`)} · ${t(lang, 'site.name')}`} switchPath={familySwitchPath(lang, family)} current={family} description={td(lang, `${family}.lead`)}>
   <Section tone="soft" labelledby="family-title">
     <div class="intro">
       <div>

@@ -15,6 +15,8 @@
 // - the request form: consent checkbox that is required, a honeypot, the KVKK notice linked, posts only to Web3Forms
 // - analytics: the page names only the configured GoatCounter address, the vendored count.js is the pinned, reviewed
 //   file, the site's own scripts contain no other web address, and no <form> posts to another host
+// - search and sharing: robots.txt, sitemap.xml (every indexable page, no noindex page), one canonical address, a
+//   description and a link preview on every page, language alternates that exist, noindex on exactly the tool pages and 404
 // - warns (does not fail) while a "TO FILL" placeholder from src/lib/site-config.mjs is still on a page
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -247,6 +249,60 @@ for (const file of files.filter((f) => /[\\/]_astro[\\/].*\.js$/.test(f))) {
     if (!SCRIPT_URL_ALLOWED.includes(url)) fail(`${rel(file)}: the site's script names a web address (${url})`);
   }
 }
+// Search and sharing: robots.txt and sitemap.xml, one canonical address per page, a description and a link preview on
+// every page, language alternates that point at pages that exist, and noindex on exactly the tool pages and the 404.
+const SITE_URL = new URL(config.site).origin;
+const NOINDEX_PAGES = new Set(['404.html', 'tr/ara/index.html', 'en/search/index.html', 'tr/seclimlerim/index.html', 'en/shortlist/index.html', 'tr/karsilastir/index.html', 'en/compare/index.html']);
+const metaOf = (html, re) => html.match(re)?.[1];
+for (const asset of ['favicon.svg', 'apple-touch-icon.png', 'social-preview.png', 'robots.txt', 'sitemap.xml']) {
+  if (!existsSync(join(DIST, asset))) fail(`${asset} is missing from dist`);
+}
+if (existsSync(join(DIST, 'social-preview.png'))) {
+  const png = readFileSync(join(DIST, 'social-preview.png'));
+  if (png.subarray(1, 4).toString() !== 'PNG' || png.readUInt32BE(16) !== 1200 || png.readUInt32BE(20) !== 630) fail('social-preview.png must be a 1200 x 630 PNG');
+}
+if (existsSync(join(DIST, 'robots.txt'))) {
+  const robots = readFileSync(join(DIST, 'robots.txt'), 'utf8');
+  if (/^\s*Disallow:\s*\/\s*$/m.test(robots)) fail('robots.txt blocks the whole site');
+  if (!robots.includes(`Sitemap: ${SITE_URL}${BASE}sitemap.xml`)) fail(`robots.txt does not point at ${SITE_URL}${BASE}sitemap.xml`);
+}
+const inSitemap = new Set();
+if (existsSync(join(DIST, 'sitemap.xml'))) {
+  const xml = readFileSync(join(DIST, 'sitemap.xml'), 'utf8');
+  for (const [, loc] of xml.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+    if (inSitemap.has(loc)) fail(`sitemap.xml lists ${loc} twice`);
+    inSitemap.add(loc);
+    if (!loc.startsWith(`${SITE_URL}${BASE}`)) fail(`sitemap.xml: ${loc} is outside the site`);
+    else if (!pageExists(loc.slice(SITE_URL.length))) fail(`sitemap.xml: ${loc} is not a built page`);
+  }
+}
+for (const page of pages) {
+  const name = rel(page);
+  const html = readFileSync(page, 'utf8');
+  const noindex = /<meta name="robots" content="[^"]*noindex/.test(html);
+  if (noindex !== NOINDEX_PAGES.has(name)) fail(`${name}: ${noindex ? 'has noindex but is not a tool page or the 404' : 'should have noindex (search, shortlist, compare, 404)'}`);
+  const bilingual = name === 'index.html' || name === '404.html';
+  const canonicals = [...html.matchAll(/<link rel="canonical" href="([^"]+)"/g)].map((m) => m[1]);
+  if (name === '404.html') {
+    if (canonicals.length) fail(`${name}: the 404 page must not carry a canonical address`);
+    continue;
+  }
+  const own = `${SITE_URL}${BASE}${name === 'index.html' ? '' : name.replace(/index\.html$/, '')}`;
+  const expected = name === 'index.html' ? `${SITE_URL}${BASE}tr/` : own;
+  if (canonicals.length !== 1 || canonicals[0] !== expected) fail(`${name}: canonical is ${canonicals.join(', ') || 'missing'}, expected ${expected}`);
+  const description = metaOf(html, /<meta name="description" content="([^"]*)"/);
+  if (!description || description.length < 20 || description.length > 170) fail(`${name}: meta description is ${description ? `${description.length} characters` : 'missing'} (20 to 170)`);
+  for (const key of ['og:title', 'og:description', 'og:image']) if (!new RegExp(`<meta property="${key}" content="[^"]+"`).test(html)) fail(`${name}: ${key} is missing`);
+  if (!html.includes(`<meta property="og:image" content="${SITE_URL}${BASE}social-preview.png"`)) fail(`${name}: og:image does not point at the site's social-preview.png`);
+  if (!bilingual) {
+    const alternates = [...html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)"/g)];
+    for (const [, lang, href] of alternates) if (!href.startsWith(`${SITE_URL}${BASE}`) || !pageExists(href.slice(SITE_URL.length))) fail(`${name}: hreflang ${lang} points at ${href}, which is not a built page`);
+    if (/class="lang-toggle"/.test(html) && alternates.length !== 3) fail(`${name}: has a language toggle but ${alternates.length} hreflang alternates (expected tr, en, x-default)`);
+    if (!noindex && !inSitemap.has(own)) fail(`${name}: indexable page is missing from sitemap.xml`);
+    if (noindex && inSitemap.has(own)) fail(`${name}: noindex page is listed in sitemap.xml`);
+  }
+}
+
 const placeholders = pages.filter((p) => readFileSync(p, 'utf8').includes(TO_FILL)).map((p) => rel(p));
 if (placeholders.length) console.log(`  warning: "${TO_FILL}" is still on ${placeholders.join(', ')} (fill in src/lib/site-config.mjs before launch)`);
 

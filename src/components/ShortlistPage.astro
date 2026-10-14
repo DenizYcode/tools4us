@@ -25,7 +25,7 @@ const strings = {
 const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePath(lang, [], f)]));
 ---
 
-<Base lang={lang} title={`${t(lang, 'shortlist.title')} · ${t(lang, 'site.name')}`} switchPath={shortlistSwitchPath(lang)} current="shortlist">
+<Base lang={lang} title={`${t(lang, 'shortlist.title')} · ${t(lang, 'site.name')}`} switchPath={shortlistSwitchPath(lang)} current="shortlist" noindex>
   <Section tone="soft" labelledby="shortlist-title">
     <h1 id="shortlist-title">{t(lang, 'shortlist.title')}</h1>
     <p class="lead">{t(lang, 'shortlist.lead')}</p>
