@@ -301,6 +301,7 @@ const terms = selector.terms as Record<string, string>;
         }
         out.append(article);
       }
+      document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event: 'selector-complete' } }));
       heading.focus();
     });
 

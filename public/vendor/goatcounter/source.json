@@ -1,0 +1,9 @@
+{
+  "file": "count.js",
+  "source": "https://gc.zgo.at/count.js",
+  "fetched": "2026-10-14",
+  "license": "ISC (https://opensource.org/licenses/ISC)",
+  "bytes": 9213,
+  "sha256": "792b7abd26c1fb6ae62906833e09a301251e2641816e69e4f95aba518f3fe3f0",
+  "note": "Byte-identical copy. check:dist fails if it changes. The page loads it only after checking Do Not Track, sets no_onload and no_events, removes the query string and the referrer path before anything is sent (src/scripts/track.ts)."
+}

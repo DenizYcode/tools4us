@@ -35,7 +35,7 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
     {family === 'routing' && <DeviceGraphic kind="router" form={deviceForm} ports={(card.lan_port_count ?? 0) + (card.wan_port_count ?? 0) || 4} uplinks={0} cellular={card.cellular !== 'none'} />}
   </div>
   <div class="main">
-    <h3><a href={modelPath(lang, card.slug, family)}>{card.name}</a></h3>
+    <h3><a href={modelPath(lang, card.slug, family)} data-track="model-select">{card.name}</a></h3>
     <p class="badges">
       <LifecycleBadge lang={lang} lifecycle={card.lifecycle} />
       {card.recommended && <span class="badge rec">{t(lang, 'badge.recommended')}</span>}

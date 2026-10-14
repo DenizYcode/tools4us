@@ -19,7 +19,7 @@ const Heading = `h${level}` as 'h2' | 'h3';
   <StoryGraphic category={story.category} />
   <div class="body">
     <p class="category">{td(lang, `stories.cat.${story.category}`)}</p>
-    <Heading><a href={storyPath(lang, story.slug[lang])}>{story.title[lang]}</a></Heading>
+    <Heading><a href={storyPath(lang, story.slug[lang])} data-track="story-click">{story.title[lang]}</a></Heading>
     <p class="teaser">{story.teaser[lang]}</p>
     <span class="cta" aria-hidden="true">{t(lang, 'stories.read')} →</span>
   </div>

@@ -216,7 +216,7 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
         <ul class="plain">
           {stories.map((story) => (
             <li>
-              <a href={storyPath(lang, story.slug[lang])}>{story.title[lang]}</a>
+              <a href={storyPath(lang, story.slug[lang])} data-track="story-click">{story.title[lang]}</a>
             </li>
           ))}
         </ul>
@@ -227,7 +227,7 @@ const deviceForm = family === 'switching' ? card.switch_form : card.form_factor?
   <Section labelledby="sources-title">
     <h2 id="sources-title">{t(lang, 'detail.sources')}</h2>
     <ul class="plain">
-      <li><ExtLink lang={lang} href={card.datasheet_url}>{t(lang, 'detail.datasheet')}</ExtLink></li>
+      <li><ExtLink lang={lang} href={card.datasheet_url} track="datasheet-click">{t(lang, 'detail.datasheet')}</ExtLink></li>
       <li class="muted">{t(lang, 'note.lastVerified')}: {card.last_verified}</li>
     </ul>
     <p class="verify"><strong>{t(lang, 'note.verify')}</strong></p>

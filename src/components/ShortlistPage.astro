@@ -135,6 +135,7 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
       ds.target = '_blank';
       ds.rel = 'noopener noreferrer';
       ds.className = 'ext';
+      ds.dataset.track = 'datasheet-click';
       ds.append(s['detail.datasheet'], ' ↗');
       const sr = el('span', 'visually-hidden', ` ${s['note.external']}`);
       ds.append(sr);
