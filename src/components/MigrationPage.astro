@@ -5,7 +5,7 @@
 import Base from '../layouts/Base.astro';
 import Section from './Section.astro';
 import { t, td, tp, localePath, type Lang } from '../i18n';
-import { migrationSwitchPath, migrationPath, searchPath, LAUNCH_FAMILIES } from '../i18n/routes';
+import { migrationSwitchPath, migrationPath, searchPath, contactPath, LAUNCH_FAMILIES } from '../i18n/routes';
 import { FAMILY_DATA } from '../lib/catalog';
 
 interface Props {
@@ -52,6 +52,7 @@ const total = oldModels.reduce((n, g) => n + g.cards.length, 0);
       data-data-url={localePath(lang, 'migration-data.json')}
       data-index-url={localePath(lang, 'search-index.json')}
       data-search-url={searchPath(lang)}
+      data-contact-url={contactPath(lang)}
       data-strings={JSON.stringify(strings)}
     >
       <h2 id="found-title" class="visually-hidden">{t(lang, 'migration.results')}</h2>
@@ -259,6 +260,9 @@ const total = oldModels.reduce((n, g) => n + g.cards.length, 0);
       /* the search index is only a nicety here */
     }
     box.append(el('p', '', s['migration.noneTip']));
+    const ask = el('p');
+    ask.append(link(root.dataset.contactUrl ?? '#', s['migration.askLink'], 'go'));
+    box.append(ask);
     groups.append(box);
     if (track) trackEvent('migration-miss');
   }

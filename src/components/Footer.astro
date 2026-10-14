@@ -1,5 +1,6 @@
 ---
 import { t, type Lang } from '../i18n';
+import { contactPath, privacyPath, glossaryPath } from '../i18n/routes';
 
 interface Props {
   langs: Lang[];
@@ -11,6 +12,15 @@ const { langs } = Astro.props;
 <footer class="site-footer">
   <div class="container">
     {langs.map((lang) => <p lang={lang}>{t(lang, 'footer.disclaimer')}</p>)}
+    {
+      langs.length === 1 && (
+        <nav class="links" aria-label={t(langs[0], 'footer.nav')}>
+          <a href={contactPath(langs[0])}>{t(langs[0], 'contact.title')}</a>
+          <a href={privacyPath(langs[0])}>{t(langs[0], 'privacy.title')}</a>
+          <a href={glossaryPath(langs[0])}>{t(langs[0], 'glossary.title')}</a>
+        </nav>
+      )
+    }
   </div>
 </footer>
 
@@ -28,7 +38,17 @@ const { langs } = Astro.props;
     margin: 0 0 var(--space-3);
   }
 
-  .site-footer p:last-child {
-    margin-bottom: 0;
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-5);
+    margin-top: var(--space-4);
+  }
+
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-weight: 600;
   }
 </style>

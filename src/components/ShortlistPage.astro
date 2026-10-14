@@ -5,7 +5,7 @@
 import Base from '../layouts/Base.astro';
 import Section from './Section.astro';
 import { t, td, tp, localePath, type Lang } from '../i18n';
-import { shortlistPath, shortlistSwitchPath, comparePath, searchPath, LAUNCH_FAMILIES } from '../i18n/routes';
+import { shortlistPath, shortlistSwitchPath, comparePath, searchPath, contactPath, LAUNCH_FAMILIES } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
@@ -49,6 +49,7 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
         <button type="button" id="do-print">{t(lang, 'shortlist.print')}</button>
         <button type="button" id="do-csv">{t(lang, 'shortlist.csv')}</button>
         <button type="button" id="do-copy">{t(lang, 'shortlist.copy')}</button>
+        <a class="help" id="do-help" href={contactPath(lang)} data-base={contactPath(lang)}>{t(lang, 'shortlist.help')}</a>
         <button type="button" id="do-clear" class="danger">{t(lang, 'shortlist.clear')}</button>
       </div>
       <div id="groups"></div>
@@ -159,6 +160,7 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
 
   function render() {
     const list = current();
+    syncHelp();
     groups.replaceChildren();
     banner.hidden = shared === null;
     if (shared) {
@@ -238,6 +240,12 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
 
   const say = (message: string) => {
     status.textContent = message;
+  };
+
+  // "Ask us" carries a shared list along, so the owner sees what the visitor was looking at.
+  const help = document.getElementById('do-help') as HTMLAnchorElement | null;
+  const syncHelp = () => {
+    if (help) help.href = shared ? `${help.dataset.base}?l=${encodeURIComponent(encodeList(shared))}` : (help.dataset.base ?? '#');
   };
 
   document.getElementById('do-print')?.addEventListener('click', () => {
@@ -332,6 +340,24 @@ const compareUrls = Object.fromEntries(LAUNCH_FAMILIES.map((f) => [f, comparePat
   .toolbar button:hover,
   :global(#shortlist-root .shared button:hover) {
     background: var(--bg-tint);
+  }
+
+  .toolbar .help {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--accent-strong);
+    border-radius: var(--radius-s);
+    background: var(--accent);
+    color: var(--white);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .toolbar .help:hover {
+    background: var(--accent-strong);
+    color: var(--white);
   }
 
   .toolbar .danger {

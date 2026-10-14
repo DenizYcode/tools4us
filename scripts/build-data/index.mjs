@@ -6,6 +6,7 @@ import { validateCatalog } from './validate.mjs';
 import { checkI18nParity } from './i18n-parity.mjs';
 import { readGlossary, validateGlossary } from './glossary.mjs';
 import { readStories, validateStories } from './stories.mjs';
+import { siteConfigProblems } from '../../src/lib/site-config.mjs';
 
 const MAX_LISTED = 40;
 
@@ -45,8 +46,9 @@ export async function runCheck() {
   const read = readStories();
   const storyResult = validateStories(read.stories, catalog);
 
-  const errors = [...problems.filter((p) => p.level === 'error'), ...result.errors, ...parity, ...glossaryErrors, ...read.problems.filter((p) => p.level === 'error'), ...storyResult.errors];
-  const warnings = [...problems.filter((p) => p.level === 'warning'), ...result.warnings, ...storyResult.warnings];
+  const site = siteConfigProblems();
+  const errors = [...problems.filter((p) => p.level === 'error'), ...result.errors, ...parity, ...site.filter((p) => p.level === 'error'), ...glossaryErrors, ...read.problems.filter((p) => p.level === 'error'), ...storyResult.errors];
+  const warnings = [...problems.filter((p) => p.level === 'warning'), ...result.warnings, ...storyResult.warnings, ...site.filter((p) => p.level === 'warning')];
 
   printStats(result.stats);
   console.log(`

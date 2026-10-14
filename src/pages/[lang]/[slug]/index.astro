@@ -7,8 +7,10 @@ import SearchPage from '../../../components/SearchPage.astro';
 import GlossaryPage from '../../../components/GlossaryPage.astro';
 import ShortlistPage from '../../../components/ShortlistPage.astro';
 import MigrationPage from '../../../components/MigrationPage.astro';
+import ContactPage from '../../../components/ContactPage.astro';
+import PrivacyPage from '../../../components/PrivacyPage.astro';
 import { locales, type Lang } from '../../../i18n';
-import { LAUNCH_FAMILIES, SLUGS, COMPARE_SLUG, STORIES_SLUG, SEARCH_SLUG, GLOSSARY_SLUG, SHORTLIST_SLUG, MIGRATION_SLUG, type Family } from '../../../i18n/routes';
+import { LAUNCH_FAMILIES, SLUGS, COMPARE_SLUG, STORIES_SLUG, SEARCH_SLUG, GLOSSARY_SLUG, SHORTLIST_SLUG, MIGRATION_SLUG, CONTACT_SLUG, PRIVACY_SLUG, type Family } from '../../../i18n/routes';
 
 export function getStaticPaths() {
   return locales.flatMap((lang) => [
@@ -19,11 +21,13 @@ export function getStaticPaths() {
     { params: { lang, slug: GLOSSARY_SLUG[lang] }, props: { kind: 'glossary' as const, family: null } },
     { params: { lang, slug: SHORTLIST_SLUG[lang] }, props: { kind: 'shortlist' as const, family: null } },
     { params: { lang, slug: MIGRATION_SLUG[lang] }, props: { kind: 'migration' as const, family: null } },
+    { params: { lang, slug: CONTACT_SLUG[lang] }, props: { kind: 'contact' as const, family: null } },
+    { params: { lang, slug: PRIVACY_SLUG[lang] }, props: { kind: 'privacy' as const, family: null } },
   ]);
 }
 
 const lang = Astro.params.lang as Lang;
-const { kind, family } = Astro.props as { kind: 'family' | 'compare' | 'stories' | 'search' | 'glossary' | 'shortlist' | 'migration'; family: Family | null };
+const { kind, family } = Astro.props as { kind: 'family' | 'compare' | 'stories' | 'search' | 'glossary' | 'shortlist' | 'migration' | 'contact' | 'privacy'; family: Family | null };
 ---
 
 {kind === 'compare' && <ComparePage lang={lang} />}
@@ -32,4 +36,6 @@ const { kind, family } = Astro.props as { kind: 'family' | 'compare' | 'stories'
 {kind === 'glossary' && <GlossaryPage lang={lang} />}
 {kind === 'shortlist' && <ShortlistPage lang={lang} />}
 {kind === 'migration' && <MigrationPage lang={lang} />}
+{kind === 'contact' && <ContactPage lang={lang} />}
+{kind === 'privacy' && <PrivacyPage lang={lang} />}
 {kind === 'family' && family && <FamilyPage lang={lang} family={family} />}

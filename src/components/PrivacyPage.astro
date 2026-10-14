@@ -1,0 +1,100 @@
+---
+// KVKK notice (Aydınlatma Metni): who is responsible, what is processed, why, on what basis, the transfer abroad
+// through Web3Forms, how long, the visitor's rights, and what analytics does. The controller's name and email come
+// from src/lib/site-config.mjs; `npm run check:data` warns while they are still "TO FILL".
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import { t, tf, type Lang } from '../i18n';
+import { privacySwitchPath } from '../i18n/routes';
+import { SITE_CONFIG } from '../lib/site-config.mjs';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { name, email } = SITE_CONFIG.controller;
+---
+
+<Base lang={lang} title={`${t(lang, 'privacy.title')} · ${t(lang, 'site.name')}`} switchPath={privacySwitchPath(lang)}>
+  <Section tone="soft" labelledby="privacy-title">
+    <h1 id="privacy-title">{t(lang, 'privacy.title')}</h1>
+    <p class="lead">{t(lang, 'privacy.lead')}</p>
+  </Section>
+
+  <Section>
+    <div class="text">
+      <h2>{t(lang, 'privacy.controller.h')}</h2>
+      <p>{tf(lang, 'privacy.controller.p', { name, email })}</p>
+
+      <h2>{t(lang, 'privacy.data.h')}</h2>
+      <p>{t(lang, 'privacy.data.p')}</p>
+      <ul>
+        <li>{t(lang, 'privacy.data.1')}</li>
+        <li>{t(lang, 'privacy.data.2')}</li>
+        <li>{t(lang, 'privacy.data.3')}</li>
+        <li>{t(lang, 'privacy.data.4')}</li>
+      </ul>
+
+      <h2>{t(lang, 'privacy.purpose.h')}</h2>
+      <p>{t(lang, 'privacy.purpose.p')}</p>
+
+      <h2>{t(lang, 'privacy.basis.h')}</h2>
+      <p>{t(lang, 'privacy.basis.p')}</p>
+
+      <h2>{t(lang, 'privacy.abroad.h')}</h2>
+      <p>{t(lang, 'privacy.abroad.p')}</p>
+
+      <h2>{t(lang, 'privacy.retention.h')}</h2>
+      <p>{t(lang, 'privacy.retention.p')}</p>
+
+      <h2>{t(lang, 'privacy.rights.h')}</h2>
+      <p>{t(lang, 'privacy.rights.p')}</p>
+      <ul>
+        <li>{t(lang, 'privacy.rights.1')}</li>
+        <li>{t(lang, 'privacy.rights.2')}</li>
+        <li>{t(lang, 'privacy.rights.3')}</li>
+        <li>{t(lang, 'privacy.rights.4')}</li>
+        <li>{t(lang, 'privacy.rights.5')}</li>
+        <li>{t(lang, 'privacy.rights.6')}</li>
+      </ul>
+      <p>{tf(lang, 'privacy.rights.apply', { email })}</p>
+
+      <h2>{t(lang, 'privacy.cookies.h')}</h2>
+      <p>{t(lang, 'privacy.cookies.p')}</p>
+
+      <p class="indep">{t(lang, 'privacy.indep.p')}</p>
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .lead {
+    max-width: 42rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .text {
+    max-width: 46rem;
+  }
+
+  .text h2 {
+    margin-top: var(--space-6);
+    font-size: var(--text-h3);
+  }
+
+  .text h2:first-child {
+    margin-top: 0;
+  }
+
+  .text li {
+    margin-bottom: var(--space-2);
+  }
+
+  .indep {
+    margin-top: var(--space-6);
+    color: var(--muted);
+  }
+</style>

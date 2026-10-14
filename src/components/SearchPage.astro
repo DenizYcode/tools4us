@@ -4,7 +4,7 @@
 import Base from '../layouts/Base.astro';
 import Section from './Section.astro';
 import { t, td, tp, localePath, type Lang } from '../i18n';
-import { searchPath, searchSwitchPath, LAUNCH_FAMILIES } from '../i18n/routes';
+import { searchPath, searchSwitchPath, contactPath, LAUNCH_FAMILIES } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
@@ -32,7 +32,7 @@ const strings = {
   </Section>
 
   <Section labelledby="results-title">
-    <div id="search-root" data-lang={lang} data-index-url={localePath(lang, 'search-index.json')} data-strings={JSON.stringify(strings)}>
+    <div id="search-root" data-lang={lang} data-contact-url={contactPath(lang)} data-index-url={localePath(lang, 'search-index.json')} data-strings={JSON.stringify(strings)}>
       <h2 id="results-title" class="visually-hidden">{t(lang, 'search.title')}</h2>
       <p id="status" class="status" role="status" aria-live="polite">{t(lang, 'search.hint')}</p>
       <div id="groups"></div>
@@ -140,6 +140,9 @@ const strings = {
     if (!hits.length) {
       status.textContent = fill(strings['search.none'], { q });
       groups.append(el('p', 'tip', strings['search.noneTip']));
+      const ask = el('p', 'tip');
+      ask.append(link(root.dataset.contactUrl ?? '#', strings['search.askLink']));
+      groups.append(ask);
       if (track) document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event: 'search-zero' } }));
       return;
     }

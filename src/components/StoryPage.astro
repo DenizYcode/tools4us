@@ -8,7 +8,7 @@ import StoryGraphic from './graphics/StoryGraphic.astro';
 import VideoEmbed from './VideoEmbed.astro';
 import ExtLink from './ExtLink.astro';
 import { t, tf, td, otherLang, type Lang } from '../i18n';
-import { storiesPath, storySwitchPath, familyPath, modelPath } from '../i18n/routes';
+import { storiesPath, storySwitchPath, familyPath, modelPath, contactPath } from '../i18n/routes';
 import { relatedModels, today, type Story } from '../lib/stories';
 import { textOf } from '../lib/catalog';
 import { renderMarkdown } from '../lib/markdown.mjs';
@@ -81,6 +81,8 @@ const first = models[0];
               <a class="button" href={story.sources[0].url} target="_blank" rel="noopener noreferrer">{t(lang, 'stories.ctaSource')}<span class="sr">{t(lang, 'note.external')}</span></a>
             )
           }
+          {' '}
+          <a class="button ghost" href={contactPath(lang)}>{t(lang, 'stories.ctaAsk')}</a>
         </p>
       </section>
 
@@ -227,6 +229,16 @@ const first = models[0];
   .button:hover {
     background: var(--accent-strong);
     color: var(--white);
+  }
+
+  .button.ghost {
+    background: var(--white);
+    color: var(--accent-strong);
+  }
+
+  .button.ghost:hover {
+    background: var(--bg-tint);
+    color: var(--accent-strong);
   }
 
   .note {

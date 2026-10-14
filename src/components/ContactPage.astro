@@ -1,0 +1,320 @@
+---
+// "Bize sorun": the request form (SPEC "Request presales help"). It sends the message and, if the visitor agrees, the
+// shortlist to the owner's inbox through Web3Forms. It is not an order and not a quote, and it says so. The form needs
+// the visitor's consent to the KVKK notice before it can be sent; spam is held back by a hidden honeypot field and a
+// minimum time on the page (the same two checks the old site used).
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import { t, tp, localePath, type Lang } from '../i18n';
+import { contactSwitchPath, privacyPath } from '../i18n/routes';
+import { SITE_CONFIG } from '../lib/site-config.mjs';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const strings = { ...tp(lang, 'contact.'), 'shortlist.pids': t(lang, 'shortlist.pids'), 'shortlist.config': t(lang, 'shortlist.config') };
+---
+
+<Base lang={lang} title={`${t(lang, 'contact.title')} · ${t(lang, 'site.name')}`} switchPath={contactSwitchPath(lang)}>
+  <Section tone="soft" labelledby="contact-title">
+    <h1 id="contact-title">{t(lang, 'contact.title')}</h1>
+    <p class="lead">{t(lang, 'contact.lead')}</p>
+    <p class="note"><strong>{t(lang, 'contact.notOrder')}</strong></p>
+  </Section>
+
+  <Section labelledby="form-title">
+    <div
+      id="contact-root"
+      data-lang={lang}
+      data-endpoint={SITE_CONFIG.web3forms.endpoint}
+      data-key={SITE_CONFIG.web3forms.accessKey}
+      data-data-url={localePath(lang, 'shortlist-data.json')}
+      data-strings={JSON.stringify(strings)}
+    >
+      <h2 id="form-title" class="visually-hidden">{t(lang, 'contact.title')}</h2>
+      <form id="contact-form" class="form" method="post" action="#">
+        <div class="field">
+          <label for="c-name">{t(lang, 'contact.name')}</label>
+          <input id="c-name" name="name" type="text" autocomplete="name" required maxlength="120" />
+        </div>
+        <div class="field">
+          <label for="c-email">{t(lang, 'contact.email')}</label>
+          <input id="c-email" name="email" type="email" autocomplete="email" required maxlength="160" />
+        </div>
+        <div class="field">
+          <label for="c-company">{t(lang, 'contact.company')}</label>
+          <input id="c-company" name="company" type="text" autocomplete="organization" maxlength="160" />
+        </div>
+        <div class="field">
+          <label for="c-message">{t(lang, 'contact.message')}</label>
+          <p class="hint" id="c-message-hint">{t(lang, 'contact.messageHint')}</p>
+          <textarea id="c-message" name="message" rows="6" required maxlength="3000" aria-describedby="c-message-hint"></textarea>
+        </div>
+
+        <fieldset class="list" id="list-box" hidden>
+          <legend>{t(lang, 'contact.list')}</legend>
+          <label class="check"><input type="checkbox" id="c-attach" checked /> <span>{t(lang, 'contact.listAttach')}</span></label>
+          <p id="list-count" class="hint"></p>
+          <ul id="list-items" class="items"></ul>
+        </fieldset>
+        <p id="list-empty" class="hint" hidden>{t(lang, 'contact.listEmpty')}</p>
+
+        <!-- Honeypot: people never see or tick this; many bots do. -->
+        <div class="hp" aria-hidden="true">
+          <label>Leave this empty <input type="checkbox" name="botcheck" id="c-bot" tabindex="-1" autocomplete="off" /></label>
+        </div>
+
+        <label class="check consent">
+          <input type="checkbox" id="c-consent" required />
+          <span>{t(lang, 'contact.consentBefore')}<a href={privacyPath(lang)} target="_blank" rel="noopener">{t(lang, 'contact.consentLink')}</a>{t(lang, 'contact.consentAfter')}</span>
+        </label>
+
+        <p class="actions"><button type="submit" id="c-send">{t(lang, 'contact.send')}</button></p>
+        <p id="c-status" class="status" role="status" aria-live="polite" tabindex="-1"></p>
+      </form>
+    </div>
+    <noscript><p>{t(lang, 'contact.noscript')}</p></noscript>
+  </Section>
+</Base>
+
+<script>
+  import { getList } from '../scripts/shortlist';
+  import { decodeList } from '../lib/shortlist.mjs';
+
+  type Item = { f: string; s: string; c?: string };
+  type Entry = { n: string; se: string; p: string[]; h: string };
+
+  const root = document.getElementById('contact-root')!;
+  const s: Record<string, string> = JSON.parse(root.dataset.strings ?? '{}');
+  const lang = root.dataset.lang === 'en' ? 'en' : 'tr';
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const status = document.getElementById('c-status')!;
+  const send = document.getElementById('c-send') as HTMLButtonElement;
+  const attach = document.getElementById('c-attach') as HTMLInputElement;
+  const fill = (template: string, vars: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
+  const openedAt = Date.now();
+
+  // The list comes from a share link (?l=) when the visitor arrived from one, else from this browser.
+  const param = new URLSearchParams(location.search).get('l');
+  const items: Item[] = param ? (decodeList(param) as Item[]) : (getList() as Item[]);
+  let data: Record<string, Entry> | null = null;
+
+  const listBox = document.getElementById('list-box')!;
+  const listEmpty = document.getElementById('list-empty')!;
+  const listItems = document.getElementById('list-items')!;
+  const listCount = document.getElementById('list-count')!;
+
+  async function showList() {
+    if (!items.length) {
+      listEmpty.hidden = false;
+      return;
+    }
+    listBox.hidden = false;
+    listCount.textContent = s['contact.loading'];
+    try {
+      const response = await fetch(root.dataset.dataUrl!);
+      if (!response.ok) throw new Error(String(response.status));
+      data = await response.json();
+    } catch {
+      data = {};
+    }
+    listCount.textContent = fill(s['contact.listCount'], { n: items.length });
+    for (const item of items) {
+      const li = document.createElement('li');
+      li.textContent = data?.[`${item.f}/${item.s}`]?.n ?? s['contact.mail.unknown'];
+      if (item.c) li.textContent += ` (${item.c})`;
+      listItems.append(li);
+    }
+  }
+  void showList();
+
+  /** The mail body: who, what they asked, and the list as plain text with links and codes. */
+  function compose(values: { name: string; email: string; company: string; message: string }) {
+    const lines = [values.message.trim(), ''];
+    if (values.company.trim()) lines.push(`${s['contact.mail.company']}: ${values.company.trim()}`);
+    lines.push(`${s['contact.mail.page']}: ${location.origin}${location.pathname}`);
+    if (attach.checked && items.length) {
+      lines.push('', `${s['contact.mail.list']} (${items.length}):`);
+      for (const item of items) {
+        const entry = data?.[`${item.f}/${item.s}`];
+        if (!entry) {
+          lines.push(`- ${item.f}/${item.s} ${s['contact.mail.unknown']}`);
+          continue;
+        }
+        lines.push(`- ${entry.n} | ${s['shortlist.pids']}: ${entry.p.join(', ')} | ${new URL(entry.h, location.origin).href}`);
+        if (item.c && /^[A-Za-z0-9._ +-]+$/.test(item.c)) lines.push(`  ${s['shortlist.config']}: ${item.c}`);
+      }
+    }
+    return lines.join('\n');
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    const bot = (document.getElementById('c-bot') as HTMLInputElement).checked;
+    if (bot || Date.now() - openedAt < 3000) {
+      status.textContent = s['contact.tooFast'];
+      status.focus();
+      return;
+    }
+    const field = (name: string) => (form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement).value;
+    const values = { name: field('name').trim(), email: field('email').trim(), company: field('company'), message: field('message') };
+    send.disabled = true;
+    status.textContent = s['contact.sending'];
+    try {
+      const response = await fetch(root.dataset.endpoint!, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: root.dataset.key,
+          subject: s['contact.subject'],
+          from_name: 'Tools4Us',
+          name: values.name,
+          email: values.email,
+          message: compose(values),
+          language: lang,
+          botcheck: '',
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result?.success) throw new Error('rejected');
+      form.reset();
+      status.textContent = s['contact.sent'];
+      document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event: 'form-sent' } }));
+    } catch {
+      status.textContent = s['contact.error'];
+    } finally {
+      send.disabled = false;
+      status.focus();
+    }
+  });
+</script>
+
+<style>
+  .lead {
+    max-width: 42rem;
+    margin: 0 0 var(--space-3);
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .note {
+    max-width: 42rem;
+    margin: 0;
+  }
+
+  .form {
+    display: grid;
+    gap: var(--space-5);
+    max-width: 40rem;
+  }
+
+  .field label,
+  legend {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--navy-900);
+    font-weight: 650;
+  }
+
+  .hint {
+    margin: 0 0 var(--space-2);
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  input[type='text'],
+  input[type='email'],
+  textarea {
+    width: 100%;
+    min-height: var(--tap);
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--border-strong);
+    border-radius: var(--radius-s);
+    background: var(--white);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .list {
+    margin: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    background: var(--bg-soft);
+  }
+
+  .list[hidden] {
+    display: none;
+  }
+
+  .items {
+    margin: 0;
+    padding-inline-start: var(--space-5);
+    overflow-wrap: anywhere;
+  }
+
+  .check {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    min-height: var(--tap);
+    cursor: pointer;
+  }
+
+  .check input {
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: 0.125rem;
+    accent-color: var(--accent);
+  }
+
+  .consent a {
+    font-weight: 650;
+  }
+
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .actions {
+    margin: 0;
+  }
+
+  button[type='submit'] {
+    min-height: var(--tap);
+    padding: 0 var(--space-6);
+    border: 2px solid var(--accent-strong);
+    border-radius: var(--radius-s);
+    background: var(--accent);
+    color: var(--white);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  button[type='submit']:hover {
+    background: var(--accent-strong);
+  }
+
+  button[type='submit']:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .status {
+    margin: 0;
+    font-weight: 650;
+  }
+</style>
