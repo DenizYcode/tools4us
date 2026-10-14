@@ -1,0 +1,536 @@
+---
+// Migration finder ("Eski cihazım var", SPEC "Migration finder"): an old model in, its current replacement out, with
+// what changes (management, licence, power, ports). It only knows published End-of-Sale models with a bulletin, so
+// an unknown PID gets an honest "not in our list" instead of a guess.
+import Base from '../layouts/Base.astro';
+import Section from './Section.astro';
+import { t, td, tp, localePath, type Lang } from '../i18n';
+import { migrationSwitchPath, migrationPath, searchPath, LAUNCH_FAMILIES } from '../i18n/routes';
+import { FAMILY_DATA } from '../lib/catalog';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const strings = {
+  ...tp(lang, 'migration.'),
+  ...tp(lang, 'spec.'),
+  ...tp(lang, 'val.life.'),
+  ...Object.fromEntries(LAUNCH_FAMILIES.map((f) => [`family.${f}.name`, td(lang, `family.${f}.name`)])),
+  'detail.replacementNote': t(lang, 'detail.replacementNote'),
+  'detail.replacementNone': t(lang, 'detail.replacementNone'),
+  'note.verify': t(lang, 'note.verify'),
+  'note.external': t(lang, 'note.external'),
+  'search.group.model': t(lang, 'search.group.model'),
+};
+// The old models, for the "what can I look up" list. Same published rows the data file is built from.
+const oldModels = LAUNCH_FAMILIES.map((family) => ({
+  family,
+  cards: FAMILY_DATA[family].cards.filter((c) => c.lifecycle !== 'current').map((c) => ({ name: c.name, query: c.pids[0] })),
+})).filter((g) => g.cards.length > 0);
+const total = oldModels.reduce((n, g) => n + g.cards.length, 0);
+---
+
+<Base lang={lang} title={`${t(lang, 'shortcuts.legacy.title')} · ${t(lang, 'site.name')}`} switchPath={migrationSwitchPath(lang)} current="migration">
+  <Section tone="soft" labelledby="migration-title">
+    <h1 id="migration-title">{t(lang, 'shortcuts.legacy.title')}</h1>
+    <p class="lead">{t(lang, 'migration.lead')}</p>
+    <form class="box" role="search" method="get" action={migrationPath(lang)} id="migration-form">
+      <label for="old">{t(lang, 'migration.label')}</label>
+      <div class="row">
+        <input id="old" name="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder={t(lang, 'migration.placeholder')} />
+        <button type="submit">{t(lang, 'migration.button')}</button>
+      </div>
+    </form>
+  </Section>
+
+  <Section labelledby="found-title">
+    <div
+      id="migration-root"
+      data-lang={lang}
+      data-data-url={localePath(lang, 'migration-data.json')}
+      data-index-url={localePath(lang, 'search-index.json')}
+      data-search-url={searchPath(lang)}
+      data-strings={JSON.stringify(strings)}
+    >
+      <h2 id="found-title" class="visually-hidden">{t(lang, 'migration.results')}</h2>
+      <p id="status" class="status" role="status" aria-live="polite">{t(lang, 'migration.hint')}</p>
+      <div id="groups"></div>
+    </div>
+    <noscript><p>{t(lang, 'search.noscript')}</p></noscript>
+
+    <details class="list">
+      <summary>{t(lang, 'migration.listTitle').replace('{n}', String(total))}</summary>
+      <p class="muted">{t(lang, 'migration.listHelp')}</p>
+      {
+        oldModels.map((group) => (
+          <section>
+            <h3>{td(lang, `family.${group.family}.name`)}</h3>
+            <ul class="chips">
+              {group.cards.map((card) => (
+                <li>
+                  <button type="button" class="chip" data-fill={card.query} aria-label={t(lang, 'migration.fillFor').replace('{name}', card.name)}>{card.name}</button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </details>
+  </Section>
+</Base>
+
+<script>
+  import { search, prepareIndex, normalize } from '../lib/search.mjs';
+  import { makeButton } from '../scripts/shortlist';
+
+  type Change = { key: string; from: string; to: string };
+  type Repl = { slug: string; name: string; href: string; summary: string; compare: string; changes: Change[] };
+  type Old = {
+    id: string;
+    family: string;
+    title: string;
+    pids: string[];
+    lc: string;
+    lo: string | null;
+    ldos: string | null;
+    href: string;
+    bulletin: string | null;
+    note: string | null;
+    none: boolean;
+    repls: Repl[];
+  };
+
+  const root = document.getElementById('migration-root')!;
+  const s: Record<string, string> = JSON.parse(root.dataset.strings ?? '{}');
+  const form = document.getElementById('migration-form') as HTMLFormElement;
+  const input = document.getElementById('old') as HTMLInputElement;
+  const status = document.getElementById('status')!;
+  const groups = document.getElementById('groups')!;
+  const fill = (template: string, vars: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
+  const el = (tag: string, className?: string, content?: string) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (content !== undefined) node.textContent = content;
+    return node;
+  };
+  const link = (href: string, content: string, className?: string) => {
+    const a = document.createElement('a');
+    a.href = href;
+    a.textContent = content;
+    if (className) a.className = className;
+    return a;
+  };
+  const trackEvent = (event: string) => document.dispatchEvent(new CustomEvent('t4u:track', { detail: { event } }));
+
+  let data: Promise<ReturnType<typeof prepareIndex>> | null = null;
+  const load = () => {
+    data ??= fetch(root.dataset.dataUrl!).then((r) => {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.json();
+    }).then(prepareIndex);
+    return data;
+  };
+  let searchIndex: Promise<ReturnType<typeof prepareIndex>> | null = null;
+  const loadSearchIndex = () => {
+    searchIndex ??= fetch(root.dataset.indexUrl!).then((r) => r.json()).then(prepareIndex);
+    return searchIndex;
+  };
+
+  function changesTable(repl: Repl) {
+    if (!repl.changes.length) return el('p', 'muted', s['migration.noChanges']);
+    const table = el('table', 'changes');
+    const caption = el('caption', 'visually-hidden', s['migration.changes']);
+    const head = el('tr');
+    for (const label of [s['migration.colFeature'], s['migration.colOld'], s['migration.colNew']]) {
+      const th = el('th', '', label);
+      th.scope = 'col';
+      head.append(th);
+    }
+    const thead = el('thead');
+    thead.append(head);
+    const body = el('tbody');
+    for (const change of repl.changes) {
+      const tr = el('tr');
+      const th = el('th', '', s[`spec.${change.key}`] ?? change.key);
+      th.scope = 'row';
+      tr.append(th, el('td', '', change.from), el('td', '', change.to));
+      body.append(tr);
+    }
+    table.append(caption, thead, body);
+    return table;
+  }
+
+  function replacement(old: Old, repl: Repl) {
+    const box = el('div', 'repl');
+    const h = el('h4');
+    h.append(link(repl.href, repl.name));
+    box.append(h, el('p', '', repl.summary), el('h5', '', s['migration.changes']), changesTable(repl));
+    const actions = el('p', 'actions');
+    actions.append(link(repl.compare, s['migration.compare'], 'go'));
+    const add = makeButton({ f: old.family, s: repl.slug }, repl.name);
+    if (add) actions.append(add);
+    box.append(actions);
+    return box;
+  }
+
+  function oldCard(old: Old) {
+    const article = el('article', 'old');
+    const head = el('div', 'head');
+    const h = el('h3');
+    h.append(link(old.href, old.title));
+    head.append(h, el('span', `life ${old.lc}`, s[`val.life.${old.lc}`] ?? old.lc), el('span', 'family', s[`family.${old.family}.name`] ?? old.family));
+    article.append(head, el('p', 'meta', `${s['migration.pids']}: ${old.pids.join(', ')}`));
+    const dates: string[] = [];
+    if (old.lo) dates.push(fill(s['migration.lastOrder'], { date: old.lo }));
+    if (old.ldos) dates.push(fill(s['migration.ldos'], { date: old.ldos }));
+    if (dates.length) article.append(el('p', 'meta', dates.join(' · ')));
+    if (old.bulletin) {
+      const a = link(old.bulletin, s['migration.bulletin'], 'ext');
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.append(' ↗', el('span', 'visually-hidden', ` ${s['note.external']}`));
+      const p = el('p', 'meta');
+      p.append(a);
+      article.append(p);
+    }
+    if (old.repls.length) {
+      article.append(el('h4', 'sub', s['migration.replacement']));
+      for (const repl of old.repls) article.append(replacement(old, repl));
+    } else if (old.note) {
+      article.append(el('p', 'note', fill(s['detail.replacementNote'], { note: old.note })));
+    } else if (old.none) {
+      article.append(el('p', 'note', s['detail.replacementNone']));
+    }
+    return article;
+  }
+
+  async function run(raw: string, { track = false } = {}) {
+    const q = raw.trim();
+    groups.replaceChildren();
+    if (!q) {
+      status.textContent = s['migration.hint'];
+      return;
+    }
+    status.textContent = s['migration.loading'];
+    let index;
+    try {
+      index = await load();
+    } catch {
+      status.textContent = s['migration.error'];
+      return;
+    }
+    if (input.value.trim() !== q) return;
+    const found = search(index, q, { limit: 12 });
+    // A whole PID that matches exactly is the answer; looser matches of the same words only add noise.
+    const exact = found.length > 0 && found[0].score >= 1000;
+    const hits = (exact ? found.filter((h) => h.score >= 800) : found).map((h) => h.entry as unknown as Old);
+    if (hits.length) {
+      status.textContent = fill(s['migration.count'], { n: hits.length });
+      for (const old of hits) groups.append(oldCard(old));
+      groups.append(el('p', 'verify', s['note.verify']));
+      if (track) trackEvent('migration-found');
+      return;
+    }
+    // Not an old model we know. If it is a current model, say so and link it; otherwise be honest about the gap.
+    status.textContent = fill(s['migration.none'], { q });
+    const box = el('div', 'miss');
+    try {
+      const all = await loadSearchIndex();
+      const current = search(all, q, { limit: 40 })
+        .map((h) => h.entry as unknown as { kind: string; title: string; href: string; lc?: string; pids?: string[] })
+        .filter((e) => e.kind === 'model' && e.lc === 'current' && normalize(q).length >= 3)
+        .slice(0, 3);
+      if (current.length) {
+        box.append(el('p', '', fill(s['migration.current'], { q })));
+        const ul = el('ul', 'plain');
+        for (const e of current) {
+          const li = el('li');
+          li.append(link(e.href, e.title));
+          ul.append(li);
+        }
+        box.append(ul);
+        if (track) trackEvent('migration-current');
+        groups.append(box);
+        return;
+      }
+    } catch {
+      /* the search index is only a nicety here */
+    }
+    box.append(el('p', '', s['migration.noneTip']));
+    groups.append(box);
+    if (track) trackEvent('migration-miss');
+  }
+
+  function remember(query: string) {
+    const url = new URL(location.href);
+    if (query.trim()) url.searchParams.set('q', query.trim());
+    else url.searchParams.delete('q');
+    history.replaceState(null, '', url);
+  }
+
+  let timer = 0;
+  input.addEventListener('input', () => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      remember(input.value);
+      void run(input.value);
+    }, 160);
+  });
+  input.addEventListener('focus', () => void load().catch(() => {}), { once: true });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    window.clearTimeout(timer);
+    remember(input.value);
+    void run(input.value, { track: true });
+  });
+  document.querySelector('details.list')?.addEventListener('click', (event) => {
+    const chip = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-fill]');
+    if (!chip) return;
+    input.value = chip.dataset.fill ?? '';
+    remember(input.value);
+    void run(input.value, { track: true });
+    input.scrollIntoView({ block: 'center' });
+    input.focus();
+  });
+
+  const initial = new URLSearchParams(location.search).get('q') ?? '';
+  if (initial) {
+    input.value = initial;
+    void run(initial, { track: true });
+  }
+</script>
+
+<style>
+  .lead {
+    max-width: 42rem;
+    margin: 0 0 var(--space-5);
+    color: var(--muted);
+    font-size: var(--text-lead);
+  }
+
+  .box label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 650;
+    color: var(--navy-900);
+  }
+
+  .row {
+    display: flex;
+    gap: var(--space-2);
+    max-width: 40rem;
+  }
+
+  input[type='search'] {
+    flex: 1;
+    min-width: 0;
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border: 2px solid var(--border-strong);
+    border-radius: var(--radius-s);
+    background: var(--white);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  button[type='submit'] {
+    min-height: var(--tap);
+    padding: 0 var(--space-5);
+    border: 2px solid var(--accent-strong);
+    border-radius: var(--radius-s);
+    background: var(--accent);
+    color: var(--white);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  button[type='submit']:hover {
+    background: var(--accent-strong);
+  }
+
+  .status {
+    margin: 0 0 var(--space-4);
+    color: var(--muted);
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  :global(#migration-root .old) {
+    margin-bottom: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    background: var(--white);
+  }
+
+  :global(#migration-root .head) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  :global(#migration-root .head h3) {
+    margin: 0;
+  }
+
+  :global(#migration-root .head h3 a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  :global(#migration-root .life) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0 var(--space-3);
+    border-radius: 999px;
+    background: var(--eos-bg);
+    color: var(--eos-ink);
+    font-size: var(--text-small);
+    font-weight: 650;
+  }
+
+  :global(#migration-root .family) {
+    color: var(--muted);
+    font-size: var(--text-small);
+  }
+
+  :global(#migration-root .meta) {
+    margin: 0 0 var(--space-2);
+    color: var(--muted);
+    font-size: var(--text-small);
+    overflow-wrap: anywhere;
+  }
+
+  :global(#migration-root .meta a),
+  :global(#migration-root .repl h4 a),
+  :global(#migration-root .go),
+  :global(#migration-root .plain a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  :global(#migration-root .sub) {
+    margin: var(--space-4) 0 var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border);
+  }
+
+  :global(#migration-root .repl) {
+    margin-bottom: var(--space-4);
+    padding: var(--space-3);
+    border-radius: var(--radius-m);
+    background: var(--bg-soft);
+  }
+
+  :global(#migration-root .repl h4) {
+    margin: 0 0 var(--space-2);
+  }
+
+  :global(#migration-root .repl h5) {
+    margin: var(--space-3) 0 var(--space-2);
+    font-size: 1rem;
+    color: var(--navy-900);
+  }
+
+  :global(#migration-root .changes) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-small);
+  }
+
+  :global(#migration-root .changes th),
+  :global(#migration-root .changes td) {
+    padding: var(--space-2) var(--space-1);
+    border-bottom: 1px solid var(--border);
+    text-align: start;
+    vertical-align: top;
+    overflow-wrap: break-word;
+  }
+
+  /* The feature name keeps whole words; the values may break inside long codes. */
+  :global(#migration-root .changes tbody th) {
+    min-width: 5.5rem;
+  }
+
+  :global(#migration-root .changes td) {
+    overflow-wrap: anywhere;
+  }
+
+  :global(#migration-root .changes thead th) {
+    color: var(--muted);
+  }
+
+  :global(#migration-root .actions) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    margin: var(--space-3) 0 0;
+  }
+
+  :global(#migration-root .go) {
+    font-weight: 650;
+  }
+
+  :global(#migration-root .note) {
+    padding: var(--space-3);
+    border-radius: var(--radius-s);
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+  }
+
+  :global(#migration-root .verify) {
+    font-weight: 650;
+  }
+
+  :global(#migration-root .plain) {
+    margin: 0;
+    padding-inline-start: var(--space-5);
+  }
+
+  .list {
+    margin-top: var(--space-6);
+  }
+
+  .list summary {
+    display: flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    list-style: none;
+  }
+
+  .chip {
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--navy-900);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .chip:hover {
+    background: var(--bg-tint);
+  }
+</style>
